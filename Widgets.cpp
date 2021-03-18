@@ -295,4 +295,54 @@ namespace ImGuiEx {
 		if (ImGui::IsMouseReleased(1) && ImGui::IsItemHovered())
 			ImGui::TableOpenContextMenu(column_n);
 	}
+
+	// This code can be used to make the text over the progressBar aligned.
+	// This also uses imgui internals, which are likely to change between versions.
+	void AlignedProgressBar(float fraction, const ImVec2& size_arg, const char* overlay, Alignment alignment) {
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (window->SkipItems)
+			return;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+
+		ImVec2 pos = window->DC.CursorPos;
+		ImVec2 size = ImGui::CalcItemSize(size_arg, ImGui::CalcItemWidth(), g.FontSize + style.FramePadding.y * 2.0f);
+		ImRect bb(pos, pos + size);
+		ImGui::ItemSize(size, style.FramePadding.y);
+		if (!ImGui::ItemAdd(bb, 0))
+			return;
+
+		// Render
+		fraction = ImSaturate(fraction);
+		ImGui::RenderFrame(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+		bb.Expand(ImVec2(-style.FrameBorderSize, -style.FrameBorderSize));
+		const ImVec2 fill_br = ImVec2(ImLerp(bb.Min.x, bb.Max.x, fraction), bb.Max.y);
+		ImGui::RenderRectFilledRangeH(window->DrawList, bb, ImGui::GetColorU32(ImGuiCol_PlotHistogram), 0.0f, fraction, style.FrameRounding);
+
+		// Default displaying the fraction as percentage string, but user can override it
+		char overlay_buf[32];
+		if (!overlay)
+		{
+			ImFormatString(overlay_buf, IM_ARRAYSIZE(overlay_buf), "%.0f%%", fraction * 100 + 0.01f);
+			overlay = overlay_buf;
+		}
+
+		ImVec2 overlay_size = ImGui::CalcTextSize(overlay, NULL);
+		if (overlay_size.x > 0.0f) {
+			switch (alignment) {
+			case Alignment::Left:
+				ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(0.f, 0.f), &bb);
+				break;
+			case Alignment::Center:
+				ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(0.5f, 0.5f), &bb);
+				break;
+			case Alignment::Right:
+				ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(1.f, 0.f), &bb);
+				break;
+			default:
+				ImGui::RenderTextClipped(ImVec2(ImClamp(fill_br.x + style.ItemSpacing.x, bb.Min.x, bb.Max.x - overlay_size.x - style.ItemInnerSpacing.x), bb.Min.y), bb.Max, overlay, NULL, &overlay_size, ImVec2(0.0f, 0.5f), &bb);
+			}
+		}
+	}
 }
