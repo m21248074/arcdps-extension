@@ -289,7 +289,10 @@ namespace ImGuiEx {
 
 		// const bool text_clipped = label_size.x > (ellipsis_max - label_pos.x);
 		// if (text_clipped && hovered && g.HoveredIdNotActiveTimer > g.TooltipSlowDelay)
-		// 	ImGui::SetTooltip("%.*s", (int)(label_end - label), label);
+			// ImGui::SetTooltip("%.*s", (int)(label_end - label), label);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(label);
+		}
 
 		// We don't use BeginPopupContextItem() because we want the popup to stay up even after the column is hidden
 		if (ImGui::IsMouseReleased(1) && ImGui::IsItemHovered())
