@@ -538,4 +538,35 @@ namespace ImGuiEx {
 
 		return menu_is_open;
 	}
+
+	void BeginMenuChild(const char* child_str_id, const char* menu_label, std::function<void()> draw_func) {
+		ImGui::BeginChild(child_str_id, ImVec2(0, ImGui::GetTextLineHeight()));
+		bool hoveredChild = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_ChildWindows);
+
+		if (ImGui::BeginMenu(menu_label)) {
+			draw_func();
+
+			bool hovoredMenu = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_ChildWindows);
+
+			if (!hoveredChild && !hovoredMenu && !ImGui::IsAnyMouseDown()) {
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndChild();
+	}
+
+	void BeginMenu(const char* menu_label, std::function<void()> draw_func) {
+		bool hovered;
+		if (ImGuiEx::BeginMenu(menu_label, true, hovered)) {
+			draw_func();
+
+			if (!(ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_ChildWindows) || hovered) && !ImGui::IsAnyMouseDown()) {
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndMenu();
+		}
+	}
+
 }

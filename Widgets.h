@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "arcdps_structs.h"
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_internal.h"
@@ -13,6 +15,8 @@ namespace ImGuiEx {
 	void TableHeader(const char* label, bool show_label, ImTextureID texture, Alignment alignment = Alignment::Left);
 	void AlignedProgressBar(float fraction, const ImVec2& size_arg, const char* overlay, Alignment alignment);
 	bool BeginMenu(const char* label, bool enabled, bool& hovered);
+	void BeginMenuChild(const char* child_str_id, const char* menu_label, std::function<void()> draw_func);
+	void BeginMenu(const char* menu_label, std::function<void()> draw_func);
 
 	template<typename E>
 	void Selectable(E& storage, E value) {
