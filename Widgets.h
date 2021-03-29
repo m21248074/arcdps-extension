@@ -2,6 +2,7 @@
 
 #include "arcdps_structs.h"
 #include "../imgui/imgui.h"
+#include "../imgui/imgui_internal.h"
 
 static inline ImVec2 operator+(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x + rhs, lhs.y + rhs); }
 
@@ -11,6 +12,7 @@ namespace ImGuiEx {
 	void AlignedTextColumn(Alignment alignment, const char* text, ...);
 	void TableHeader(const char* label, bool show_label, ImTextureID texture, Alignment alignment = Alignment::Left);
 	void AlignedProgressBar(float fraction, const ImVec2& size_arg, const char* overlay, Alignment alignment);
+	bool BeginMenu(const char* label, bool enabled, bool& hovered);
 
 	template<typename E>
 	void Selectable(E& storage, E value) {
