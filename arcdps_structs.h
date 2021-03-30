@@ -100,6 +100,20 @@ enum Prof : uint32_t {
 	PROF_RENEGADE = 9,
 };
 
+enum ColorsCore {
+	CCOL_TRANSPARENT,
+	CCOL_WHITE,
+	CCOL_LWHITE,
+	CCOL_LGREY,
+	CCOL_LYELLOW,
+	CCOL_LGREEN,
+	CCOL_LRED,
+	CCOL_LTEAL,
+	CCOL_MGREY,
+	CCOL_DGREY,
+	CCOL_NUM
+};
+
 typedef struct arcdps_exports {
 	uintptr_t size; /* size of exports table */
 	uint32_t sig; /* pick a number between 0 and uint32_t max that isn't used by other modules */
