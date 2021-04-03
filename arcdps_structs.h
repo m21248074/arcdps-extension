@@ -173,11 +173,11 @@ typedef struct ag {
 
 bool is_player(ag* new_player);
 
-typedef uintptr_t(*WindowCallbackSignature)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-typedef uintptr_t(*CombatCallbackSignature)(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision);
-typedef uintptr_t(*ImguiCallbackSignature)(uint32_t not_charsel_or_loading);
-typedef uintptr_t(*OptionsEndCallbackSignature)();
-typedef uintptr_t(*OptionsWindowsCallbackSignature)(const char* windowname);
+typedef uintptr_t (*WindowCallbackSignature)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+typedef uintptr_t (*CombatCallbackSignature)(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision);
+typedef uintptr_t (*ImguiCallbackSignature)(uint32_t not_charsel_or_loading);
+typedef uintptr_t (*OptionsEndCallbackSignature)();
+typedef uintptr_t (*OptionsWindowsCallbackSignature)(const char* windowname);
 
 typedef struct arcdps_exports {
 	uintptr_t size; /* size of exports table */
@@ -194,6 +194,17 @@ typedef struct arcdps_exports {
 	OptionsWindowsCallbackSignature options_windows; /* called once per 'window' option checkbox, with null at the end, non-zero return disables drawing that option, fn(char* windowname) */
 } arcdps_exports;
 static_assert(sizeof(arcdps_exports) == 88, "");
+
+typedef void* (*MallocSignature)(size_t);
+typedef void (*FreeSignature)(void*);
+
+typedef arcdps_exports* (*ModInitSignature)();
+typedef uintptr_t (*ModReleaseSignature)();
+
+struct IDirect3DDevice9;
+struct ImGuiContext;
+typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, IDirect3DDevice9* id3dd9, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn);
+typedef ModReleaseSignature (*GetReleaseAddrSignature)();
 
 // additional enum for alignment
 enum class Alignment {
