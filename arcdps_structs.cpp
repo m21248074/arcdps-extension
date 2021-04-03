@@ -1,7 +1,7 @@
 #include "arcdps_structs.h"
 
+#ifndef ARCDPS_EXTENSION_NO_LANG_H
 #include "../Lang.h"
-
 std::string to_string(Alignment alignment) {
 	switch (alignment) {
 	case Alignment::Left: return lang.translate(LangKey::Left);
@@ -11,6 +11,7 @@ std::string to_string(Alignment alignment) {
 	default: return "Unknown";
 	}
 }
+#endif
 
 bool is_player(ag* new_player)
 {
