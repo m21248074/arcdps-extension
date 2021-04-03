@@ -163,7 +163,7 @@ typedef struct cbtevent {
 
 /* agent short */
 typedef struct ag {
-	char* name; /* agent name. may be null. valid only at time of event. utf8 */
+	const char* name; /* agent name. may be null. valid only at time of event. utf8 */
 	uintptr_t id; /* agent unique identifier */
 	Prof prof; /* profession at time of event. refer to evtc notes for identification */
 	uint32_t elite; /* elite spec at time of event. refer to evtc notes for identification */
