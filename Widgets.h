@@ -17,6 +17,8 @@ namespace ImGuiEx {
 	bool BeginMenu(const char* label, bool enabled, bool& hovered);
 	void BeginMenuChild(const char* child_str_id, const char* menu_label, std::function<void()> draw_func);
 	void BeginMenu(const char* menu_label, std::function<void()> draw_func);
+	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags);
+	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx);
 
 	template<typename E>
 	void Selectable(E& storage, E value) {

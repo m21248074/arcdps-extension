@@ -294,8 +294,8 @@ namespace ImGuiEx {
 		}
 
 		// We don't use BeginPopupContextItem() because we want the popup to stay up even after the column is hidden
-		if (ImGui::IsMouseReleased(1) && ImGui::IsItemHovered())
-			ImGui::TableOpenContextMenu(column_n);
+		// if (ImGui::IsMouseReleased(1) && ImGui::IsItemHovered())
+			// ImGui::TableOpenContextMenu(column_n);
 	}
 
 	// This code can be used to make the text over the progressBar aligned.
@@ -571,4 +571,28 @@ namespace ImGuiEx {
 		}
 	}
 
+	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags)
+	{
+		ImGuiWindow* window = GImGui->CurrentWindow;
+		if (!str_id)
+			str_id = "window_context";
+		ImGuiID id = window->GetID(str_id);
+		int mouse_button = (popup_flags & ImGuiPopupFlags_MouseButtonMask_);
+		hovered_flags |= ImGuiHoveredFlags_AllowWhenBlockedByPopup;
+		if (ImGui::IsMouseReleased(mouse_button) && ImGui::IsWindowHovered(hovered_flags))
+			if (!(popup_flags & ImGuiPopupFlags_NoOpenOverItems) || !ImGui::IsAnyItemHovered())
+				ImGui::OpenPopupEx(id, popup_flags);
+		return ImGui::BeginPopupEx(id, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
+	}
+	
+	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx) {
+		ImGuiTableColumn& usernameColumn = table->Columns[columnIdx];
+		const char* usernameColumnName = ImGui::TableGetColumnName(table, columnIdx);
+		// Make sure we can't hide the last active column
+		bool menu_item_active = (usernameColumn.Flags & ImGuiTableColumnFlags_NoHide) ? false : true;
+		if (usernameColumn.IsEnabled && table->ColumnsEnabledCount <= 1)
+			menu_item_active = false;
+		if (ImGui::MenuItem(usernameColumnName, NULL, usernameColumn.IsEnabled, menu_item_active))
+			usernameColumn.IsEnabledNextFrame = !usernameColumn.IsEnabled;
+	}
 }
