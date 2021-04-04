@@ -20,10 +20,21 @@ namespace ImGuiEx {
 	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags);
 	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx);
 
-	template<typename E>
+	template<typename E, typename = typename std::enable_if<std::is_enum<E>::value, void>::type>
 	void Selectable(E& storage, E value) {
 		if (ImGui::Selectable(to_string(value).c_str())) {
 			storage = value;
+		}
+	}
+
+	template<typename E, typename = typename std::enable_if<std::is_enum<E>::value, void>::type>
+	void EnumCombo(const char* label, E& storage, std::initializer_list<E> values) {
+		if (ImGui::BeginCombo(label, to_string(storage).c_str())) {
+			for (const E& val : values) {
+				ImGuiEx::Selectable(storage, val);
+			}
+	
+			ImGui::EndCombo();
 		}
 	}
 }
