@@ -23,6 +23,9 @@ enum cbtresult {
 	CBTR_BLIND, // physical hit missed
 	CBTR_KILLINGBLOW, // hit was killing hit
 	CBTR_DOWNED, // hit was downing hit
+
+	// always last element
+	CBTR_FINAL_ENTRY
 };
 
 /* combat activation */
@@ -32,7 +35,10 @@ enum cbtactivation {
 	ACTV_QUICKNESS, // activation with quickness
 	ACTV_CANCEL_FIRE, // cancel with reaching channel time
 	ACTV_CANCEL_CANCEL, // cancel without reaching channel time
-	ACTV_RESET // animation completed fully
+	ACTV_RESET, // animation completed fully
+
+	// always last element
+	ACTV_FINAL_ENTRY
 };
 
 /* combat state change */
@@ -77,7 +83,10 @@ enum cbtstatechange {
 	CBTS_TAG, // src_agent is agent, value is the id (volatile, game build dependent) of the tag
 	CBTS_BARRIERUPDATE,  // src_agent is at barrier percent. dst_agent = percent * 10000 (eg. 99.5% will be 9950) (not in realtime api)
 	CBTS_STATRESET,  // stats reset for all players, to match arc ui (not in log)
-	CBTS_UNKNOWN // unknown or invalid, ignore
+	CBTS_UNKNOWN, // unknown or invalid, ignore
+
+	// always last element
+	CBTS_FINAL_ENTRY
 };
 
 /* combat buff remove type */
@@ -86,6 +95,9 @@ enum cbtbuffremove {
 	CBTB_ALL, // last/all stacks removed (sent by server)
 	CBTB_SINGLE, // single stack removed (sent by server). will happen for each stack on cleanse
 	CBTB_MANUAL, // single stack removed (auto by arc on ooc or all stack, ignore for strip/cleanse calc, use for in/out volume)
+
+	// always last element
+	CBTB_FINAL_ENTRY
 };
 
 /* custom skill ids */
@@ -115,6 +127,9 @@ enum Prof : uint32_t {
 	PROF_MESMER = 7,
 	PROF_NECRO = 8,
 	PROF_RENEGADE = 9,
+
+	// always last element
+	PROF_FINAL_ENTRY
 };
 
 enum ColorsCore {
@@ -128,7 +143,10 @@ enum ColorsCore {
 	CCOL_LTEAL,
 	CCOL_MGREY,
 	CCOL_DGREY,
-	CCOL_NUM
+	CCOL_NUM,
+
+	// always last element
+	CCOL_FINAL_ENTRY
 };
 
 typedef struct cbtevent {
@@ -211,7 +229,10 @@ enum class Alignment {
 	Left,
 	Center,
 	Right,
-	Unaligned
+	Unaligned,
+
+	// always last element
+	FINAL_ENTRY
 };
 
 std::string to_string(Alignment alignment);

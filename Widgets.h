@@ -37,4 +37,15 @@ namespace ImGuiEx {
 			ImGui::EndCombo();
 		}
 	}
+	
+	template<typename E, typename = typename std::enable_if<std::is_enum<E>::value, void>::type>
+	void EnumCombo(const char* label, E& storage, E lastElement) {
+		if (ImGui::BeginCombo(label, to_string(storage).c_str())) {
+			for (E i = 0; i < lastElement; ++i) {
+				ImGuiEx::Selectable(storage, i);
+			}
+
+			ImGui::EndCombo();
+		}
+	}
 }
