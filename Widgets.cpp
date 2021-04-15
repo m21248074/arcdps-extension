@@ -291,7 +291,7 @@ namespace ImGuiEx {
 		// if (text_clipped && hovered && g.HoveredIdNotActiveTimer > g.TooltipSlowDelay)
 			// ImGui::SetTooltip("%.*s", (int)(label_end - label), label);
 		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip(label);
+			ImGui::SetTooltip("%s", label);
 		}
 
 		// We don't use BeginPopupContextItem() because we want the popup to stay up even after the column is hidden
