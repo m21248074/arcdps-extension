@@ -587,13 +587,13 @@ namespace ImGuiEx {
 	}
 	
 	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx) {
-		ImGuiTableColumn& usernameColumn = table->Columns[columnIdx];
-		const char* usernameColumnName = ImGui::TableGetColumnName(table, columnIdx);
+		ImGuiTableColumn& column = table->Columns[columnIdx];
+		const char* columnName = ImGui::TableGetColumnName(table, columnIdx);
 		// Make sure we can't hide the last active column
-		bool menu_item_active = (usernameColumn.Flags & ImGuiTableColumnFlags_NoHide) ? false : true;
-		if (usernameColumn.IsEnabled && table->ColumnsEnabledCount <= 1)
+		bool menu_item_active = (column.Flags & ImGuiTableColumnFlags_NoHide) ? false : true;
+		if (column.IsEnabled && table->ColumnsEnabledCount <= 1)
 			menu_item_active = false;
-		if (ImGui::MenuItem(usernameColumnName, NULL, usernameColumn.IsEnabled, menu_item_active))
-			usernameColumn.IsEnabledNextFrame = !usernameColumn.IsEnabled;
+		if (ImGui::MenuItem(columnName, NULL, column.IsEnabled, menu_item_active))
+			column.IsEnabledNextFrame = !column.IsEnabled;
 	}
 }
