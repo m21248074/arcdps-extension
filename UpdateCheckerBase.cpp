@@ -1,12 +1,16 @@
 #include "UpdateCheckerBase.h"
 
+
+#include <optional>
 #include <thread>
 #include <cpr/cpr.h>
 
 #include "json.hpp"
 
 void UpdateCheckerBase::checkForUpdate(HMODULE dll) {
-    if (!getCurrentVersion(dll)) return;
+    std::optional<ImVec4> currentVersion = GetCurrentVersion(dll);
+    if (!currentVersion) return;
+    version = currentVersion.value();
 
     std::thread cprCall([this]() {
         std::string link = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest";
@@ -47,38 +51,38 @@ void UpdateCheckerBase::checkForUpdate(HMODULE dll) {
     cprCall.detach();
 }
 
-bool UpdateCheckerBase::getCurrentVersion(HMODULE dll) {
+std::optional<ImVec4> UpdateCheckerBase::GetCurrentVersion(HMODULE dll) {
     // GetModuleFileName
     TCHAR moduleFileName[MAX_PATH + 1]{ };
     if (!GetModuleFileName(dll, moduleFileName, MAX_PATH)) {
-        return false;
+        return std::nullopt;
     }
 
     // GetFileVersionInfoSize
     DWORD dummy; // this will get set to 0 (wtf windows api)
     DWORD versionInfoSize = GetFileVersionInfoSize(moduleFileName, &dummy);
     if (versionInfoSize == 0) {
-        return false;
+        return std::nullopt;
     }
     std::vector<BYTE> data(versionInfoSize);
 
     // GetFileVersionInfo
     if (!GetFileVersionInfo(moduleFileName, NULL, versionInfoSize, &data[0])) {
-        return false;
+        return std::nullopt;
     }
 
     UINT randomPointer = 0;
     VS_FIXEDFILEINFO* fixedFileInfo = nullptr;
     if (!VerQueryValue(&data[0], TEXT("\\"), (void**)&fixedFileInfo, &randomPointer)) {
-        return false;
+        return std::nullopt;
     }
 
-    version = ImVec4(
+    ImVec4 version (
         HIWORD(fixedFileInfo->dwProductVersionMS),
         LOWORD(fixedFileInfo->dwProductVersionMS),
         HIWORD(fixedFileInfo->dwProductVersionLS),
         LOWORD(fixedFileInfo->dwProductVersionLS)
     );
 
-    return true;
+    return version;
 }
