@@ -6,8 +6,6 @@
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_internal.h"
 
-static inline ImVec2 operator+(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x + rhs, lhs.y + rhs); }
-
 namespace ImGuiEx {
 	bool Spinner(const char* label, float radius, float thickness, const ImU32& color);
 	bool SpinnerAligned(const char* label, float radius, float thickness, const ImU32& color, Alignment alignment);

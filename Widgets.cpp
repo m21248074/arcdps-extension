@@ -3,6 +3,8 @@
 
 #include <cstdlib>
 
+static inline ImVec2 operator+(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x + rhs, lhs.y + rhs); }
+
 namespace ImGuiEx {
 	bool Spinner(const char* label, float radius, float thickness, const ImU32& color) {
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -585,7 +587,7 @@ namespace ImGuiEx {
 				ImGui::OpenPopupEx(id, popup_flags);
 		return ImGui::BeginPopupEx(id, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
 	}
-	
+
 	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx) {
 		ImGuiTableColumn& column = table->Columns[columnIdx];
 		const char* columnName = ImGui::TableGetColumnName(table, columnIdx);
