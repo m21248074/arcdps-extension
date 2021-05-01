@@ -1,8 +1,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
-
 #include "BigTable.h"
 
-static inline ImVec2 operator+(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x + rhs, lhs.y + rhs); }
+#include "ImGui_Math.h"
 
 namespace ImGuiEx::BigTable {
     // storage
