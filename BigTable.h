@@ -91,21 +91,45 @@ namespace ImGuiEx::BigTable {
 		}
         template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
         ImU128 operator-(const T n) {
-            ImU128 u(a);
-			const bool c = n > b;
-            u.b = b - n;
-			if (c) {
-                u.a -= 1;
-			}
+			// create copy and calculate - in copy
+	        ImU128 u(a, b);
+            u -= n;
             return u;
 		}
 
+        template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+		void operator +=(const T n) {
+            uint64_t nb = b + n;
+			if (nb < b) {
+                a += 1;
+			}
+            b = nb;
+		}
+        template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+        ImU128 operator+(const T n) {
+            ImU128 u(a, b);
+            u += n;
+            return u;
+        }
+
+        // This does not generate != and ==
 		auto operator<=>(const ImU128& other) {
             if (auto cmp = a <=> other.a; cmp != 0)
                 return cmp;
             return b <=> other.b;
 		}
 
+        friend bool operator==(const ImU128& lhs, const ImU128& rhs) {
+	        return lhs.a == rhs.a
+		        && lhs.b == rhs.b;
+        }
+        friend bool operator!=(const ImU128& lhs, const ImU128& rhs) {
+	        return !(lhs == rhs);
+        }
+        friend bool operator==(const ImU128& lhs, const int rhs) {
+            return lhs.a == 0 && lhs.b == rhs;
+		}
+		
 		operator bool() const {
             return a > 0 || b > 0;
 		}

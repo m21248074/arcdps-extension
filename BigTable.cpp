@@ -1,6 +1,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "BigTable.h"
 
+#include <iostream>
+
+
 #include "ImGui_Math.h"
 
 namespace ImGuiEx::BigTable {
@@ -212,6 +215,7 @@ namespace ImGuiEx::BigTable {
                 table->Columns[column_n].DisplayOrder = (ImGuiTableColumnIdx)column_n;
 
         // Rebuild index
+        std::cout << table->DisplayOrderToIndex.size() << std::endl;
         for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
             table->DisplayOrderToIndex[table->Columns[column_n].DisplayOrder] = (ImGuiTableColumnIdx)column_n;
     }
