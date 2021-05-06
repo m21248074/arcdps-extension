@@ -1,21 +1,22 @@
 #include "UpdateCheckerBase.h"
 
-
 #include <optional>
 #include <thread>
 #include <cpr/cpr.h>
 
 #include "json.hpp"
 
-void UpdateCheckerBase::checkForUpdate(HMODULE dll) {
+void UpdateCheckerBase::checkForUpdate(HMODULE dll, std::string repo) {
     std::optional<ImVec4> currentVersion = GetCurrentVersion(dll);
     if (!currentVersion) return;
     version = currentVersion.value();
 
-    std::thread cprCall([this]() {
-        std::string link = "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest";
+    std::thread cprCall([this, repo]() {
+        std::string link = "https://api.github.com/repos/";
+        link.append(repo);
+    	link.append("/releases/latest");
 
-        cpr::Response response = cpr::Get(cpr::Url{ link }, cpr::Header{ {"User-Agent", "arcdps-killproof.me-plugin"} });
+        cpr::Response response = cpr::Get(cpr::Url{ link });
 
         if (response.status_code == 200) {
             auto json = nlohmann::json::parse(response.text);
@@ -85,4 +86,19 @@ std::optional<ImVec4> UpdateCheckerBase::GetCurrentVersion(HMODULE dll) {
     );
 
     return version;
+}
+
+char* UpdateCheckerBase::GetVersionAsString(HMODULE dll) {
+    std::optional<ImVec4> currentVersion = UpdateCheckerBase::GetCurrentVersion(dll);
+    std::stringstream version;
+    if (currentVersion) {
+        version << currentVersion->x << "." << currentVersion->y << "." << currentVersion->z << "." << currentVersion->w;
+    }
+    else {
+        version << __DATE__;
+    }
+    std::string temp = version.str();
+    char* version_c_str = new char[temp.length() + 1];
+    strcpy_s(version_c_str, temp.length() + 1, temp.c_str());
+    return version_c_str;
 }
