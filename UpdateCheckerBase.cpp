@@ -6,7 +6,7 @@
 
 #include "json.hpp"
 
-void UpdateCheckerBase::checkForUpdate(HMODULE dll, std::string repo) {
+void UpdateCheckerBase::CheckForUpdate(HMODULE dll, std::string repo) {
     std::optional<ImVec4> currentVersion = GetCurrentVersion(dll);
     if (!currentVersion) return;
     version = currentVersion.value();
@@ -44,12 +44,33 @@ void UpdateCheckerBase::checkForUpdate(HMODULE dll, std::string repo) {
             newVersion.z = std::stof(versionNums[2]);
 
             if (newVersion.x > version.x || newVersion.y > version.y || newVersion.z > version.z) {
-                update_available = true;
+                Status expected = Status::Unknown;
+                update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
             }
+
+        	// load download URL
+            downloadUrl = json["assets"][0]["browser_download_url"].get<std::string>();
         }
     });
 
     cprCall.detach();
+}
+
+void UpdateCheckerBase::ClearFiles(HMODULE dll) {
+    CHAR dllPath[MAX_PATH] = { 0 };
+    if (GetModuleFileNameA(dll, dllPath, _countof(dllPath)) == 0) {
+        return;
+    }
+
+    std::string dllPathTemp(dllPath);
+    dllPathTemp.append(".tmp");
+
+    std::remove(dllPathTemp.c_str());
+
+    std::string dllPathOld(dllPath);
+    dllPathOld.append(".old");
+
+    std::remove(dllPathOld.c_str());
 }
 
 std::optional<ImVec4> UpdateCheckerBase::GetCurrentVersion(HMODULE dll) {
@@ -101,4 +122,57 @@ char* UpdateCheckerBase::GetVersionAsString(HMODULE dll) {
     char* version_c_str = new char[temp.length() + 1];
     strcpy_s(version_c_str, temp.length() + 1, temp.c_str());
     return version_c_str;
+}
+
+void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
+    if (downloadUrl.empty()) return;
+
+    Status expected = Status::UpdateAvailable;
+    if (!update_status.compare_exchange_strong(expected, Status::UpdatingInProgress))
+        return;
+
+    std::thread t([this, dll]() {
+        cpr::Session session;
+        session.SetUrl(cpr::Url{ downloadUrl });
+
+        CHAR dllPath[MAX_PATH] = { 0 };
+        if (GetModuleFileNameA(dll, dllPath, _countof(dllPath)) == 0) {
+            update_status = Status::UpdateError;
+            return;
+        }
+
+        std::string dllPathTemp(dllPath);
+        dllPathTemp.append(".tmp");
+
+    	// new context to have ofstream and session only temporary (they have to be closed later on)
+        {
+            std::ofstream outFile(dllPathTemp);
+
+            cpr::Response response = session.Download(outFile);
+            if (response.status_code != 200) {
+                // Error downloading
+                update_status = Status::UpdateError;
+                return;
+            }
+        }
+
+        std::string dllPathOld(dllPath);
+        dllPathOld.append(".old");
+    	
+        if (std::rename(dllPath, dllPathOld.c_str())) {
+	        // Error renaming
+            update_status = Status::UpdateError;
+            return;
+        }
+
+    	if (std::rename(dllPathTemp.c_str(), dllPath)) {
+    		// Error renaming
+            update_status = Status::UpdateError;
+            return;
+    	}
+
+        update_status = Status::RestartPending;
+    });
+
+    t.detach();
 }
