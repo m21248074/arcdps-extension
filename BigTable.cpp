@@ -2516,6 +2516,11 @@ namespace ImGuiEx::BigTable {
         // TODO change eventually
         const float image_size = 16.f;
 
+    	// Show label, if texture is not loaded
+    	if (!texture) {
+            show_label = true;
+    	}
+
         ImGuiContext& g = *GImGui;
         ImGuiWindow* window = g.CurrentWindow;
         if (window->SkipItems)

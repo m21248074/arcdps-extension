@@ -2,7 +2,10 @@
 
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <wincodec.h>
+
+IconLoader iconLoader;
 
 Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device) {
 	std::string nameString(std::to_string(name));
@@ -37,6 +40,16 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device) {
 		// error getting size of file
 		std::string text = "Error getting Size of Resource: ";
 		text.append(nameString);
+		throw std::runtime_error(text);
+	}
+
+	HRESULT coInitializeResult = CoInitialize(NULL);
+	if (!SUCCEEDED(coInitializeResult)) {
+		// error coInitalizing instance
+		std::string text = "Error creating WIC intance: ";
+		text.append(nameString);
+		text.append(" - ");
+		text.append(std::to_string(coInitializeResult));
 		throw std::runtime_error(text);
 	}
 
@@ -181,4 +194,48 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device) {
 
 Icon::~Icon() {
 	texture->Release();
+}
+
+void IconLoader::Setup(HMODULE new_dll, IDirect3DDevice9* new_d3d9device) {
+	dll = new_dll;
+	d3d9device = new_d3d9device;
+}
+
+IDirect3DTexture9* IconLoader::getTexture(UINT name) {
+	auto texture = textures.find(name);
+	if (texture != textures.end()) {
+		return texture->second.texture;
+	}
+
+	queueMutex.lock();
+	if (std::find(queue.begin(), queue.end(), name) == queue.end()) {
+		queue.push_back(name);
+	}
+	queueMutex.unlock();
+
+	bool expected = false;
+	if (thread_running.compare_exchange_strong(expected, true)) {
+		std::thread t(&IconLoader::thread_fun, this);
+		t.detach();
+	}
+
+	return nullptr;
+}
+
+void IconLoader::thread_fun() {
+	while (!queue.empty()) {
+		queueMutex.lock();
+		UINT name = queue.back();
+		queue.pop_back();
+		queueMutex.unlock();
+
+		if (textures.find(name) != textures.end()) {
+			// texture already loaded, skip
+			continue;
+		}
+
+		// load texture (texture is loaded in Icon constructor)
+		textures.try_emplace(name, name, dll, d3d9device);
+	}
+	thread_running = false;
 }
