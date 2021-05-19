@@ -37,7 +37,7 @@ namespace ImGuiEx {
 		for (int i = 0; i < num_segments; i++) {
 			const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
 			window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a + g.Time * 8) * radius,
-				centre.y + ImSin(a + g.Time * 8) * radius));
+			                                    centre.y + ImSin(a + g.Time * 8) * radius));
 		}
 
 		window->DrawList->PathStroke(color, false, thickness);
@@ -52,14 +52,14 @@ namespace ImGuiEx {
 		float columnWidth = ImGui::GetColumnWidth();
 
 		switch (alignment) {
-		case Alignment::Left:
-			break;
-		case Alignment::Center:
-			newX = posX + columnWidth / 2 - elementWidth / 2;
-			break;
-		case Alignment::Right:
-			newX = posX + columnWidth - elementWidth;
-			break;
+			case Alignment::Left:
+				break;
+			case Alignment::Center:
+				newX = posX + columnWidth / 2 - elementWidth / 2;
+				break;
+			case Alignment::Right:
+				newX = posX + columnWidth - elementWidth;
+				break;
 		}
 
 		// Clip to left, if text is bigger than current column
@@ -85,14 +85,14 @@ namespace ImGuiEx {
 		float columnWidth = ImGui::GetColumnWidth();
 
 		switch (alignment) {
-		case Alignment::Left:
-			break;
-		case Alignment::Center:
-			newX = posX + columnWidth / 2 - textWidth / 2;
-			break;
-		case Alignment::Right:
-			newX = posX + columnWidth - textWidth;
-			break;
+			case Alignment::Left:
+				break;
+			case Alignment::Center:
+				newX = posX + columnWidth / 2 - textWidth / 2;
+				break;
+			case Alignment::Right:
+				newX = posX + columnWidth - textWidth;
+				break;
 		}
 
 		// Clip to left, if text is bigger than current column
@@ -145,8 +145,7 @@ namespace ImGuiEx {
 		float label_height = table->RowMinHeight - table->CellPaddingY * 2.0f;
 		if (show_label) {
 			label_height = ImMax(label_size.y, label_height);
-		}
-		else {
+		} else {
 			label_height = ImMax(image_size, label_height);
 		}
 
@@ -167,8 +166,7 @@ namespace ImGuiEx {
 		float max_pos_x = label_pos.x + w_sort_text + w_arrow;
 		if (show_label) {
 			max_pos_x += label_size.x;
-		}
-		else {
+		} else {
 			max_pos_x += image_size;
 		}
 		column->ContentMaxXHeadersUsed = ImMax(column->ContentMaxXHeadersUsed, column->WorkMaxX);
@@ -195,8 +193,7 @@ namespace ImGuiEx {
 			//RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
 			ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, col, table->CurrentColumn);
 			ImGui::RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
-		}
-		else {
+		} else {
 			// Submit single cell bg color in the case we didn't submit a full header row
 			if ((table->RowFlags & ImGuiTableRowFlags_Headers) == 0)
 				ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ImGui::GetColorU32(ImGuiCol_TableHeaderBg), table->CurrentColumn);
@@ -238,7 +235,7 @@ namespace ImGuiEx {
 					x += w_sort_text;
 				}
 				ImGui::RenderArrow(window->DrawList, ImVec2(x, y), ImGui::GetColorU32(ImGuiCol_Text),
-					column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Up : ImGuiDir_Down, ARROW_SCALE);
+				                   column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Up : ImGuiDir_Down, ARROW_SCALE);
 			}
 
 			// Handle clicking on column header to adjust Sort Order
@@ -258,35 +255,35 @@ namespace ImGuiEx {
 			float newX = label_pos.x;
 
 			switch (alignment) {
-			case Alignment::Center:
-				// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (label_size.x / 2);
-				newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (label_size.x / 2);
-				// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
-				break;
-			case Alignment::Right:
-				newX = ellipsis_max - label_size.x;
-				// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
-				break;
-			default: [[fallthrough]];
+				case Alignment::Center:
+					// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (label_size.x / 2);
+					newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (label_size.x / 2);
+					// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
+					break;
+				case Alignment::Right:
+					newX = ellipsis_max - label_size.x;
+					// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
+					break;
+				default: [[fallthrough]];
 			}
 
-			ImGui::RenderTextEllipsis(window->DrawList, ImVec2(newX, label_pos.y), ImVec2(ellipsis_max, label_pos.y + label_height + g.Style.FramePadding.y), ellipsis_max,
-				ellipsis_max, label, label_end, &label_size);
-		}
-		else {
+			ImGui::RenderTextEllipsis(window->DrawList, ImVec2(newX, label_pos.y), ImVec2(ellipsis_max, label_pos.y + label_height + g.Style.FramePadding.y),
+			                          ellipsis_max,
+			                          ellipsis_max, label, label_end, &label_size);
+		} else {
 			float newX = label_pos.x;
 
 			switch (alignment) {
-			case Alignment::Center:
-				// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (image_size / 2);
-				newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (image_size / 2);
-				// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
-				break;
-			case Alignment::Right:
-				newX = ellipsis_max - image_size;
-				// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
-				break;
-			default: [[fallthrough]];
+				case Alignment::Center:
+					// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (image_size / 2);
+					newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (image_size / 2);
+					// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
+					break;
+				case Alignment::Right:
+					newX = ellipsis_max - image_size;
+					// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
+					break;
+				default: [[fallthrough]];
 			}
 
 			ImRect ibb(ImVec2(newX, label_pos.y), ImVec2(newX, label_pos.y) + image_size);
@@ -296,14 +293,14 @@ namespace ImGuiEx {
 
 		// const bool text_clipped = label_size.x > (ellipsis_max - label_pos.x);
 		// if (text_clipped && hovered && g.HoveredIdNotActiveTimer > g.TooltipSlowDelay)
-			// ImGui::SetTooltip("%.*s", (int)(label_end - label), label);
+		// ImGui::SetTooltip("%.*s", (int)(label_end - label), label);
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("%s", label);
 		}
 
 		// We don't use BeginPopupContextItem() because we want the popup to stay up even after the column is hidden
 		// if (ImGui::IsMouseReleased(1) && ImGui::IsItemHovered())
-			// ImGui::TableOpenContextMenu(column_n);
+		// ImGui::TableOpenContextMenu(column_n);
 	}
 
 	// This code can be used to make the text over the progressBar aligned.
@@ -332,8 +329,7 @@ namespace ImGuiEx {
 
 		// Default displaying the fraction as percentage string, but user can override it
 		char overlay_buf[32];
-		if (!overlay)
-		{
+		if (!overlay) {
 			ImFormatString(overlay_buf, IM_ARRAYSIZE(overlay_buf), "%.0f%%", fraction * 100 + 0.01f);
 			overlay = overlay_buf;
 		}
@@ -341,17 +337,19 @@ namespace ImGuiEx {
 		ImVec2 overlay_size = ImGui::CalcTextSize(overlay, NULL);
 		if (overlay_size.x > 0.0f) {
 			switch (alignment) {
-			case Alignment::Left:
-				ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(0.f, 0.f), &bb);
-				break;
-			case Alignment::Center:
-				ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(0.5f, 0.5f), &bb);
-				break;
-			case Alignment::Right:
-				ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(1.f, 0.f), &bb);
-				break;
-			default:
-				ImGui::RenderTextClipped(ImVec2(ImClamp(fill_br.x + style.ItemSpacing.x, bb.Min.x, bb.Max.x - overlay_size.x - style.ItemInnerSpacing.x), bb.Min.y), bb.Max, overlay, NULL, &overlay_size, ImVec2(0.0f, 0.5f), &bb);
+				case Alignment::Left:
+					ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(0.f, 0.f), &bb);
+					break;
+				case Alignment::Center:
+					ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(0.5f, 0.5f), &bb);
+					break;
+				case Alignment::Right:
+					ImGui::RenderTextClipped(bb.Min, bb.Max, overlay, NULL, &overlay_size, ImVec2(1.f, 0.f), &bb);
+					break;
+				default:
+					ImGui::RenderTextClipped(
+						ImVec2(ImClamp(fill_br.x + style.ItemSpacing.x, bb.Min.x, bb.Max.x - overlay_size.x - style.ItemInnerSpacing.x), bb.Min.y), bb.Max,
+						overlay, NULL, &overlay_size, ImVec2(0.0f, 0.5f), &bb);
 			}
 		}
 	}
@@ -384,8 +382,7 @@ namespace ImGuiEx {
 		}
 		```
 	 */
-	bool BeginMenu(const char* label, bool enabled, bool& hoveredPar)
-	{
+	bool BeginMenu(const char* label, bool enabled, bool& hoveredPar) {
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		if (window->SkipItems)
 			return false;
@@ -396,19 +393,19 @@ namespace ImGuiEx {
 		bool menu_is_open = ImGui::IsPopupOpen(id, ImGuiPopupFlags_None);
 
 		// Sub-menus are ChildWindow so that mouse can be hovering across them (otherwise top-most popup menu would steal focus and not allow hovering on parent menu)
-		ImGuiWindowFlags flags = ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNavFocus;
+		ImGuiWindowFlags flags = ImGuiWindowFlags_ChildMenu | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNavFocus;
 		if (window->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_ChildMenu))
 			flags |= ImGuiWindowFlags_ChildWindow;
 
 		// If a menu with same the ID was already submitted, we will append to it, matching the behavior of Begin().
 		// We are relying on a O(N) search - so O(N log N) over the frame - which seems like the most efficient for the expected small amount of BeginMenu() calls per frame.
 		// If somehow this is ever becoming a problem we can switch to use e.g. ImGuiStorage mapping key to last frame used.
-		if (g.MenusIdSubmittedThisFrame.contains(id))
-		{
+		if (g.MenusIdSubmittedThisFrame.contains(id)) {
 			if (menu_is_open)
 				menu_is_open = ImGui::BeginPopupEx(id, flags); // menu_is_open can be 'false' when the popup is completely clipped (e.g. zero size display)
 			else
-				g.NextWindowData.ClearFlags();          // we behave like Begin() and need to consume those values
+				g.NextWindowData.ClearFlags(); // we behave like Begin() and need to consume those values
 			return menu_is_open;
 		}
 
@@ -417,17 +414,17 @@ namespace ImGuiEx {
 
 		ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
 		bool pressed;
-		bool menuset_is_open = !(window->Flags & ImGuiWindowFlags_Popup) && (g.OpenPopupStack.Size > g.BeginPopupStack.Size && g.OpenPopupStack[g.BeginPopupStack.Size].OpenParentId == window->IDStack.back());
+		bool menuset_is_open = !(window->Flags & ImGuiWindowFlags_Popup) && (g.OpenPopupStack.Size > g.BeginPopupStack.Size && g.OpenPopupStack[g.
+			BeginPopupStack.Size].OpenParentId == window->IDStack.back());
 		ImGuiWindow* backed_nav_window = g.NavWindow;
 		if (menuset_is_open)
-			g.NavWindow = window;  // Odd hack to allow hovering across menus of a same menu-set (otherwise we wouldn't be able to hover parent)
+			g.NavWindow = window; // Odd hack to allow hovering across menus of a same menu-set (otherwise we wouldn't be able to hover parent)
 
 		// The reference position stored in popup_pos will be used by Begin() to find a suitable position for the child menu,
 		// However the final position is going to be different! It is chosen by FindBestWindowPosForPopup().
 		// e.g. Menus tend to overlap each other horizontally to amplify relative Z-ordering.
 		ImVec2 popup_pos, pos = window->DC.CursorPos;
-		if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
-		{
+		if (window->DC.LayoutType == ImGuiLayoutType_Horizontal) {
 			// Menu inside an horizontal menu bar
 			// Selectable extend their highlight by half ItemSpacing in each direction.
 			// For ChildMenu, the popup position will be overwritten by the call to FindBestWindowPosForPopup() in Begin()
@@ -435,19 +432,22 @@ namespace ImGuiEx {
 			window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
 			float w = label_size.x;
-			pressed = ImGui::Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_SelectOnClick | ImGuiSelectableFlags_DontClosePopups | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
+			pressed = ImGui::Selectable(label, menu_is_open,
+			                            ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_SelectOnClick | ImGuiSelectableFlags_DontClosePopups | (
+				                            !enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(w, 0.0f));
 			ImGui::PopStyleVar();
-			window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
-		}
-		else
-		{
+			window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f));
+			// -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
+		} else {
 			// Menu inside a menu
 			// (In a typical menu window where all items are BeginMenu() or MenuItem() calls, extra_w will always be 0.0f.
 			//  Only when they are other items sticking out we're going to add spacing, yet only register minimum width into the layout system.
 			popup_pos = ImVec2(pos.x, pos.y - style.WindowPadding.y);
 			float min_w = window->DC.MenuColumns.DeclColumns(label_size.x, 0.0f, IM_FLOOR(g.FontSize * 1.20f)); // Feedback to next frame
 			float extra_w = ImMax(0.0f, ImGui::GetContentRegionAvail().x - min_w);
-			pressed = ImGui::Selectable(label, menu_is_open, ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_SelectOnClick | ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_SpanAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(min_w, 0.0f));
+			pressed = ImGui::Selectable(label, menu_is_open,
+			                            ImGuiSelectableFlags_NoHoldingActiveID | ImGuiSelectableFlags_SelectOnClick | ImGuiSelectableFlags_DontClosePopups |
+			                            ImGuiSelectableFlags_SpanAvailWidth | (!enabled ? ImGuiSelectableFlags_Disabled : 0), ImVec2(min_w, 0.0f));
 			ImU32 text_col = ImGui::GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled);
 			ImGui::RenderArrow(window->DrawList, pos + ImVec2(window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.30f, 0.0f), text_col, ImGuiDir_Right);
 		}
@@ -465,22 +465,25 @@ namespace ImGuiEx {
 			// Implement http://bjk5.com/post/44698559168/breaking-down-amazons-mega-dropdown to avoid using timers, so menus feels more reactive.
 			bool moving_toward_other_child_menu = false;
 
-			ImGuiWindow* child_menu_window = (g.BeginPopupStack.Size < g.OpenPopupStack.Size&& g.OpenPopupStack[g.BeginPopupStack.Size].SourceWindow == window) ? g.OpenPopupStack[g.BeginPopupStack.Size].Window : NULL;
-			if (g.HoveredWindow == window && child_menu_window != NULL && !(window->Flags & ImGuiWindowFlags_MenuBar))
-			{
+			ImGuiWindow* child_menu_window = (g.BeginPopupStack.Size < g.OpenPopupStack.Size && g.OpenPopupStack[g.BeginPopupStack.Size].SourceWindow == window)
+				                                 ? g.OpenPopupStack[g.BeginPopupStack.Size].Window
+				                                 : NULL;
+			if (g.HoveredWindow == window && child_menu_window != NULL && !(window->Flags & ImGuiWindowFlags_MenuBar)) {
 				// FIXME-DPI: Values should be derived from a master "scale" factor.
 				ImRect next_window_rect = child_menu_window->Rect();
 				ImVec2 ta = g.IO.MousePos - g.IO.MouseDelta;
 				ImVec2 tb = (window->Pos.x < child_menu_window->Pos.x) ? next_window_rect.GetTL() : next_window_rect.GetTR();
 				ImVec2 tc = (window->Pos.x < child_menu_window->Pos.x) ? next_window_rect.GetBL() : next_window_rect.GetBR();
-				float extra = ImClamp(ImFabs(ta.x - tb.x) * 0.30f, 5.0f, 30.0f);    // add a bit of extra slack.
+				float extra = ImClamp(ImFabs(ta.x - tb.x) * 0.30f, 5.0f, 30.0f); // add a bit of extra slack.
 				ta.x += (window->Pos.x < child_menu_window->Pos.x) ? -0.5f : +0.5f; // to avoid numerical issues
-				tb.y = ta.y + ImMax((tb.y - extra) - ta.y, -100.0f);                // triangle is maximum 200 high to limit the slope and the bias toward large sub-menus // FIXME: Multiply by fb_scale?
+				tb.y = ta.y + ImMax((tb.y - extra) - ta.y, -100.0f);
+				// triangle is maximum 200 high to limit the slope and the bias toward large sub-menus // FIXME: Multiply by fb_scale?
 				tc.y = ta.y + ImMin((tc.y + extra) - ta.y, +100.0f);
 				moving_toward_other_child_menu = ImTriangleContainsPoint(ta, tb, tc, g.IO.MousePos);
 				//GetForegroundDrawList()->AddTriangleFilled(ta, tb, tc, moving_within_opened_triangle ? IM_COL32(0,128,0,128) : IM_COL32(128,0,0,128)); // [DEBUG]
 			}
-			if (menu_is_open && !hovered && g.HoveredWindow == window && g.HoveredIdPreviousFrame != 0 && g.HoveredIdPreviousFrame != id && !moving_toward_other_child_menu)
+			if (menu_is_open && !hovered && g.HoveredWindow == window && g.HoveredIdPreviousFrame != 0 && g.HoveredIdPreviousFrame != id && !
+				moving_toward_other_child_menu)
 				want_close = true;
 
 			if (!menu_is_open && hovered && pressed) // Click to open
@@ -488,8 +491,7 @@ namespace ImGuiEx {
 			else if (!menu_is_open && hovered && !moving_toward_other_child_menu) // Hover to open
 				want_open = true;
 
-			if (g.NavActivateId == id)
-			{
+			if (g.NavActivateId == id) {
 				want_close = menu_is_open;
 				want_open = !menu_is_open;
 			}
@@ -498,35 +500,31 @@ namespace ImGuiEx {
 				want_open = true;
 				ImGui::NavMoveRequestCancel();
 			}
-		}
-		else
-		{
+		} else {
 			// Menu bar
 			if (menu_is_open && pressed && menuset_is_open) // Click an open menu again to close it
 			{
 				want_close = true;
 				want_open = menu_is_open = false;
-			}
-			else if (pressed || (hovered && menuset_is_open && !menu_is_open)) // First click to open, then hover to open others
+			} else if (pressed || (hovered && menuset_is_open && !menu_is_open)) // First click to open, then hover to open others
 			{
 				want_open = true;
-			}
-			else if (g.NavId == id && g.NavMoveRequest && g.NavMoveDir == ImGuiDir_Down) // Nav-Down to open
+			} else if (g.NavId == id && g.NavMoveRequest && g.NavMoveDir == ImGuiDir_Down) // Nav-Down to open
 			{
 				want_open = true;
 				ImGui::NavMoveRequestCancel();
 			}
 		}
 
-		if (!enabled) // explicitly close if an open menu becomes disabled, facilitate users code a lot in pattern such as 'if (BeginMenu("options", has_object)) { ..use object.. }'
+		if (!enabled)
+			// explicitly close if an open menu becomes disabled, facilitate users code a lot in pattern such as 'if (BeginMenu("options", has_object)) { ..use object.. }'
 			want_close = true;
 		if (want_close && ImGui::IsPopupOpen(id, ImGuiPopupFlags_None))
 			ImGui::ClosePopupToLevel(g.BeginPopupStack.Size, true);
 
 		IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags | ImGuiItemStatusFlags_Openable | (menu_is_open ? ImGuiItemStatusFlags_Opened : 0));
 
-		if (!menu_is_open && want_open && g.OpenPopupStack.Size > g.BeginPopupStack.Size)
-		{
+		if (!menu_is_open && want_open && g.OpenPopupStack.Size > g.BeginPopupStack.Size) {
 			// Don't recycle same menu level in the same frame, first close the other menu and yield for a frame.
 			ImGui::OpenPopup(label);
 			return false;
@@ -536,13 +534,10 @@ namespace ImGuiEx {
 		if (want_open)
 			ImGui::OpenPopup(label);
 
-		if (menu_is_open)
-		{
+		if (menu_is_open) {
 			ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Always);
 			menu_is_open = ImGui::BeginPopupEx(id, flags); // menu_is_open can be 'false' when the popup is completely clipped (e.g. zero size display)
-		}
-		else
-		{
+		} else {
 			g.NextWindowData.ClearFlags(); // We behave like Begin() and need to consume those values
 		}
 
@@ -579,8 +574,7 @@ namespace ImGuiEx {
 		}
 	}
 
-	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags)
-	{
+	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags) {
 		ImGuiWindow* window = GImGui->CurrentWindow;
 		if (!str_id)
 			str_id = "window_context";
@@ -602,5 +596,93 @@ namespace ImGuiEx {
 			menu_item_active = false;
 		if (ImGui::MenuItem(columnName, NULL, column.IsEnabled, menu_item_active))
 			column.IsEnabledNextFrame = !column.IsEnabled;
+	}
+
+	void WindowReposition(Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,
+	                      CornerPosition anchorPanelCornerPosition, CornerPosition selfPanelCornerPosition) {
+		const ImVec2& windowSize = ImGui::GetWindowSize();
+		const ImVec2& displaySize = ImGui::GetIO().DisplaySize;
+
+		switch (position) {
+			case Position::ScreenRelative: {
+				ImVec2 setPosition;
+				const ImVec2& userPosition = cornerVector;
+				switch (cornerPosition) {
+					case CornerPosition::TopLeft: {
+						setPosition = userPosition;
+						break;
+					}
+					case CornerPosition::TopRight: {
+						setPosition.x = displaySize.x - windowSize.x - userPosition.x;
+						setPosition.y = userPosition.y;
+						break;
+					}
+					case CornerPosition::BottomLeft: {
+						setPosition.x = userPosition.x;
+						setPosition.y = displaySize.y - windowSize.y - userPosition.y;
+						break;
+					}
+					case CornerPosition::BottomRight: {
+						setPosition = displaySize - windowSize - userPosition;
+						break;
+					}
+				}
+
+				ImGui::SetWindowPos(setPosition);
+			}
+			case Position::WindowRelative: {
+				ImVec2 setPosition;
+				const ImVec2& userPosition = cornerVector;
+				ImGuiWindow* sourceWindow = ImGui::FindWindowByID(fromWindowID);
+				if (!sourceWindow) {
+					break;
+				}
+				const ImVec2& sourceWindowPosition = sourceWindow->Pos;
+				const ImVec2& sourceWindowSize = sourceWindow->Size;
+				switch (anchorPanelCornerPosition) {
+					case CornerPosition::TopLeft: {
+						setPosition = sourceWindowPosition;
+						break;
+					}
+					case CornerPosition::TopRight: {
+						setPosition.x = sourceWindowPosition.x + sourceWindowSize.x;
+						setPosition.y = sourceWindowPosition.y;
+						break;
+					}
+					case CornerPosition::BottomLeft: {
+						setPosition.x = sourceWindowPosition.x;
+						setPosition.y = sourceWindowPosition.y + sourceWindowSize.y;
+						break;
+					}
+					case CornerPosition::BottomRight: {
+						setPosition.x = sourceWindowPosition.x + sourceWindowSize.x;
+						setPosition.y = sourceWindowPosition.y + sourceWindowSize.y;
+						break;
+					}
+				}
+				switch (selfPanelCornerPosition) {
+					case CornerPosition::TopLeft: {
+						setPosition = setPosition + userPosition;
+						break;
+					}
+					case CornerPosition::TopRight: {
+						setPosition.x = setPosition.x + userPosition.x - windowSize.x;
+						setPosition.y = setPosition.y + userPosition.y;
+						break;
+					}
+					case CornerPosition::BottomLeft: {
+						setPosition.x = setPosition.x + userPosition.x;
+						setPosition.y = setPosition.y + userPosition.y - windowSize.y;
+						break;
+					}
+					case CornerPosition::BottomRight: {
+						setPosition = setPosition + userPosition - windowSize;
+						break;
+					}
+				}
+
+				ImGui::SetWindowPos(setPosition);
+			}
+		}
 	}
 }

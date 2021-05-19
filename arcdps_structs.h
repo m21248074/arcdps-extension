@@ -236,3 +236,26 @@ enum class Alignment {
 };
 
 std::string to_string(Alignment alignment);
+
+enum class Position {
+	Manual,
+	ScreenRelative,
+	WindowRelative,
+
+	// always last element
+	FINAL_ENTRY
+};
+
+std::string to_string(Position position);
+
+enum class CornerPosition {
+	TopLeft,
+	TopRight,
+	BottomLeft,
+	BottomRight,
+
+	// always last element
+	FINAL_ENTRY
+};
+
+std::string to_string(CornerPosition position);
