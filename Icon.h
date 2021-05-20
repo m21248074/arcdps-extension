@@ -28,6 +28,10 @@ private:
 	IDirect3DTexture9* texture;
 };
 
+/**
+ * Call `Setup()` in `mod_init()`. This is needed, so this class knows about the dll and the directx device!
+ * If this call is missing not Icons can be found, which will cause a runtime exception
+ */
 class IconLoader {
 public:
 	void Setup(HMODULE new_dll, IDirect3DDevice9* new_d3d9device);
