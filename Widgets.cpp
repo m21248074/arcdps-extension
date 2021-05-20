@@ -629,6 +629,7 @@ namespace ImGuiEx {
 				}
 
 				ImGui::SetWindowPos(setPosition);
+				break;
 			}
 			case Position::WindowRelative: {
 				ImVec2 setPosition;
@@ -681,7 +682,11 @@ namespace ImGuiEx {
 					}
 				}
 
+				// clip to screen border
+				setPosition = ImMax(setPosition, ImVec2(0.f, 0.f));
+
 				ImGui::SetWindowPos(setPosition);
+				break;
 			}
 		}
 	}
