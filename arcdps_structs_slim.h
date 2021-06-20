@@ -84,6 +84,8 @@ enum cbtstatechange {
 	CBTS_TAG, // src_agent is agent, value is the id (volatile, game build dependent) of the tag
 	CBTS_BARRIERUPDATE,  // src_agent is at barrier percent. dst_agent = percent * 10000 (eg. 99.5% will be 9950) (not in realtime api)
 	CBTS_STATRESET,  // stats reset for all players, to match arc ui (not in log)
+	CBTS_EXTENSION, // cbtevent with statechange byte set to this
+	CBTS_APIDELAYED, // cbtevent with statechange byte set to this
 	CBTS_UNKNOWN, // unknown or invalid, ignore
 
 	// always last element
