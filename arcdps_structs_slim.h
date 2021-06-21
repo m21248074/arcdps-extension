@@ -43,7 +43,7 @@ enum cbtactivation {
 };
 
 /* combat state change */
-enum cbtstatechange {
+enum cbtstatechange : uint8_t {
 	CBTS_NONE, // not used - not this kind of event
 	CBTS_ENTERCOMBAT, // src_agent entered combat, dst_agent is subgroup
 	CBTS_EXITCOMBAT, // src_agent left combat
@@ -172,7 +172,7 @@ typedef struct cbtevent {
 	uint8_t is_ninety;
 	uint8_t is_fifty;
 	uint8_t is_moving;
-	uint8_t is_statechange;
+	cbtstatechange is_statechange; // statechange-enum aka uint8_t
 	uint8_t is_flanking;
 	uint8_t is_shields;
 	uint8_t is_offcycle;
