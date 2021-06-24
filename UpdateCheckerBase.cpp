@@ -146,7 +146,7 @@ void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
 
     	// new context to have ofstream and session only temporary (they have to be closed later on)
         {
-            std::ofstream outFile(dllPathTemp);
+            std::ofstream outFile(dllPathTemp, std::ios::binary);
 
             cpr::Response response = session.Download(outFile);
             if (response.status_code != 200) {
