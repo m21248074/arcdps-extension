@@ -395,4 +395,6 @@ namespace ImGuiEx::BigTable {
     void AlignedTextColumn(Alignment alignment, const char* text, ...);
     void RegisterSettingsHandler(const char* name);
     void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx);
+    ImRect TableGetCellBgRect(const ImGuiTable* table, int column_n);
+    int TableGetColumnIndex();
 }

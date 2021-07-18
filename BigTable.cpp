@@ -2908,4 +2908,12 @@ namespace ImGuiEx::BigTable {
         ini_handler.WriteAllFn = TableSettingsHandler_WriteAll;
         context->SettingsHandlers.push_back(ini_handler);
     }
+
+    int TableGetColumnIndex()
+    {
+        ImGuiTable* table = CurrentTable;
+        if (!table)
+            return 0;
+        return table->CurrentColumn;
+    }
 }
