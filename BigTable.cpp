@@ -1,9 +1,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "BigTable.h"
 
-#include <iostream>
-
-
 #include "ImGui_Math.h"
 
 namespace ImGuiEx::BigTable {
@@ -215,7 +212,6 @@ namespace ImGuiEx::BigTable {
                 table->Columns[column_n].DisplayOrder = (ImGuiTableColumnIdx)column_n;
 
         // Rebuild index
-        std::cout << table->DisplayOrderToIndex.size() << std::endl;
         for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
             table->DisplayOrderToIndex[table->Columns[column_n].DisplayOrder] = (ImGuiTableColumnIdx)column_n;
     }
@@ -2448,6 +2444,16 @@ namespace ImGuiEx::BigTable {
         outer_window->DC.CurrentTableIdx = CurrentTable ? Tables.GetIndex(CurrentTable) : -1;
     }
 
+	const char* TableGetColumnName(int column_n)
+	{
+	    ImGuiTable* table = CurrentTable;
+	    if (!table)
+	        return NULL;
+	    if (column_n < 0)
+	        column_n = table->CurrentColumn;
+	    return TableGetColumnName(table, column_n);
+	}
+
     const char* TableGetColumnName(const ImGuiTable* table, int column_n)
     {
         if (table->IsLayoutLocked == false && column_n >= table->DeclColumnsCount)
@@ -2916,4 +2922,47 @@ namespace ImGuiEx::BigTable {
             return 0;
         return table->CurrentColumn;
     }
+
+	// We allow querying for an extra column in order to poll the IsHovered state of the right-most section
+	ImGuiTableColumnFlags TableGetColumnFlags(int column_n)
+	{
+	    ImGuiTable* table = CurrentTable;
+	    if (!table)
+	        return ImGuiTableColumnFlags_None;
+	    if (column_n < 0)
+	        column_n = table->CurrentColumn;
+	    if (column_n == table->ColumnsCount)
+	        return (table->HoveredColumnBody == column_n) ? ImGuiTableColumnFlags_IsHovered : ImGuiTableColumnFlags_None;
+	    return table->Columns[column_n].Flags;
+	}
+
+	float TableGetHeaderRowHeight()
+	{
+	    // Caring for a minor edge case:
+	    // Calculate row height, for the unlikely case that some labels may be taller than others.
+	    // If we didn't do that, uneven header height would highlight but smaller one before the tallest wouldn't catch input for all height.
+	    // In your custom header row you may omit this all together and just call TableNextRow() without a height...
+	    float row_height = ImGui::GetTextLineHeight();
+	    int columns_count = ImGui::TableGetColumnCount();
+	    for (int column_n = 0; column_n < columns_count; column_n++)
+	        if (TableGetColumnFlags(column_n) & ImGuiTableColumnFlags_IsEnabled)
+	            row_height = ImMax(row_height, ImGui::CalcTextSize(TableGetColumnName(column_n)).y);
+	    row_height += ImGui::GetStyle().CellPadding.y * 2.0f;
+	    return row_height;
+	}
+
+	void TableSetupScrollFreeze(int columns, int rows)
+	{
+	    ImGuiTable* table = CurrentTable;
+	    IM_ASSERT(table != NULL && "Need to call TableSetupColumn() after BeginTable()!");
+	    IM_ASSERT(table->IsLayoutLocked == false && "Need to call TableSetupColumn() before first row!");
+	    IM_ASSERT(columns >= 0 && columns < IMGUI_TABLE_MAX_COLUMNS);
+	    IM_ASSERT(rows >= 0 && rows < 128); // Arbitrary limit
+
+	    table->FreezeColumnsRequest = (table->Flags & ImGuiTableFlags_ScrollX) ? (ImGuiTableColumnIdx)columns : 0;
+	    table->FreezeColumnsCount = (table->InnerWindow->Scroll.x != 0.0f) ? table->FreezeColumnsRequest : 0;
+	    table->FreezeRowsRequest = (table->Flags & ImGuiTableFlags_ScrollY) ? (ImGuiTableColumnIdx)rows : 0;
+	    table->FreezeRowsCount = (table->InnerWindow->Scroll.y != 0.0f) ? table->FreezeRowsRequest : 0;
+	    table->IsUnfrozenRows = (table->FreezeRowsCount == 0); // Make sure this is set before TableUpdateLayout() so ImGuiListClipper can benefit from it.b
+	}
 }

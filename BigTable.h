@@ -397,4 +397,6 @@ namespace ImGuiEx::BigTable {
     void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx);
     ImRect TableGetCellBgRect(const ImGuiTable* table, int column_n);
     int TableGetColumnIndex();
+	float TableGetHeaderRowHeight();
+	void TableSetupScrollFreeze(int columns, int rows);
 }
