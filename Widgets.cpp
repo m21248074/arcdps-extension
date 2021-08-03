@@ -257,7 +257,7 @@ namespace ImGuiEx {
 			switch (alignment) {
 				case Alignment::Center:
 					// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (label_size.x / 2);
-					newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (label_size.x / 2);
+					newX = label_pos.x + ((cell_r.Max.x - label_pos.x - table->CellPaddingX) / 2) - (label_size.x / 2);
 					// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
 					break;
 				case Alignment::Right:
@@ -276,7 +276,7 @@ namespace ImGuiEx {
 			switch (alignment) {
 				case Alignment::Center:
 					// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (image_size / 2);
-					newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (image_size / 2);
+					newX = label_pos.x + ((cell_r.Max.x - label_pos.x - table->CellPaddingX) / 2) - (image_size / 2);
 					// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
 					break;
 				case Alignment::Right:

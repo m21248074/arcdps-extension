@@ -2666,7 +2666,7 @@ namespace ImGuiEx::BigTable {
             switch (alignment) {
             case Alignment::Center:
                 // newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (label_size.x / 2);
-                newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (label_size.x / 2);
+                newX = label_pos.x + ((cell_r.Max.x - label_pos.x - table->CellPaddingX) / 2) - (label_size.x / 2);
                 // ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
                 break;
             case Alignment::Right:
@@ -2685,14 +2685,13 @@ namespace ImGuiEx::BigTable {
             switch (alignment) {
             case Alignment::Center:
                 // newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (image_size / 2);
-                newX = label_pos.x + ((cell_r.Max.x - label_pos.x) / 2) - (image_size / 2);
+                newX = label_pos.x + ((cell_r.Max.x - label_pos.x - table->CellPaddingX) / 2) - (image_size / 2);
                 // ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
                 break;
             case Alignment::Right:
                 newX = ellipsis_max - image_size;
                 // ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
                 break;
-            default: [[fallthrough]];
             }
 
             ImRect ibb(ImVec2(newX, label_pos.y), ImVec2(newX, label_pos.y) + image_size);
