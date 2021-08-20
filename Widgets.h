@@ -63,4 +63,17 @@ namespace ImGuiEx {
 
 		return res;
 	}
+
+#ifdef _WIN32
+	/// <summary>
+	/// KeyInput, has `label` on the left, a textInput in the middle and the used shortcut at the right.
+	/// Only defined for Windows, cause `VkKeyScanA`, `MapVirtualKeyA` and `GetKeyNameTextA` are windows-api functions.
+	/// </summary>
+	/// <param name="label">text to the left of the textInput</param>
+	/// <param name="id">id for the inputtext (has to be unique and start with '##')</param>
+	/// <param name="buffer">textbuffer for the textInput</param>
+	/// <param name="bufSize">the size of the textbuffer</param>
+	/// <param name="keyContainer">int container for the real keyCode</param>
+	void KeyInput(const char* label, const char* id, char* buffer, size_t bufSize, WPARAM& keyContainer);
+#endif
 }
