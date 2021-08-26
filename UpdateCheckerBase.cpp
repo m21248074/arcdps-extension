@@ -47,7 +47,7 @@ void UpdateCheckerBase::CheckForUpdate(HMODULE dll, std::string repo) {
             newVersion.y = std::stof(versionNums[1]);
             newVersion.z = std::stof(versionNums[2]);
 
-            if (compareFloat(newVersion.x, version.x) || newVersion.y > version.y || newVersion.z > version.z) {
+            if (compareFloat(newVersion.x, version.x) && (newVersion.y > version.y || newVersion.z > version.z)) {
                 Status expected = Status::Unknown;
                 update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
             }
