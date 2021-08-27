@@ -2,59 +2,9 @@
 
 #include <optional>
 #include <thread>
-#include <cpr/cpr.h>
+#include <sstream>
 
 #include "json.hpp"
-
-void UpdateCheckerBase::CheckForUpdate(HMODULE dll, std::string repo) {
-    std::optional<ImVec4> currentVersion = GetCurrentVersion(dll);
-    if (!currentVersion) return;
-    version = currentVersion.value();
-
-    std::thread cprCall([this, repo]() {
-        std::string link = "https://api.github.com/repos/";
-        link.append(repo);
-    	link.append("/releases/latest");
-
-        cpr::Response response = cpr::Get(cpr::Url{ link });
-
-        if (response.status_code == 200) {
-            auto json = nlohmann::json::parse(response.text);
-
-            std::string tagName = json.at("tag_name").get<std::string>();
-            if (tagName[0] == 'v') {
-                tagName.erase(0, 1);
-            }
-
-            std::vector<std::string> versionNums;
-            std::istringstream iss(tagName);
-
-            for (std::string token; std::getline(iss, token, '.'); )
-            {
-                versionNums.push_back(std::move(token));
-            }
-
-            // TODO: use semver to calculate this. So all semver releases can be parsed and not only my hardcoded ones :)
-        	// libary for it: https://github.com/Neargye/semver
-        	
-            if (versionNums.size() < 3) return;
-
-            newVersion.x = std::stof(versionNums[0]);
-            newVersion.y = std::stof(versionNums[1]);
-            newVersion.z = std::stof(versionNums[2]);
-
-            if (newVersion.x > version.x || newVersion.y > version.y || newVersion.z > version.z) {
-                Status expected = Status::Unknown;
-                update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
-            }
-
-        	// load download URL
-            downloadUrl = json["assets"][0]["browser_download_url"].get<std::string>();
-        }
-    });
-
-    cprCall.detach();
-}
 
 void UpdateCheckerBase::ClearFiles(HMODULE dll) {
     CHAR dllPath[MAX_PATH] = { 0 };
@@ -124,6 +74,59 @@ char* UpdateCheckerBase::GetVersionAsString(HMODULE dll) {
     return version_c_str;
 }
 
+#ifndef ARCDPS_EXTENSION_NO_CPR
+#include <cpr/cpr.h>
+
+void UpdateCheckerBase::CheckForUpdate(HMODULE dll, std::string repo) {
+    std::optional<ImVec4> currentVersion = GetCurrentVersion(dll);
+    if (!currentVersion) return;
+    version = currentVersion.value();
+
+    std::thread cprCall([this, repo]() {
+        std::string link = "https://api.github.com/repos/";
+        link.append(repo);
+    	link.append("/releases/latest");
+
+        cpr::Response response = cpr::Get(cpr::Url{ link });
+
+        if (response.status_code == 200) {
+            auto json = nlohmann::json::parse(response.text);
+
+            std::string tagName = json.at("tag_name").get<std::string>();
+            if (tagName[0] == 'v') {
+                tagName.erase(0, 1);
+            }
+
+            std::vector<std::string> versionNums;
+            std::istringstream iss(tagName);
+
+            for (std::string token; std::getline(iss, token, '.'); )
+            {
+                versionNums.push_back(std::move(token));
+            }
+
+            // TODO: use semver to calculate this. So all semver releases can be parsed and not only my hardcoded ones :)
+        	// libary for it: https://github.com/Neargye/semver
+        	
+            if (versionNums.size() < 3) return;
+
+            newVersion.x = std::stof(versionNums[0]);
+            newVersion.y = std::stof(versionNums[1]);
+            newVersion.z = std::stof(versionNums[2]);
+
+            if (newVersion.x > version.x || newVersion.y > version.y || newVersion.z > version.z) {
+                Status expected = Status::Unknown;
+                update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
+            }
+
+        	// load download URL
+            downloadUrl = json["assets"][0]["browser_download_url"].get<std::string>();
+        }
+    });
+
+    cprCall.detach();
+}
+
 void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
     if (downloadUrl.empty()) return;
 
@@ -176,3 +179,5 @@ void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
 
     t.detach();
 }
+
+#endif
