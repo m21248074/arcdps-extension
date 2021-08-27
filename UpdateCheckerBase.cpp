@@ -5,6 +5,9 @@
 #include <sstream>
 
 #include "json.hpp"
+bool compareFloat(float x, float y, float epsilon = FLT_EPSILON) {
+	return std::abs(x - y) < epsilon;
+}
 
 void UpdateCheckerBase::ClearFiles(HMODULE dll) {
     CHAR dllPath[MAX_PATH] = { 0 };
