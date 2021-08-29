@@ -15,13 +15,13 @@ enum class UserRole : uint8_t
 
 struct UserInfo
 {
-	const char* Name; // Account name, including leading ':'
-	
+	const char* AccountName; // Account name, including leading ':'. Only valid for the duration of the call
+
 	// Unix timestamp when the user joined the squad (or 0 if time could not be determined)
 	__time64_t JoinTime;
 
 	UserRole Role; // Role in squad, or ::None if the user was removed from the squad
-	
+
 	// Subgroup the user is in (0 when no subgroup could be found, which is either the first subgroup or no subgroup)
 	uint8_t Subgroup;
 
@@ -35,8 +35,8 @@ struct UserInfo
 	uint8_t _Unused1 = 0; // padding
 	uint32_t _Unused2 = 0; // padding
 
-	UserInfo(const char* pName, __time64_t pJoinTime, UserRole pRole, uint8_t pSubgroup, bool pReadyStatus)
-		: Name{pName}
+	UserInfo(const char* pAccountName, __time64_t pJoinTime, UserRole pRole, uint8_t pSubgroup, bool pReadyStatus)
+		: AccountName{pAccountName}
 		, JoinTime{pJoinTime}
 		, Role{pRole}
 		, Subgroup{pSubgroup}
@@ -56,16 +56,23 @@ struct ExtrasAddonInfo
 	// String version of unofficial_extras addon, gets changed on every release. The string is valid for the lifetime
 	// of the unofficial_extras dll.
 	const char* StringVersion = nullptr;
+
+	// The account name of the logged in player. The string is only valid for the duration of the init call.
+	const char* SelfAccountName = nullptr;
 };
 
-typedef void (*SquadUpdateCallbackSignature)(const UserInfo* pUpdatedUsers, size_t pUpdatedUsersCount);
+typedef void (*SquadUpdateCallbackSignature)(const UserInfo* pUpdatedUsers, uint64_t pUpdatedUsersCount);
 struct ExtrasSubscriberInfo
 {
+	// Name of the addon subscribing to the changes. Must be valid for the lifetime of the subcribing addon. Set to
+	// nullptr if initialization fails
+	const char* SubscriberName = nullptr;
+
 	// Called whenever anything in the squad changes. Only the users that changed are sent. If a user is removed from
 	// the squad, it will be sent with Role == UserRole::None
 	SquadUpdateCallbackSignature SquadUpdateCallback = nullptr;
 };
 
 // This function must be exported by subscriber addons as 'arcdps_unofficial_extras_subscriber_init'. It's called once
-// at startup. Will be called after arcdps calls mod_init. Set SquadUpdateCallback to nullptr if initialization fails.
+// at startup. Will be called after arcdps calls mod_init. Set SubscriberName to nullptr if initialization fails.
 typedef void (*ExtrasSubscriberInitSignature)(const ExtrasAddonInfo* pExtrasInfo, ExtrasSubscriberInfo* pSubscriberInfo);
