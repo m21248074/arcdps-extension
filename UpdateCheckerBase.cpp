@@ -26,7 +26,7 @@ void UpdateCheckerBase::ClearFiles(HMODULE dll) {
     std::remove(dllPathOld.c_str());
 }
 
-std::optional<ImVec4> UpdateCheckerBase::GetCurrentVersion(HMODULE dll) {
+std::optional<UpdateCheckerBase::Version> UpdateCheckerBase::GetCurrentVersion(HMODULE dll) {
     // GetModuleFileName
     TCHAR moduleFileName[MAX_PATH + 1]{ };
     if (!GetModuleFileName(dll, moduleFileName, MAX_PATH)) {
@@ -52,36 +52,31 @@ std::optional<ImVec4> UpdateCheckerBase::GetCurrentVersion(HMODULE dll) {
         return std::nullopt;
     }
 
-    ImVec4 version (
-        HIWORD(fixedFileInfo->dwProductVersionMS),
-        LOWORD(fixedFileInfo->dwProductVersionMS),
-        HIWORD(fixedFileInfo->dwProductVersionLS),
-        LOWORD(fixedFileInfo->dwProductVersionLS)
-    );
-
-    return version;
+    return Version ({
+    	HIWORD(fixedFileInfo->dwProductVersionMS),
+    	LOWORD(fixedFileInfo->dwProductVersionMS),
+    	HIWORD(fixedFileInfo->dwProductVersionLS),
+    	LOWORD(fixedFileInfo->dwProductVersionLS)
+    });
 }
 
-char* UpdateCheckerBase::GetVersionAsString(HMODULE dll) {
-    std::optional<ImVec4> currentVersion = UpdateCheckerBase::GetCurrentVersion(dll);
+std::string UpdateCheckerBase::GetVersionAsString(HMODULE dll) {
+    auto currentVersion = UpdateCheckerBase::GetCurrentVersion(dll);
     std::stringstream version;
     if (currentVersion) {
-        version << currentVersion->x << "." << currentVersion->y << "." << currentVersion->z << "." << currentVersion->w;
+        version << currentVersion->at(0) << "." << currentVersion->at(1) << "." << currentVersion->at(2) << "." << currentVersion->at(3);
     }
     else {
         version << __DATE__;
     }
-    std::string temp = version.str();
-    char* version_c_str = new char[temp.length() + 1];
-    strcpy_s(version_c_str, temp.length() + 1, temp.c_str());
-    return version_c_str;
+    return version.str();
 }
 
 #ifndef ARCDPS_EXTENSION_NO_CPR
 #include <cpr/cpr.h>
 
 void UpdateCheckerBase::CheckForUpdate(HMODULE dll, std::string repo) {
-    std::optional<ImVec4> currentVersion = GetCurrentVersion(dll);
+    auto currentVersion = GetCurrentVersion(dll);
     if (!currentVersion) return;
     version = currentVersion.value();
 
@@ -113,11 +108,11 @@ void UpdateCheckerBase::CheckForUpdate(HMODULE dll, std::string repo) {
         	
             if (versionNums.size() < 3) return;
 
-            newVersion.x = std::stof(versionNums[0]);
-            newVersion.y = std::stof(versionNums[1]);
-            newVersion.z = std::stof(versionNums[2]);
+            newVersion[0] = std::stof(versionNums[0]);
+            newVersion[1] = std::stof(versionNums[1]);
+            newVersion[2] = std::stof(versionNums[2]);
 
-            if (newVersion.x > version.x || newVersion.y > version.y || newVersion.z > version.z) {
+            if (newVersion[0] > version[0] || newVersion[1] > version[1] || newVersion[2] > version[2]) {
                 Status expected = Status::Unknown;
                 update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
             }

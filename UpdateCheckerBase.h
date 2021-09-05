@@ -1,14 +1,15 @@
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <optional>
 #include <string>
 #include <Windows.h>
 
-#include "../imgui/imgui.h"
-
 class UpdateCheckerBase {
 public:
+	using Version = std::array<WORD, 4>;
+	
 	enum class Status {
 		Unknown,
 		UpdateAvailable,
@@ -40,14 +41,14 @@ public:
 	 * \param dll the module to this dll (self_dll) got from DllMain()
 	 * \return Version as semver compatible ImVec4
 	 */
-	static std::optional<ImVec4> GetCurrentVersion(HMODULE dll);
+	static std::optional<Version> GetCurrentVersion(HMODULE dll);
 	
 	/**
 	 * \brief get the current version as string. Version is read by `GetCurrentVersion(HMODULE)`.
 	 * \param dll the module to this dll (self_dll) got from DllMain()
 	 * \return Version as semver compatible string
 	 */
-	static char* GetVersionAsString(HMODULE dll);
+	static std::string GetVersionAsString(HMODULE dll);
 
 	/**
 	 * \brief Update the dll automatically. current version will be renamed to `dll.old` and new one will be downloaded as `dll.tmp` and renamed to current dll name.
@@ -57,8 +58,8 @@ public:
 
 protected:
 	std::atomic<Status> update_status = Status::Unknown;
-	ImVec4 version;
-	ImVec4 newVersion;
+	Version version {};
+	Version newVersion {};
 	bool shown = true;
 	std::string downloadUrl;
 };
