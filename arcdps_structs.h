@@ -47,7 +47,7 @@ struct ImGuiContext;
  * g_pSwapChain->GetDevice( __uuidof(pDevice), (void**)&pDevice);
  * ```
  */
-typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, void* dxptr, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn, uint8_t dxver);
+typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, void* dxptr, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn, UINT dxver);
 typedef ModReleaseSignature (*GetReleaseAddrSignature)();
 
 // additional enum for alignment
