@@ -36,7 +36,18 @@ typedef uintptr_t (*ModReleaseSignature)();
 
 struct ID3D11Device;
 struct ImGuiContext;
-typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, ID3D11Device* id3d11d, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn);
+
+/**
+ * `dxver`: The used directx version (either 9 or 11)
+ * `dxptr`: The pointer to the directx context. For dx9 `IDirect3DDevice9*`. For dx11 `IDXGISwapChain`.
+ *
+ * To get the Device from the Swapchain:
+ * ```C++
+ * ID3D11Device* pDevice;
+ * g_pSwapChain->GetDevice( __uuidof(pDevice), (void**)&pDevice);
+ * ```
+ */
+typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, void* dxptr, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn, uint8_t dxver);
 typedef ModReleaseSignature (*GetReleaseAddrSignature)();
 
 // additional enum for alignment
