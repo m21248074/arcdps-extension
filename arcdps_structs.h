@@ -34,9 +34,9 @@ typedef void (*FreeSignature)(void*);
 typedef arcdps_exports* (*ModInitSignature)();
 typedef uintptr_t (*ModReleaseSignature)();
 
-struct IDirect3DDevice9;
+struct ID3D11Device;
 struct ImGuiContext;
-typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, IDirect3DDevice9* id3dd9, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn);
+typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, ID3D11Device* id3d11d, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn);
 typedef ModReleaseSignature (*GetReleaseAddrSignature)();
 
 // additional enum for alignment
