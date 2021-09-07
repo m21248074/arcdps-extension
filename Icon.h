@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <Windows.h>
+#include <d3d9.h>
 #include <d3d11.h>
 #include <map>
 #include <mutex>
@@ -12,7 +13,7 @@ class IconLoader;
 class Icon {
 	friend IconLoader;
 public:
-	Icon(UINT name, HMODULE dll, ID3D11Device* d3d11Device);
+	Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d3d11Device);
 	Icon() = delete;
 	~Icon();
 
@@ -25,7 +26,8 @@ public:
 private:
 	UINT width;
 	UINT height;
-	ID3D11ShaderResourceView* texture;
+	IDirect3DTexture9* d9texture = nullptr;
+	ID3D11ShaderResourceView* d11texture = nullptr;
 };
 
 /**
@@ -34,12 +36,13 @@ private:
  */
 class IconLoader {
 public:
-	void Setup(HMODULE new_dll, ID3D11Device* new_d3d11device);
-	ID3D11ShaderResourceView* getTexture(UINT name);
+	void Setup(HMODULE new_dll, IDirect3DDevice9* d3d9Device, ID3D11Device* new_d3d11device);
+	void* getTexture(UINT name);
 
 private:
 	HMODULE dll = nullptr;
 	ID3D11Device* d3d11device = nullptr;
+	IDirect3DDevice9* d3d9Device = nullptr;
 	std::map<UINT, Icon> textures;
 	std::vector<UINT> queue;
 	std::mutex queueMutex;
