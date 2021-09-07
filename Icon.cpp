@@ -7,7 +7,7 @@
 
 IconLoader iconLoader;
 
-Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device) {
+Icon::Icon(UINT name, HMODULE dll, ID3D11Device* d3d11Device) {
 	std::string nameString(std::to_string(name));
 	
 	HRSRC imageResHandle = FindResource(dll, MAKEINTRESOURCE(name), L"PNG");
@@ -152,20 +152,11 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device) {
 	}
 
 	pIDecodeFrame->GetSize(&width, &height);
-	HRESULT createTextureRes = d3d9Device->CreateTexture(width, height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texture, NULL);
-	if (!SUCCEEDED(createTextureRes)) {
-		// error creating d3d9 texture
-		std::string text = "Error creating d3d9 texture: ";
-		text.append(nameString);
-		text.append(" - ");
-		text.append(std::to_string(createTextureRes));
-		return;
-	}
 
 	float totalPixels = bitsPerPixel * width + 7; // +7 forces to next byte if needed
 	UINT stride = totalPixels / 8;
 
-	byte* pixelBuffer = new byte[1048576]; // 1MB size
+	unsigned char* pixelBuffer = new unsigned char[1048576]; // 1MB size
 	HRESULT copyPixelsRes = pIDecodeFrame->CopyPixels(NULL, stride, 1048576, pixelBuffer);
 	if (!SUCCEEDED(copyPixelsRes)) {
 		// error copying pixels to buffer
@@ -173,16 +164,50 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device) {
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(copyPixelsRes));
+		delete[] pixelBuffer;
 		return;
 	}
 
-	D3DLOCKED_RECT rect;
-	texture->LockRect(0, &rect, 0, D3DLOCK_DISCARD);
-	unsigned char* dest = static_cast<unsigned char*>(rect.pBits);
-	memcpy(dest, pixelBuffer, sizeof(char) * width * height * 4);
-	texture->UnlockRect(0);
+	// Create texture
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc, sizeof(desc));
+    desc.Width = width;
+    desc.Width = width;
+    desc.Height = height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // d3d9: D3DFMT_A8R8G8B8
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
 
-	// cleanup
+	ID3D11Texture2D *pTexture = NULL;
+    D3D11_SUBRESOURCE_DATA subResource;
+    subResource.pSysMem = pixelBuffer;
+    subResource.SysMemPitch = desc.Width * 4;
+    subResource.SysMemSlicePitch = 0;
+    HRESULT createTexture2DRes = d3d11Device->CreateTexture2D(&desc, &subResource, &pTexture);
+	if (!SUCCEEDED(createTexture2DRes)) {
+		// error copying pixels to buffer
+		std::string text = "Error creating 2d texture: ";
+		text.append(nameString);
+		text.append(" - ");
+		text.append(std::to_string(createTexture2DRes));
+		return;
+	}
+
+	// Create texture view
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    d3d11Device->CreateShaderResourceView(pTexture, &srvDesc, &texture);
+    pTexture->Release();
+	
+	// cleanup / this will not be called when function is failing, which results in a small leak
 	delete[] pixelBuffer;
 	m_pIWICFactory->Release();
 	pIWICStream->Release();
@@ -196,12 +221,12 @@ Icon::~Icon() {
 	texture->Release();
 }
 
-void IconLoader::Setup(HMODULE new_dll, IDirect3DDevice9* new_d3d9device) {
+void IconLoader::Setup(HMODULE new_dll, ID3D11Device* new_d3d11device) {
 	dll = new_dll;
-	d3d9device = new_d3d9device;
+	d3d11device = new_d3d11device;
 }
 
-IDirect3DTexture9* IconLoader::getTexture(UINT name) {
+ID3D11ShaderResourceView* IconLoader::getTexture(UINT name) {
 	auto texture = textures.find(name);
 	if (texture != textures.end()) {
 		return texture->second.texture;
@@ -235,7 +260,7 @@ void IconLoader::thread_fun() {
 		}
 
 		// load texture (texture is loaded in Icon constructor)
-		textures.try_emplace(name, name, dll, d3d9device);
+		textures.try_emplace(name, name, dll, d3d11device);
 	}
 	thread_running = false;
 }
