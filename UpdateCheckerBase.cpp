@@ -82,30 +82,25 @@ void UpdateCheckerBase::CheckForUpdate(Version currentVersion, std::string repo,
 	std::thread cprCall([this, repo, allowPrerelease]() {
 		nlohmann::basic_json<> json;
 		nlohmann::basic_json<>* release;
-		if (!allowPrerelease)
-		{
+		if (!allowPrerelease) {
 			std::string link = "https://api.github.com/repos/";
 			link.append(repo);
 			link.append("/releases/latest");
 
 			auto response = HttpGet(link);
-			if (!response.has_value())
-			{
+			if (!response.has_value()) {
 				return;
 			}
 
 			json = nlohmann::json::parse(response.value());
 			release = &json;
-		}
-		else
-		{
+		} else {
 			std::string link = "https://api.github.com/repos/";
 			link.append(repo);
 			link.append("/releases");
 
 			auto response = HttpGet(link);
-			if (!response.has_value())
-			{
+			if (!response.has_value()) {
 				return;
 			}
 
@@ -117,16 +112,13 @@ void UpdateCheckerBase::CheckForUpdate(Version currentVersion, std::string repo,
 		newVersion = ParseVersion(tagName);
 
 		// load download URL (use the first asset that has a .dll ending)
-		for (const auto& item : (*release)["assets"])
-		{
+		for (const auto& item : (*release)["assets"]) {
 			const auto assetName = item["name"].get<std::string>();
-			if (assetName.size() < 4)
-			{
+			if (assetName.size() < 4) {
 				continue;
 			}
 
-			if (std::string_view(assetName).substr(assetName.size() - 4) == ".dll")
-			{
+			if (std::string_view(assetName).substr(assetName.size() - 4) == ".dll")	{
 				downloadUrl = item["browser_download_url"].get<std::string>();
 				//LogD("Found download url in {} - {}", assetName, downloadUrl);
 			}
@@ -141,8 +133,7 @@ void UpdateCheckerBase::CheckForUpdate(Version currentVersion, std::string repo,
 	cprCall.detach();
 }
 
-std::optional<std::string> UpdateCheckerBase::HttpGet(const std::string& url)
-{
+std::optional<std::string> UpdateCheckerBase::HttpGet(const std::string& url) {
 	cpr::Response response = cpr::Get(cpr::Url{ url });
 
 	if (response.status_code != 200) {
@@ -206,39 +197,32 @@ void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
 	t.detach();
 }
 
-bool UpdateCheckerBase::IsNewer(const Version& repoVersion, const Version& currentVersion)
-{
+bool UpdateCheckerBase::IsNewer(const Version& repoVersion, const Version& currentVersion) {
 	return std::tie(currentVersion[0], currentVersion[1], currentVersion[2])
 	     < std::tie(repoVersion[0], repoVersion[1], repoVersion[2]);
 }
 
-UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view versionString)
-{
+UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view versionString) {
 	// TODO: use semver to calculate this. So all semver releases can be parsed and not only my hardcoded ones :)
 	// libary for it: https://github.com/Neargye/semver
 
 	Version result{};
 	size_t tokenIndex = 0;
 	size_t start = 0;
-	do
-	{
+	do {
 		size_t dotPos = versionString.find('.', start);
-		if (dotPos == std::string_view::npos)
-		{
+		if (dotPos == std::string_view::npos) {
 			dotPos = versionString.size();
 		}
 			
 		std::string_view token_str = versionString.substr(start, dotPos - start);
 
 		// Remove all non-digit characters from the beginning of the token
-		while (true)
-		{
-			if (token_str.empty())
-			{
+		while (true) {
+			if (token_str.empty()) {
 				break;
 			}
-			if (isdigit(*token_str.begin()))
-			{
+			if (isdigit(*token_str.begin())) {
 				break;
 			}
 			token_str = token_str.substr(1);
@@ -249,20 +233,16 @@ UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view vers
 			token_str.data(),
 			token_str.data() + token_str.size(),
 			result[tokenIndex]);
-		if (from_chars_result.ec != std::errc{})
-		{
+		if (from_chars_result.ec != std::errc{}) {
 			//LogD("Parsing version token '{}' from '{}' failed", versionString, token_str);
-		}
-		else
-		{
+		} else {
 			tokenIndex++;
 		}
 
 		start = dotPos + 1; // + 1 to skip over the '.'
 	} while(start < versionString.size() && tokenIndex < 3);
 	
-	if (tokenIndex < 3)
-	{
+	if (tokenIndex < 3) {
 		//LogD("Failed to parse version from {} - only found {} tokens", versionString, tokenIndex);
 		return Version{};
 	}
