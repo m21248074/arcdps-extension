@@ -1,13 +1,11 @@
 #include "UpdateCheckerBase.h"
 
+#include <charconv>
 #include <optional>
 #include <thread>
 #include <sstream>
 
 #include "json.hpp"
-bool compareFloat(float x, float y, float epsilon = FLT_EPSILON) {
-	return std::abs(x - y) < epsilon;
-}
 
 void UpdateCheckerBase::ClearFiles(HMODULE dll) {
 	CHAR dllPath[MAX_PATH] = { 0 };
@@ -73,56 +71,86 @@ std::string UpdateCheckerBase::GetVersionAsString(HMODULE dll) {
 }
 
 #ifndef ARCDPS_EXTENSION_NO_CPR
+#pragma warning(push)
+#pragma warning(disable: 4996) //  error C4996: '_Header_cstdbool': warning STL4004: <ccomplex>, <cstdalign>, <cstdbool>, and <ctgmath> are deprecated in C++17.
 #include <cpr/cpr.h>
+#pragma warning(pop)
 
-void UpdateCheckerBase::CheckForUpdate(HMODULE dll, std::string repo) {
-	auto currentVersion = GetCurrentVersion(dll);
-	if (!currentVersion) return;
-	version = currentVersion.value();
+void UpdateCheckerBase::CheckForUpdate(Version currentVersion, std::string repo, bool allowPrerelease) {
+	version = currentVersion;
 
-	std::thread cprCall([this, repo]() {
-		std::string link = "https://api.github.com/repos/";
-		link.append(repo);
-		link.append("/releases/latest");
+	std::thread cprCall([this, repo, allowPrerelease]() {
+		nlohmann::basic_json<> json;
+		nlohmann::basic_json<>* release;
+		if (!allowPrerelease)
+		{
+			std::string link = "https://api.github.com/repos/";
+			link.append(repo);
+			link.append("/releases/latest");
 
-		cpr::Response response = cpr::Get(cpr::Url{ link });
-
-		if (response.status_code == 200) {
-			auto json = nlohmann::json::parse(response.text);
-
-			std::string tagName = json.at("tag_name").get<std::string>();
-			if (tagName[0] == 'v') {
-				tagName.erase(0, 1);
-			}
-
-			std::vector<std::string> versionNums;
-			std::istringstream iss(tagName);
-
-			for (std::string token; std::getline(iss, token, '.'); )
+			auto response = HttpGet(link);
+			if (!response.has_value())
 			{
-				versionNums.push_back(std::move(token));
+				return;
 			}
 
-			// TODO: use semver to calculate this. So all semver releases can be parsed and not only my hardcoded ones :)
-			// libary for it: https://github.com/Neargye/semver
-			
-			if (versionNums.size() < 3) return;
+			json = nlohmann::json::parse(response.value());
+			release = &json;
+		}
+		else
+		{
+			std::string link = "https://api.github.com/repos/";
+			link.append(repo);
+			link.append("/releases");
 
-			newVersion[0] = std::stof(versionNums[0]);
-			newVersion[1] = std::stof(versionNums[1]);
-			newVersion[2] = std::stof(versionNums[2]);
-
-			if (newVersion[0] > version[0] || newVersion[1] > version[1] || newVersion[2] > version[2]) {
-				Status expected = Status::Unknown;
-				update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
+			auto response = HttpGet(link);
+			if (!response.has_value())
+			{
+				return;
 			}
 
-			// load download URL
-			downloadUrl = json["assets"][0]["browser_download_url"].get<std::string>();
+			json = nlohmann::json::parse(response.value());
+			release = &json[0];
+		}
+
+		const auto tagName = release->at("tag_name").get<std::string>();
+		newVersion = ParseVersion(tagName);
+
+		// load download URL (use the first asset that has a .dll ending)
+		for (const auto& item : (*release)["assets"])
+		{
+			const auto assetName = item["name"].get<std::string>();
+			if (assetName.size() < 4)
+			{
+				continue;
+			}
+
+			if (std::string_view(assetName).substr(assetName.size() - 4) == ".dll")
+			{
+				downloadUrl = item["browser_download_url"].get<std::string>();
+				//LogD("Found download url in {} - {}", assetName, downloadUrl);
+			}
+		}
+
+		if (IsNewer(newVersion, version)) {
+			Status expected = Status::Unknown;
+			update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
 		}
 	});
 
 	cprCall.detach();
+}
+
+std::optional<std::string> UpdateCheckerBase::HttpGet(const std::string& url)
+{
+	cpr::Response response = cpr::Get(cpr::Url{ url });
+
+	if (response.status_code != 200) {
+		//LogD("Getting {} failed {} {}", url, response.status_code, response.status_line);
+		return std::nullopt;
+	}
+
+	return response.text;
 }
 
 void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
@@ -178,4 +206,74 @@ void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
 	t.detach();
 }
 
-#endif
+bool UpdateCheckerBase::IsNewer(const Version& repoVersion, const Version& currentVersion)
+{
+	return std::tie(currentVersion[0], currentVersion[1], currentVersion[2])
+	     < std::tie(repoVersion[0], repoVersion[1], repoVersion[2]);
+}
+
+UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view versionString)
+{
+	// TODO: use semver to calculate this. So all semver releases can be parsed and not only my hardcoded ones :)
+	// libary for it: https://github.com/Neargye/semver
+
+	Version result{};
+
+	if (versionString[0] == 'v') {
+		versionString = versionString.substr(1);
+	}
+
+	size_t tokenIndex = 0;
+	size_t start = 0;
+	do
+	{
+		size_t dotPos = versionString.find('.', start);
+		if (dotPos == std::string_view::npos)
+		{
+			dotPos = versionString.size();
+		}
+			
+		std::string_view token_str = versionString.substr(start, dotPos - start);
+
+		// Remove all non-digit characters from the beginning of the token
+		while (true)
+		{
+			if (token_str.empty())
+			{
+				break;
+			}
+			if (isdigit(*token_str.begin()))
+			{
+				break;
+			}
+			token_str = token_str.substr(1);
+		}
+
+		// Parse the str token to an integer
+		const auto from_chars_result = std::from_chars(
+			token_str.data(),
+			token_str.data() + token_str.size(),
+			result[tokenIndex]);
+		if (from_chars_result.ec != std::errc{})
+		{
+			//LogD("Parsing version token '{}' from '{}' failed", versionString, token_str);
+		}
+		else
+		{
+			tokenIndex++;
+		}
+
+		start = dotPos + 1; // + 1 to skip over the '.'
+	} while(start < versionString.size() && tokenIndex < 3);
+	
+	if (tokenIndex < 3)
+	{
+		//LogD("Failed to parse version from {} - only found {} tokens", versionString, tokenIndex);
+		return Version{};
+	}
+
+	return result;
+}
+
+
+#endif // ARCDPS_EXTENSION_NO_CPR
