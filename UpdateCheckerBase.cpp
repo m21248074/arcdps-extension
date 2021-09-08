@@ -218,11 +218,6 @@ UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view vers
 	// libary for it: https://github.com/Neargye/semver
 
 	Version result{};
-
-	if (versionString[0] == 'v') {
-		versionString = versionString.substr(1);
-	}
-
 	size_t tokenIndex = 0;
 	size_t start = 0;
 	do
