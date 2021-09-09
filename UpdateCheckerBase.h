@@ -20,10 +20,18 @@ public:
 	
 	/**
 	 * \brief Check if a new update is available on the given github repo. Call this inside `mod_init()`.
-	 * \param dll the module to this dll (self_dll) got from DllMain()
+	 * \param currentVersion the current version of the binary for which updates should be compared against
 	 * \param repo string to the repo (e.g. `knoxfighter/arcdps-killproof.me-plugin`)
+	 * \param allowPrerelease true if pre-releases should also be considered for updating
 	 */
-	void CheckForUpdate(HMODULE dll, std::string repo);
+	void CheckForUpdate(Version currentVersion, std::string repo, bool allowPrerelease);
+
+	/**
+	 * \brief Executes a http get request (provided for mocking support in testing)
+	 * \param url the url to get
+	 * \return a string representing the content of the response, or std::nullopt if an error occured
+	 */
+	virtual std::optional<std::string> HttpGet(const std::string& url);
 
 	/**
 	 * \brief Draw command for running in `mod_imgui()`
@@ -55,6 +63,21 @@ public:
 	 * \param dll the module to this dll (self_dll) got from DllMain()
 	 */
 	void UpdateAutomatically(HMODULE dll);
+
+	/**
+	 * \brief Check if a new update is available on the given github repo. Call this inside `mod_init()`.
+	 * \param repoVersion Version in repo
+	 * \param currentVersion Version in current binary
+	 * \return true if the repo version is newer than the current one
+	 */
+	virtual bool IsNewer(const Version& repoVersion, const Version& currentVersion);
+
+	/**
+	 * \brief Parse a version object from a version string
+	 * \param versionString the version string
+	 * \return version as a version object
+	 */
+	virtual Version ParseVersion(std::string_view versionString);
 
 protected:
 	std::atomic<Status> update_status = Status::Unknown;
