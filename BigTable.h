@@ -375,7 +375,7 @@ namespace ImGuiEx::BigTable {
     extern ImChunkStream<ImGuiTableSettings>   SettingsTables;         // ImGuiTable .ini settings entries
 
 	// functions
-    bool BeginTable(const char* str_id, int columns_count, ImGuiTableFlags flags = 0, const ImVec2& outer_size = ImVec2(0,0), float inner_width = 0);
+    bool BeginTable(const char* str_id, int columns_count, ImGuiTableFlags flags = 0, ImGuiWindowFlags subWindowFlags = 0, const ImVec2& outer_size = ImVec2(0,0), float inner_width = 0);
     void TableResetSettings(ImGuiTable* table);
     ImGuiTableSettings* TableSettingsFindByID(ImGuiID id);
     ImGuiTableSettings* TableGetBoundSettings(ImGuiTable* table);

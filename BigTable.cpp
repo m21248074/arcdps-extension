@@ -284,7 +284,7 @@ namespace ImGuiEx::BigTable {
         }
     }
 
-    bool BeginTableEx(const char* name, ImGuiID id, int columns_count, ImGuiTableFlags flags, const ImVec2& outer_size, float inner_width)
+    bool BeginTableEx(const char* name, ImGuiID id, int columns_count, ImGuiTableFlags flags, ImGuiWindowFlags subWindowFlags, const ImVec2& outer_size, float inner_width)
     {
         ImGuiContext& g = *GImGui;
         ImGuiWindow* outer_window = ImGui::GetCurrentWindow();
@@ -355,6 +355,7 @@ namespace ImGuiEx::BigTable {
 
             // Create scrolling region (without border and zero window padding)
             ImGuiWindowFlags child_flags = (flags & ImGuiTableFlags_ScrollX) ? ImGuiWindowFlags_HorizontalScrollbar : ImGuiWindowFlags_None;
+        	child_flags |= subWindowFlags;
             ImGui::BeginChildEx(name, instance_id, outer_rect.GetSize(), false, child_flags);
             table->InnerWindow = g.CurrentWindow;
             table->WorkRect = table->InnerWindow->WorkRect;
@@ -514,10 +515,10 @@ namespace ImGuiEx::BigTable {
         return true;
     }
 
-    bool BeginTable(const char* str_id, int columns_count, ImGuiTableFlags flags, const ImVec2& outer_size, float inner_width)
+    bool BeginTable(const char* str_id, int columns_count, ImGuiTableFlags flags, ImGuiWindowFlags subWindowFlags, const ImVec2& outer_size, float inner_width)
     {
 	    ImGuiID id = ImGui::GetID(str_id);
-	    return BeginTableEx(str_id, id, columns_count, flags, outer_size, inner_width);
+	    return BeginTableEx(str_id, id, columns_count, flags, subWindowFlags, outer_size, inner_width);
     }
 
     // Restore initial state of table (with or without saved settings)
