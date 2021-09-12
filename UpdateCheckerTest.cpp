@@ -335,10 +335,10 @@ TEST(UpdateCheckerTest, IsNewer)
 TEST(UpdateCheckerTest, CheckForUpdate_Stable)
 {
 	UpdateCheckerMock updater;
-    updater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	updater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
 	updater.CheckForUpdate(UpdateCheckerBase::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", false);
-    Sleep(1000); // Wait for spawned thread to exit
-    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::UpdateAvailable);
+	Sleep(1000); // Wait for spawned thread to exit
+	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::UpdateAvailable);
 	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({2, 5, 2, 0}));
 	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
 }
@@ -347,12 +347,12 @@ TEST(UpdateCheckerTest, CheckForUpdate_Stable)
 TEST(UpdateCheckerTest, CheckForUpdate_Stable_Negative)
 {
 	UpdateCheckerMock updater;
-    updater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	updater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
 	updater.CheckForUpdate(UpdateCheckerBase::Version({3, 0, 0, 0}), "knoxfighter/arcdps-killproof.me-plugin", false);
-    Sleep(1000); // Wait for spawned thread to exit
-    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	Sleep(1000); // Wait for spawned thread to exit
+	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
 
-    // These are still filled out, and the status is what indicates that there is no available release
+	// These are still filled out, and the status is what indicates that there is no available release
 	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({2, 5, 2, 0}));
 	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
 }
@@ -360,10 +360,10 @@ TEST(UpdateCheckerTest, CheckForUpdate_Stable_Negative)
 TEST(UpdateCheckerTest, CheckForUpdate_Stable_BadJson)
 {
 	UpdateCheckerMock updater;
-    updater.QueuedResponses.push("[ not json data }");
+	updater.QueuedResponses.push("[ not json data }");
 	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", false);
-    Sleep(1000); // Wait for spawned thread to exit
-    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	Sleep(1000); // Wait for spawned thread to exit
+	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
 	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
 	EXPECT_EQ(updater.GetDownloadUrl(), "");
 }
@@ -371,10 +371,10 @@ TEST(UpdateCheckerTest, CheckForUpdate_Stable_BadJson)
 TEST(UpdateCheckerTest, CheckForUpdate_Prerelease)
 {
 	UpdateCheckerMock updater;
-    updater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	updater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
 	updater.CheckForUpdate(UpdateCheckerBase::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", true);
-    Sleep(1000); // Wait for spawned thread to exit
-    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::UpdateAvailable);
+	Sleep(1000); // Wait for spawned thread to exit
+	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::UpdateAvailable);
 	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({2, 5, 2, 0}));
 	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
 }
@@ -382,10 +382,10 @@ TEST(UpdateCheckerTest, CheckForUpdate_Prerelease)
 TEST(UpdateCheckerTest, CheckForUpdate_Prerelease_NoReleases)
 {
 	UpdateCheckerMock updater;
-    updater.QueuedResponses.push("[]");
+	updater.QueuedResponses.push("[]");
 	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", true);
-    Sleep(1000); // Wait for spawned thread to exit
-    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	Sleep(1000); // Wait for spawned thread to exit
+	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
 	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
 	EXPECT_EQ(updater.GetDownloadUrl(), "");
 }
@@ -393,10 +393,10 @@ TEST(UpdateCheckerTest, CheckForUpdate_Prerelease_NoReleases)
 TEST(UpdateCheckerTest, CheckForUpdate_Prerelease_BadJson)
 {
 	UpdateCheckerMock updater;
-    updater.QueuedResponses.push("{invalidjson");
+	updater.QueuedResponses.push("{invalidjson");
 	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", true);
-    Sleep(1000); // Wait for spawned thread to exit
-    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	Sleep(1000); // Wait for spawned thread to exit
+	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
 	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
 	EXPECT_EQ(updater.GetDownloadUrl(), "");
 }
