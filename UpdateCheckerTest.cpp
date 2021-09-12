@@ -357,6 +357,17 @@ TEST(UpdateCheckerTest, CheckForUpdate_Stable_Negative)
 	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
 }
 
+TEST(UpdateCheckerTest, CheckForUpdate_Stable_BadJson)
+{
+	UpdateCheckerMock updater;
+    updater.QueuedResponses.push("[ not json data }");
+	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", false);
+    Sleep(1000); // Wait for spawned thread to exit
+    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.GetDownloadUrl(), "");
+}
+
 TEST(UpdateCheckerTest, CheckForUpdate_Prerelease)
 {
 	UpdateCheckerMock updater;
@@ -366,4 +377,26 @@ TEST(UpdateCheckerTest, CheckForUpdate_Prerelease)
     EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::UpdateAvailable);
 	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({2, 5, 2, 0}));
 	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+}
+
+TEST(UpdateCheckerTest, CheckForUpdate_Prerelease_NoReleases)
+{
+	UpdateCheckerMock updater;
+    updater.QueuedResponses.push("[]");
+	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", true);
+    Sleep(1000); // Wait for spawned thread to exit
+    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.GetDownloadUrl(), "");
+}
+
+TEST(UpdateCheckerTest, CheckForUpdate_Prerelease_BadJson)
+{
+	UpdateCheckerMock updater;
+    updater.QueuedResponses.push("{invalidjson");
+	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", true);
+    Sleep(1000); // Wait for spawned thread to exit
+    EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.GetDownloadUrl(), "");
 }

@@ -80,53 +80,57 @@ void UpdateCheckerBase::CheckForUpdate(Version currentVersion, std::string repo,
 	version = currentVersion;
 
 	std::thread cprCall([this, repo, allowPrerelease]() {
-		nlohmann::basic_json<> json;
-		nlohmann::basic_json<>* release;
-		if (!allowPrerelease) {
-			std::string link = "https://api.github.com/repos/";
-			link.append(repo);
-			link.append("/releases/latest");
+		try {
+			nlohmann::basic_json<> json;
+			nlohmann::basic_json<>* release;
+			if (!allowPrerelease) {
+				std::string link = "https://api.github.com/repos/";
+				link.append(repo);
+				link.append("/releases/latest");
 
-			auto response = HttpGet(link);
-			if (!response.has_value()) {
-				return;
+				auto response = HttpGet(link);
+				if (!response.has_value()) {
+					return;
+				}
+
+				json = nlohmann::json::parse(response.value());
+				release = &json;
+			} else {
+				std::string link = "https://api.github.com/repos/";
+				link.append(repo);
+				link.append("/releases");
+
+				auto response = HttpGet(link);
+				if (!response.has_value()) {
+					return;
+				}
+
+				json = nlohmann::json::parse(response.value());
+				release = &json[0];
 			}
 
-			json = nlohmann::json::parse(response.value());
-			release = &json;
-		} else {
-			std::string link = "https://api.github.com/repos/";
-			link.append(repo);
-			link.append("/releases");
+			const auto tagName = release->at("tag_name").get<std::string>();
+			newVersion = ParseVersion(tagName);
 
-			auto response = HttpGet(link);
-			if (!response.has_value()) {
-				return;
+			// load download URL (use the first asset that has a .dll ending)
+			for (const auto& item : (*release)["assets"]) {
+				const auto assetName = item["name"].get<std::string>();
+				if (assetName.size() < 4) {
+					continue;
+				}
+
+				if (std::string_view(assetName).substr(assetName.size() - 4) == ".dll")	{
+					downloadUrl = item["browser_download_url"].get<std::string>();
+					//LogD("Found download url in {} - {}", assetName, downloadUrl);
+				}
 			}
 
-			json = nlohmann::json::parse(response.value());
-			release = &json[0];
-		}
-
-		const auto tagName = release->at("tag_name").get<std::string>();
-		newVersion = ParseVersion(tagName);
-
-		// load download URL (use the first asset that has a .dll ending)
-		for (const auto& item : (*release)["assets"]) {
-			const auto assetName = item["name"].get<std::string>();
-			if (assetName.size() < 4) {
-				continue;
+			if (IsNewer(newVersion, version)) {
+				Status expected = Status::Unknown;
+				update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
 			}
-
-			if (std::string_view(assetName).substr(assetName.size() - 4) == ".dll")	{
-				downloadUrl = item["browser_download_url"].get<std::string>();
-				//LogD("Found download url in {} - {}", assetName, downloadUrl);
-			}
-		}
-
-		if (IsNewer(newVersion, version)) {
-			Status expected = Status::Unknown;
-			update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
+		} catch (std::exception&) {
+			//LogD("Failed to get update - exception thrown");
 		}
 	});
 
