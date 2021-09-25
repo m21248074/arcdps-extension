@@ -693,7 +693,7 @@ namespace ImGuiEx {
 	}
 
 #ifdef _WIN32
-	void KeyInput(const char* label, const char* id, char* buffer, size_t bufSize, WPARAM& keyContainer) {
+	void KeyInput(const char* label, const char* id, char* buffer, size_t bufSize, WPARAM& keyContainer, const char* notSetText) {
 		ImGui::TextUnformatted(label);
 		ImGui::SameLine();
 		ImGui::PushItemWidth(30);
@@ -702,7 +702,7 @@ namespace ImGuiEx {
 			if (textLen == 0) {
 				keyContainer = 0;
 			} else if (textLen == 1) {
-				keyContainer = static_cast<int8_t>(VkKeyScanA(buffer[0])); // cut off the second byte, only the first one contains the vkeycode (https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-vkkeyscana)
+				keyContainer = VkKeyScanA(buffer[0]); // cut off the second byte, only the first one contains the vkeycode (https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-vkkeyscana)
 			} else if (textLen == 2) {
 				try {
 					const int keyId = std::stoi(buffer);
@@ -717,12 +717,17 @@ namespace ImGuiEx {
 		}
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
-		// convert virtual key to vsc key
-		UINT vscKey = MapVirtualKeyA(keyContainer, MAPVK_VK_TO_VSC);
-		// get the name representation of the key
-		char shortCutRealName[32]{};
-		GetKeyNameTextA((vscKey << 16), shortCutRealName, 32);
-		ImGui::TextUnformatted(shortCutRealName);
+
+		if (keyContainer == 0) {
+			ImGui::TextUnformatted(notSetText);
+		} else {
+			// convert virtual key to vsc key
+			UINT vscKey = MapVirtualKeyA(keyContainer, MAPVK_VK_TO_VSC);
+			// get the name representation of the key
+			char shortCutRealName[32]{};
+			GetKeyNameTextA((vscKey << 16), shortCutRealName, 32);
+			ImGui::TextUnformatted(shortCutRealName);
+		}
 	}
 #endif
 }

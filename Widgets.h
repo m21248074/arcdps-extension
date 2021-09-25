@@ -74,6 +74,6 @@ namespace ImGuiEx {
 	/// <param name="buffer">textbuffer for the textInput</param>
 	/// <param name="bufSize">the size of the textbuffer</param>
 	/// <param name="keyContainer">int container for the real keyCode</param>
-	void KeyInput(const char* label, const char* id, char* buffer, size_t bufSize, WPARAM& keyContainer);
+	void KeyInput(const char* label, const char* id, char* buffer, size_t bufSize, WPARAM& keyContainer, const char* notSetText);
 #endif
 }
