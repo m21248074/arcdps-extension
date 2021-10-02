@@ -11,7 +11,6 @@
 class IconLoader;
 
 class Icon {
-	friend IconLoader;
 public:
 	Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d3d11Device);
 	Icon() = delete;
@@ -22,12 +21,15 @@ public:
 	Icon(Icon&& other) noexcept = delete;
 	Icon& operator=(const Icon& other) = delete;
 	Icon& operator=(Icon&& other) noexcept = delete;
+
+	void* getTexture() const;
 	
 private:
 	UINT width;
 	UINT height;
 	IDirect3DTexture9* d9texture = nullptr;
 	ID3D11ShaderResourceView* d11texture = nullptr;
+	mutable std::mutex textureLock;
 };
 
 /**

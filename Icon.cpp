@@ -221,6 +221,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 
 	PRINT_LINE()
 
+	std::lock_guard<std::mutex> textureGuard(textureLock);
 	// Create texture
 	if (d3d11Device) {
 		PRINT_LINE()
@@ -326,11 +327,25 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 
 Icon::~Icon() {
 	PRINT_LINE()
+	std::lock_guard<std::mutex> guard(textureLock);
 	if (d9texture)
 		d9texture->Release();
 	if (d11texture)
 		d11texture->Release();
 	PRINT_LINE()
+}
+
+void* Icon::getTexture() const {
+	std::unique_lock<std::mutex> lock(textureLock);
+	if (lock.owns_lock()) {
+		if (d9texture) {
+			return d9texture;
+		}
+		if (d11texture) {
+			return d11texture;
+		}
+	}
+	return nullptr;
 }
 
 void IconLoader::Setup(HMODULE new_dll, IDirect3DDevice9* new_d3d9Device, ID3D11Device* new_d3d11device) {
@@ -349,12 +364,7 @@ void* IconLoader::getTexture(UINT name) {
 	auto texture = textures.find(name);
 	if (texture != textures.end()) {
 		const auto& tex = texture->second;
-		if (tex.d11texture) {
-			return tex.d11texture;
-		}
-		if (tex.d9texture) {
-			return tex.d9texture;
-		}
+		return tex.getTexture();
 	}
 
 	{
