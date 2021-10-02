@@ -366,3 +366,7 @@ void* IconLoader::getTexture(UINT name) {
 
 	return tryEmplace.first->second.getTexture();
 }
+
+void IconLoader::Shutdown() {
+	textures.clear();
+}

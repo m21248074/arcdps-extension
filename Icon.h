@@ -33,12 +33,13 @@ private:
 
 /**
  * Call `Setup()` in `mod_init()`. This is needed, so this class knows about the dll and the directx device!
- * If this call is missing not Icons can be found, which will cause a runtime exception
+ * Call `Shutdown()` in `mod_release()`. This is needed, so gw2 does not crash while closing.
  */
 class IconLoader {
 public:
 	void Setup(HMODULE new_dll, IDirect3DDevice9* d3d9Device, ID3D11Device* new_d3d11device);
 	void* getTexture(UINT name);
+	void Shutdown();
 
 private:
 	HMODULE dll = nullptr;
