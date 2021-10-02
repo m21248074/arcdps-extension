@@ -29,7 +29,6 @@ private:
 	UINT height;
 	IDirect3DTexture9* d9texture = nullptr;
 	ID3D11ShaderResourceView* d11texture = nullptr;
-	mutable std::mutex textureLock;
 };
 
 /**
@@ -46,12 +45,6 @@ private:
 	ID3D11Device* d3d11device = nullptr;
 	IDirect3DDevice9* d3d9Device = nullptr;
 	std::map<UINT, Icon> textures;
-	std::vector<UINT> queue;
-	std::mutex queueMutex;
-
-	std::atomic_bool thread_running = false;
-
-	void thread_fun();
 };
 
 extern IconLoader iconLoader;

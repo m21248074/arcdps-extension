@@ -221,7 +221,6 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 
 	PRINT_LINE()
 
-	std::lock_guard<std::mutex> textureGuard(textureLock);
 	// Create texture
 	if (d3d11Device) {
 		PRINT_LINE()
@@ -327,7 +326,6 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 
 Icon::~Icon() {
 	PRINT_LINE()
-	std::lock_guard<std::mutex> guard(textureLock);
 	if (d9texture)
 		d9texture->Release();
 	if (d11texture)
@@ -336,14 +334,11 @@ Icon::~Icon() {
 }
 
 void* Icon::getTexture() const {
-	std::unique_lock<std::mutex> lock(textureLock);
-	if (lock.owns_lock()) {
-		if (d9texture) {
-			return d9texture;
-		}
-		if (d11texture) {
-			return d11texture;
-		}
+	if (d9texture) {
+		return d9texture;
+	}
+	if (d11texture) {
+		return d11texture;
 	}
 	return nullptr;
 }
@@ -367,42 +362,7 @@ void* IconLoader::getTexture(UINT name) {
 		return tex.getTexture();
 	}
 
-	{
-		std::lock_guard<std::mutex> guard(queueMutex);
-		if (std::ranges::find(queue, name) == queue.end()) {
-			queue.push_back(name);
-		}
-	}
-	
-	bool expected = false;
-	if (thread_running.compare_exchange_strong(expected, true)) {
-		std::thread t(&IconLoader::thread_fun, this);
-		t.detach();
-	}
+	const auto& tryEmplace = textures.try_emplace(name, name, dll, d3d9Device, d3d11device);
 
-	return nullptr;
-}
-
-void IconLoader::thread_fun() {
-	PRINT_LINE()
-	while (!queue.empty()) {
-		PRINT_LINE()
-		queueMutex.lock();
-		UINT name = queue.back();
-		queue.pop_back();
-		queueMutex.unlock();
-
-		if (textures.find(name) != textures.end()) {
-			// texture already loaded, skip
-			continue;
-		}
-
-		PRINT_LINE()
-		// load texture (texture is loaded in Icon constructor)
-		textures.try_emplace(name, name, dll, d3d9Device, d3d11device);
-		PRINT_LINE()
-	}
-	PRINT_LINE()
-	thread_running = false;
-	PRINT_LINE()
+	return tryEmplace.first->second.getTexture();
 }
