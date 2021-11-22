@@ -29,7 +29,7 @@ void MainWindow::Draw(const Param& param) {
 	/**
 	 * Reposition Window
 	 */
-	ImGuiEx::WindowReposition(param.position, param.cornerVector, param.cornerPosition, param.fromWindowID,
+	ImGuiEx::WindowReposition(nullptr, param.position, param.cornerVector, param.cornerPosition, param.fromWindowID,
 							  param.anchorPanelCornerPosition, param.selfPanelCornerPosition);
 
 	ImGui::End();

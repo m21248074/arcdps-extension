@@ -17,7 +17,8 @@ namespace ImGuiEx {
 	void BeginMenu(const char* menu_label, std::function<void()> draw_func);
 	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags);
 	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx);
-	void WindowReposition(Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,
+	// returns true if the window moved
+	bool WindowReposition(ImGuiWindow* window, Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,
 	                      CornerPosition anchorPanelCornerPosition, CornerPosition selfPanelCornerPosition);
 
 	template <typename E, typename = typename std::enable_if<std::is_enum<E>::value, void>::type>
