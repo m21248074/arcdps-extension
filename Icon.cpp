@@ -23,8 +23,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		// not found
 		std::string text = "Error finding Resource: ";
 		text.append(nameString);
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -35,8 +34,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		// loading failed
 		std::string text = "Error loading resource: ";
 		text.append(nameString);
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -46,8 +44,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		// locking failed
 		std::string text = "Error locking resource: ";
 		text.append(nameString);
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -57,8 +54,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		// error getting size of file
 		std::string text = "Error getting Size of Resource: ";
 		text.append(nameString);
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -70,8 +66,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(coInitializeResult));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -84,8 +79,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(createInstance));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -98,8 +92,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(streamRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -111,8 +104,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(initializeFromMemoryRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -125,8 +117,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(decoderFromStreamRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -139,8 +130,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(getFrameRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -153,8 +143,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(pixelFormatRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -167,8 +156,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(componentInfoRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -181,8 +169,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(pixelFormatInfoRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -195,8 +182,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(nameString);
 		text.append(" - ");
 		text.append(std::to_string(bitsPerPixelRes));
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -215,8 +201,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		text.append(" - ");
 		text.append(std::to_string(copyPixelsRes));
 		delete[] pixelBuffer;
-		return;
-		// throw std::runtime_error(text);
+		throw std::runtime_error(text);
 	}
 
 	PRINT_LINE()
@@ -249,15 +234,12 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 		ID3D11Texture2D* pTexture = nullptr;
 		HRESULT createTexture2DRes = d3d11Device->CreateTexture2D(&desc, &subResource, &pTexture);
 		if (!SUCCEEDED(createTexture2DRes)) {
-			pTexture->Release();
-			// error copying pixels to buffer
 			std::string text = "Error creating 2d texture: ";
 			text.append(nameString);
 			text.append(" - ");
 			text.append(std::to_string(createTexture2DRes));
 			PRINT_LINE()
-			return;
-			// throw std::runtime_error(text);
+			throw std::runtime_error(text);
 		}
 		
 		PRINT_LINE()
@@ -280,7 +262,8 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 			text.append(" - ");
 			text.append(std::to_string(createTexture2DRes));
 			PRINT_LINE()
-			return;
+			throw std::runtime_error(text);
+;
 		}
 		PRINT_LINE()
 		
@@ -298,7 +281,7 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 			text.append(" - ");
 			text.append(std::to_string(createTextureRes));
 			delete[] pixelBuffer;
-			return;
+			throw std::runtime_error(text);
 		}
 
 		PRINT_LINE()
@@ -333,6 +316,16 @@ Icon::~Icon() {
 	PRINT_LINE()
 }
 
+void* Icon::getTexture() const {
+	if (d9texture) {
+		return d9texture;
+	}
+	if (d11texture) {
+		return d11texture;
+	}
+	return nullptr;
+}
+
 void IconLoader::Setup(HMODULE new_dll, IDirect3DDevice9* new_d3d9Device, ID3D11Device* new_d3d11device) {
 	dll = new_dll;
 	d3d11device = new_d3d11device;
@@ -349,50 +342,14 @@ void* IconLoader::getTexture(UINT name) {
 	auto texture = textures.find(name);
 	if (texture != textures.end()) {
 		const auto& tex = texture->second;
-		if (tex.d11texture) {
-			return tex.d11texture;
-		}
-		if (tex.d9texture) {
-			return tex.d9texture;
-		}
+		return tex.getTexture();
 	}
 
-	{
-		std::lock_guard<std::mutex> guard(queueMutex);
-		if (std::ranges::find(queue, name) == queue.end()) {
-			queue.push_back(name);
-		}
-	}
-	
-	bool expected = false;
-	if (thread_running.compare_exchange_strong(expected, true)) {
-		std::thread t(&IconLoader::thread_fun, this);
-		t.detach();
-	}
+	const auto& tryEmplace = textures.try_emplace(name, name, dll, d3d9Device, d3d11device);
 
-	return nullptr;
+	return tryEmplace.first->second.getTexture();
 }
 
-void IconLoader::thread_fun() {
-	PRINT_LINE()
-	while (!queue.empty()) {
-		PRINT_LINE()
-		queueMutex.lock();
-		UINT name = queue.back();
-		queue.pop_back();
-		queueMutex.unlock();
-
-		if (textures.find(name) != textures.end()) {
-			// texture already loaded, skip
-			continue;
-		}
-
-		PRINT_LINE()
-		// load texture (texture is loaded in Icon constructor)
-		textures.try_emplace(name, name, dll, d3d9Device, d3d11device);
-		PRINT_LINE()
-	}
-	PRINT_LINE()
-	thread_running = false;
-	PRINT_LINE()
+void IconLoader::Shutdown() {
+	textures.clear();
 }

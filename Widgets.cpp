@@ -601,10 +601,16 @@ namespace ImGuiEx {
 			column.IsEnabledNextFrame = !column.IsEnabled;
 	}
 
-	void WindowReposition(Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,
+	bool WindowReposition(ImGuiWindow* window, Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,
 	                      CornerPosition anchorPanelCornerPosition, CornerPosition selfPanelCornerPosition) {
-		const ImVec2& windowSize = ImGui::GetWindowSize();
+		if (window == nullptr) {
+			window = ImGui::GetCurrentWindowRead();
+		}
+
+		const ImVec2& windowSize = window->Size;
 		const ImVec2& displaySize = ImGui::GetIO().DisplaySize;
+
+		const ImVec2 startPos = window->Pos;
 
 		switch (position) {
 			case Position::ScreenRelative: {
@@ -631,7 +637,7 @@ namespace ImGuiEx {
 					}
 				}
 
-				ImGui::SetWindowPos(setPosition);
+				ImGui::SetWindowPos(window, setPosition);
 				break;
 			}
 			case Position::WindowRelative: {
@@ -688,10 +694,13 @@ namespace ImGuiEx {
 				// clip to screen border
 				setPosition = ImMax(setPosition, ImVec2(0.f, 0.f));
 
-				ImGui::SetWindowPos(setPosition);
+				ImGui::SetWindowPos(window, setPosition);
 				break;
 			}
 		}
+
+		const ImVec2& endPos = window->Pos;
+		return startPos.x != endPos.x || startPos.y != endPos.y;
 	}
 
 #ifdef _WIN32
