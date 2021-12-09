@@ -69,6 +69,8 @@ namespace ImGuiEx {
 	/// <summary>
 	/// KeyInput, has `label` on the left, a textInput in the middle and the used shortcut at the right.
 	/// Only defined for Windows, cause `VkKeyScanA`, `MapVirtualKeyA` and `GetKeyNameTextA` are windows-api functions.
+	///
+	///	The `buffer` has to be initialized to the keyContainer value, so the number is shown in the beginning.
 	/// </summary>
 	/// <param name="label">text to the left of the textInput</param>
 	/// <param name="id">id for the inputtext (has to be unique and start with '##')</param>
