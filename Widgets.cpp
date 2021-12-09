@@ -6,6 +6,10 @@
 
 #include "ImGui_Math.h"
 
+#pragma warning( push )
+// disable warning for implicit conversion (for now)
+#pragma warning( disable : 4244)
+
 namespace ImGuiEx {
 	bool Spinner(const char* label, float radius, float thickness, const ImU32& color) {
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -28,7 +32,7 @@ namespace ImGuiEx {
 		window->DrawList->PathClear();
 
 		int num_segments = 15;
-		int start = abs(ImSin(g.Time * 1.8f) * (num_segments - 5));
+		int start = abs(ImSin(g.Time * 1.8) * (num_segments - 5));
 
 		const float a_min = IM_PI * 2.0f * ((float)start) / (float)num_segments;
 		const float a_max = IM_PI * 2.0f * ((float)num_segments - 3) / (float)num_segments;
@@ -265,7 +269,6 @@ namespace ImGuiEx {
 					newX = ellipsis_max - label_size.x;
 					// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
 					break;
-				default: [[fallthrough]];
 			}
 
 			ImGui::RenderTextEllipsis(window->DrawList, ImVec2(newX, label_pos.y), ImVec2(ellipsis_max, label_pos.y + label_height + g.Style.FramePadding.y),
@@ -284,7 +287,6 @@ namespace ImGuiEx {
 					newX = ellipsis_max - image_size;
 					// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
 					break;
-				default: [[fallthrough]];
 			}
 
 			ImRect ibb(ImVec2(newX, label_pos.y), ImVec2(newX, label_pos.y) + image_size);
@@ -731,3 +733,5 @@ namespace ImGuiEx {
 	}
 #endif
 }
+
+#pragma warning( pop )
