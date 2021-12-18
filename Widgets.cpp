@@ -601,6 +601,15 @@ namespace ImGuiEx {
 			column.IsEnabledNextFrame = !column.IsEnabled;
 	}
 
+	bool TableIsMouseHoveringCurrentRow() {
+		ImGuiTable* table = GImGui->CurrentTable;
+		if (table == nullptr) return false;
+		ImRect row_rect(table->WorkRect.Min.x, table->RowPosY1, table->WorkRect.Max.x, table->RowPosY2);
+        row_rect.ClipWith(table->BgClipRect);
+
+		return ImGui::IsMouseHoveringRect(row_rect.Min, row_rect.Max, false);
+	}
+
 	bool WindowReposition(ImGuiWindow* window, Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,
 	                      CornerPosition anchorPanelCornerPosition, CornerPosition selfPanelCornerPosition) {
 		if (window == nullptr) {
