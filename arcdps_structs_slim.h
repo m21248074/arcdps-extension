@@ -116,6 +116,7 @@ enum gwlanguage {
 	GWL_FRE = 2,
 	GWL_GEM = 3,
 	GWL_SPA = 4,
+	GWL_CN = 5,
 };
 
 /* Profession used by agent */
