@@ -2,9 +2,15 @@
 #include <gtest/gtest.h>
 #pragma warning(pop)
 
+#include <Log.h>
+
 #include <UpdateCheckerBase.h>
+
+#include <filesystem>
 #include <queue>
 
+namespace
+{
 constexpr char MOCK_RESPONSE_ALL_RELEASES[] = R"DELIMITER([
   {
     "url": "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/45627408",
@@ -256,147 +262,491 @@ constexpr char MOCK_RESPONSE_LATEST_RELEASE[] = R"DELIMITER({
 }
 )DELIMITER";
 
-class UpdateCheckerMock : public UpdateCheckerBase
+class UpdateCheckerMock final : public UpdateCheckerBase
 {
 public:
-	void Draw() override
-	{
-	}
+	std::string DllName = "update_checker_test.dll";
+	std::queue<std::optional<std::string>> QueuedResponses;
 
-	Status GetStatus() const
-	{
-		return update_status.load();
-	}
-
-	Version GetNewVersion() const
-	{
-		return newVersion;
-	}
-
-	std::string GetDownloadUrl() const
-	{
-		return downloadUrl;
-	}
-
-    std::queue<std::string> QueuedResponses;
-    std::optional<std::string> HttpGet(const std::string&) override
+	bool HttpDownload(const std::string&, std::ofstream& pOutputStream) override
 	{
 		assert(QueuedResponses.size() > 0);
 
-        std::optional<std::string> result = QueuedResponses.front();
-        QueuedResponses.pop();
-        return result;
+		std::optional<std::string> result = QueuedResponses.front();
+		QueuedResponses.pop();
+
+		if (result.has_value() == false)
+		{
+			return false;
+		}
+
+		pOutputStream.write(result->data(), result->size());
+		return true;
+	}
+
+	std::optional<std::string> HttpGet(const std::string&) override
+	{
+		assert(QueuedResponses.size() > 0);
+
+		std::optional<std::string> result = QueuedResponses.front();
+		QueuedResponses.pop();
+		return result;
+	}
+
+	std::optional<std::string> GetPathFromHModule(HMODULE) noexcept override
+	{
+		return DllName;
+	}
+
+	void Log(std::string&& pMessage) override
+	{
+		LogD("{}", pMessage);
 	}
 };
+
+// parameters are <use_prerelease, window_dismissed>
+class UpdateCheckerTestFixture : public ::testing::TestWithParam<std::tuple<bool, bool>>
+{
+protected:
+	UpdateCheckerMock mUpdater;
+
+	void SetUp() override
+	{
+		remove(mUpdater.DllName.c_str());
+		mUpdater.ClearFiles(NULL);
+	}
+
+	void TearDown() override
+	{
+		remove(mUpdater.DllName.c_str());
+		mUpdater.ClearFiles(NULL);
+	}
+};
+} // anonymous namespace
 
 TEST(UpdateCheckerTest, ParseVersion)
 {
 	UpdateCheckerMock updater;
 	// "Good path"
-	EXPECT_EQ(updater.ParseVersion("1.2.3"), UpdateCheckerBase::Version({1, 2, 3, 0}));
-	EXPECT_EQ(updater.ParseVersion("v1.2.3"), UpdateCheckerBase::Version({1, 2, 3, 0}));
-	EXPECT_EQ(updater.ParseVersion("1v.2.3"), UpdateCheckerBase::Version({1, 2, 3, 0}));
-	EXPECT_EQ(updater.ParseVersion("rc1v.r2c.hh3_"), UpdateCheckerBase::Version({1, 2, 3, 0}));
+	EXPECT_EQ(updater.ParseVersion("1.2.3"), UpdateCheckerMock::Version({1, 2, 3, 0}));
+	EXPECT_EQ(updater.ParseVersion("v1.2.3"), UpdateCheckerMock::Version({1, 2, 3, 0}));
+	EXPECT_EQ(updater.ParseVersion("1v.2.3"), UpdateCheckerMock::Version({1, 2, 3, 0}));
+	EXPECT_EQ(updater.ParseVersion("rc1v.r2c.hh3_"), UpdateCheckerMock::Version({1, 2, 3, 0}));
 
 	// Tokens after the third one should be ignored
-	EXPECT_EQ(updater.ParseVersion("v1.2.rc3.4"), UpdateCheckerBase::Version({1, 2, 3, 0}));
-	EXPECT_EQ(updater.ParseVersion("v1.2.rc3.4.5.6"), UpdateCheckerBase::Version({1, 2, 3, 0}));
+	EXPECT_EQ(updater.ParseVersion("v1.2.rc3.4"), UpdateCheckerMock::Version({1, 2, 3, 0}));
+	EXPECT_EQ(updater.ParseVersion("v1.2.rc3.4.5.6"), UpdateCheckerMock::Version({1, 2, 3, 0}));
 
 	// tokens that contain no digits should be ignored
-	EXPECT_EQ(updater.ParseVersion("5.4.a.3.4"), UpdateCheckerBase::Version({5, 4, 3, 0}));
+	EXPECT_EQ(updater.ParseVersion("5.4.a.3.4"), UpdateCheckerMock::Version({5, 4, 3, 0}));
 
 	// Invalid strings should return all zero version
-	EXPECT_EQ(updater.ParseVersion("1.2"), UpdateCheckerBase::Version({0, 0, 0, 0}));
-	EXPECT_EQ(updater.ParseVersion("v"), UpdateCheckerBase::Version({0, 0, 0, 0}));
-	EXPECT_EQ(updater.ParseVersion(".."), UpdateCheckerBase::Version({0, 0, 0, 0}));
-	EXPECT_EQ(updater.ParseVersion("..1"), UpdateCheckerBase::Version({0, 0, 0, 0}));
-	EXPECT_EQ(updater.ParseVersion("a.b"), UpdateCheckerBase::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.ParseVersion("1.2"), UpdateCheckerMock::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.ParseVersion("v"), UpdateCheckerMock::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.ParseVersion(".."), UpdateCheckerMock::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.ParseVersion("..1"), UpdateCheckerMock::Version({0, 0, 0, 0}));
+	EXPECT_EQ(updater.ParseVersion("a.b"), UpdateCheckerMock::Version({0, 0, 0, 0}));
 }
 
 TEST(UpdateCheckerTest, IsNewer)
 {
 	UpdateCheckerMock updater;
 	// Last version token is ignored
-	EXPECT_FALSE(updater.IsNewer(UpdateCheckerBase::Version({1, 2, 3, 0}), UpdateCheckerBase::Version({1, 2, 3, 0})));
-	EXPECT_FALSE(updater.IsNewer(UpdateCheckerBase::Version({1, 2, 3, 0}), UpdateCheckerBase::Version({1, 2, 3, 200})));
-	EXPECT_FALSE(updater.IsNewer(UpdateCheckerBase::Version({1, 2, 3, 200}), UpdateCheckerBase::Version({1, 2, 3, 0})));
+	EXPECT_FALSE(updater.IsNewer(UpdateCheckerMock::Version({1, 2, 3, 0}), UpdateCheckerMock::Version({1, 2, 3, 0})));
+	EXPECT_FALSE(updater.IsNewer(UpdateCheckerMock::Version({1, 2, 3, 0}), UpdateCheckerMock::Version({1, 2, 3, 200})));
+	EXPECT_FALSE(updater.IsNewer(UpdateCheckerMock::Version({1, 2, 3, 200}), UpdateCheckerMock::Version({1, 2, 3, 0})));
 
 	// Newer version can be detected
-	EXPECT_TRUE(updater.IsNewer(UpdateCheckerBase::Version({1, 2, 4, 0}), UpdateCheckerBase::Version({1, 2, 3, 0})));
-	EXPECT_FALSE(updater.IsNewer(UpdateCheckerBase::Version({1, 2, 3, 0}), UpdateCheckerBase::Version({1, 2, 4, 0})));
+	EXPECT_TRUE(updater.IsNewer(UpdateCheckerMock::Version({1, 2, 4, 0}), UpdateCheckerMock::Version({1, 2, 3, 0})));
+	EXPECT_FALSE(updater.IsNewer(UpdateCheckerMock::Version({1, 2, 3, 0}), UpdateCheckerMock::Version({1, 2, 4, 0})));
 
 	// Numbers earlier in the version number take precedence
-	EXPECT_TRUE(updater.IsNewer(UpdateCheckerBase::Version({1, 3, 1, 0}), UpdateCheckerBase::Version({1, 2, 4, 0})));
-	EXPECT_FALSE(updater.IsNewer(UpdateCheckerBase::Version({1, 2, 4, 0}), UpdateCheckerBase::Version({1, 3, 1, 0})));
-	EXPECT_TRUE(updater.IsNewer(UpdateCheckerBase::Version({10, 0, 0, 0}), UpdateCheckerBase::Version({9, 9, 9, 9})));
-	EXPECT_FALSE(updater.IsNewer(UpdateCheckerBase::Version({9, 9, 9, 9}), UpdateCheckerBase::Version({10, 0, 0, 0})));
+	EXPECT_TRUE(updater.IsNewer(UpdateCheckerMock::Version({1, 3, 1, 0}), UpdateCheckerMock::Version({1, 2, 4, 0})));
+	EXPECT_FALSE(updater.IsNewer(UpdateCheckerMock::Version({1, 2, 4, 0}), UpdateCheckerMock::Version({1, 3, 1, 0})));
+	EXPECT_TRUE(updater.IsNewer(UpdateCheckerMock::Version({10, 0, 0, 0}), UpdateCheckerMock::Version({9, 9, 9, 9})));
+	EXPECT_FALSE(updater.IsNewer(UpdateCheckerMock::Version({9, 9, 9, 9}), UpdateCheckerMock::Version({10, 0, 0, 0})));
 }
 
-TEST(UpdateCheckerTest, CheckForUpdate_Stable)
+TEST_P(UpdateCheckerTestFixture, Update_Positive)
 {
-	UpdateCheckerMock updater;
-	updater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
-	updater.CheckForUpdate(UpdateCheckerBase::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", false);
-	Sleep(1000); // Wait for spawned thread to exit
-	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::UpdateAvailable);
-	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({2, 5, 2, 0}));
-	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+	auto [prerelease, dismiss_window] = GetParam();
+	if (prerelease == false)
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	}
+	else
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	}
+
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.CheckForUpdate(NULL, UpdateCheckerMock::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, UpdateCheckerMock::Version({2, 5, 1, 0}));
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateAvailable);
+	EXPECT_EQ(state->NewVersion, UpdateCheckerMock::Version({2, 5, 2, 0}));
+	EXPECT_EQ(state->DownloadUrl, "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+
+	{
+		std::ofstream mockDll(mUpdater.DllName, std::ios::binary);
+		mockDll << "OLD_VERSION";
+	}
+
+	mUpdater.QueuedResponses.push("DATA_IN_NEW_VERSION");
+	{
+		std::lock_guard lock(state->Lock);
+		mUpdater.PerformInstallOrUpdate(*state);
+
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateInProgress);
+		if (dismiss_window == true)
+		{
+			state->UpdateStatus = UpdateCheckerMock::Status::Dismissed;
+		}
+	}
+
+	state->FinishPendingTasks();
+
+	if (dismiss_window == true)
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Dismissed);
+	}
+	else
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateSuccessful);
+	}
+
+	{
+		std::ifstream mockDll(state->InstallPath, std::ios::binary);
+		std::string content;
+		mockDll.seekg(0, std::ios::end);
+		content.resize(mockDll.tellg());
+		mockDll.seekg(0, std::ios::beg);
+		mockDll.read(content.data(), content.size());
+
+		EXPECT_EQ(content, "DATA_IN_NEW_VERSION");
+	}
 }
 
-// Same as above except the currentVersion is newer and thus an update is not available
-TEST(UpdateCheckerTest, CheckForUpdate_Stable_Negative)
+// Like the positive case, except it doesn't create the old file the update is performed from, so the rename will fail
+TEST_P(UpdateCheckerTestFixture, Update_RenameFailure)
 {
-	UpdateCheckerMock updater;
-	updater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
-	updater.CheckForUpdate(UpdateCheckerBase::Version({3, 0, 0, 0}), "knoxfighter/arcdps-killproof.me-plugin", false);
-	Sleep(1000); // Wait for spawned thread to exit
-	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
+	auto [prerelease, dismiss_window] = GetParam();
+	if (prerelease == false)
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	}
+	else
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	}
 
-	// These are still filled out, and the status is what indicates that there is no available release
-	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({2, 5, 2, 0}));
-	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.CheckForUpdate(NULL, UpdateCheckerMock::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, UpdateCheckerMock::Version({2, 5, 1, 0}));
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateAvailable);
+	EXPECT_EQ(state->NewVersion, UpdateCheckerMock::Version({2, 5, 2, 0}));
+	EXPECT_EQ(state->DownloadUrl, "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+
+	mUpdater.QueuedResponses.push("DATA_IN_NEW_VERSION");
+	{
+		std::lock_guard lock(state->Lock);
+		mUpdater.PerformInstallOrUpdate(*state);
+
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateInProgress);
+		if (dismiss_window == true)
+		{
+			state->UpdateStatus = UpdateCheckerMock::Status::Dismissed;
+		}
+	}
+
+	state->FinishPendingTasks();
+
+	if (dismiss_window == true)
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Dismissed);
+	}
+	else
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateError);
+	}
 }
 
-TEST(UpdateCheckerTest, CheckForUpdate_Stable_BadJson)
+// Like the positive case, except it pre-creates the temp file as a directory, so opening it as a file will fail
+TEST_P(UpdateCheckerTestFixture, Update_TempFileFailure)
 {
-	UpdateCheckerMock updater;
-	updater.QueuedResponses.push("[ not json data }");
-	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", false);
-	Sleep(1000); // Wait for spawned thread to exit
-	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
-	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
-	EXPECT_EQ(updater.GetDownloadUrl(), "");
+	auto [prerelease, dismiss_window] = GetParam();
+	if (prerelease == false)
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	}
+	else
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	}
+
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.CheckForUpdate(NULL, UpdateCheckerMock::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, UpdateCheckerMock::Version({2, 5, 1, 0}));
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateAvailable);
+	EXPECT_EQ(state->NewVersion, UpdateCheckerMock::Version({2, 5, 2, 0}));
+	EXPECT_EQ(state->DownloadUrl, "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+
+	{
+		std::ofstream mockDll(mUpdater.DllName, std::ios::binary);
+		mockDll << "OLD_VERSION";
+	}
+	std::filesystem::create_directory(mUpdater.DllName + ".tmp");
+
+	mUpdater.QueuedResponses.push("DATA_IN_NEW_VERSION");
+	{
+		std::lock_guard lock(state->Lock);
+		mUpdater.PerformInstallOrUpdate(*state);
+
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateInProgress);
+		if (dismiss_window == true)
+		{
+			state->UpdateStatus = UpdateCheckerMock::Status::Dismissed;
+		}
+	}
+
+	state->FinishPendingTasks();
+
+	if (dismiss_window == true)
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Dismissed);
+	}
+	else
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateError);
+	}
 }
 
-TEST(UpdateCheckerTest, CheckForUpdate_Prerelease)
+// Like the positive case, except it returns a http error on download
+TEST_P(UpdateCheckerTestFixture, Update_HttpError)
 {
-	UpdateCheckerMock updater;
-	updater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
-	updater.CheckForUpdate(UpdateCheckerBase::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", true);
-	Sleep(1000); // Wait for spawned thread to exit
-	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::UpdateAvailable);
-	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({2, 5, 2, 0}));
-	EXPECT_EQ(updater.GetDownloadUrl(), "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+	auto [prerelease, dismiss_window] = GetParam();
+	if (prerelease == false)
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	}
+	else
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	}
+
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.CheckForUpdate(NULL, UpdateCheckerMock::Version({2, 5, 1, 0}), "knoxfighter/arcdps-killproof.me-plugin", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, UpdateCheckerMock::Version({2, 5, 1, 0}));
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateAvailable);
+	EXPECT_EQ(state->NewVersion, UpdateCheckerMock::Version({2, 5, 2, 0}));
+	EXPECT_EQ(state->DownloadUrl, "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+
+	{
+		std::ofstream mockDll(mUpdater.DllName, std::ios::binary);
+		mockDll << "OLD_VERSION";
+	}
+
+	mUpdater.QueuedResponses.push(std::nullopt);
+	{
+		std::lock_guard lock(state->Lock);
+		mUpdater.PerformInstallOrUpdate(*state);
+
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateInProgress);
+		if (dismiss_window == true)
+		{
+			state->UpdateStatus = UpdateCheckerMock::Status::Dismissed;
+		}
+	}
+
+	state->FinishPendingTasks();
+
+	if (dismiss_window == true)
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Dismissed);
+	}
+	else
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateError);
+	}
 }
 
-TEST(UpdateCheckerTest, CheckForUpdate_Prerelease_NoReleases)
+TEST_P(UpdateCheckerTestFixture, Install_Positive)
 {
-	UpdateCheckerMock updater;
-	updater.QueuedResponses.push("[]");
-	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", true);
-	Sleep(1000); // Wait for spawned thread to exit
-	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
-	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
-	EXPECT_EQ(updater.GetDownloadUrl(), "");
+	auto [prerelease, dismiss_window] = GetParam();
+	if (prerelease == false)
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	}
+	else
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	}
+
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.GetInstallState(std::string(mUpdater.DllName), "knoxfighter/arcdps-killproof.me-plugin", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, std::nullopt);
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateAvailable);
+	EXPECT_EQ(state->NewVersion, UpdateCheckerMock::Version({2, 5, 2, 0}));
+	EXPECT_EQ(state->DownloadUrl, "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+
+	mUpdater.QueuedResponses.push("DATA_IN_NEW_VERSION");
+	{
+		std::lock_guard lock(state->Lock);
+		mUpdater.PerformInstallOrUpdate(*state);
+
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateInProgress);
+		if (dismiss_window == true)
+		{
+			state->UpdateStatus = UpdateCheckerMock::Status::Dismissed;
+		}
+	}
+
+	state->FinishPendingTasks();
+
+	if (dismiss_window == true)
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Dismissed);
+	}
+	else
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateSuccessful);
+	}
+
+	{
+		std::ifstream mockDll(state->InstallPath, std::ios::binary);
+		std::string content;
+		mockDll.seekg(0, std::ios::end);
+		content.resize(mockDll.tellg());
+		mockDll.seekg(0, std::ios::beg);
+		mockDll.read(content.data(), content.size());
+
+		EXPECT_EQ(content, "DATA_IN_NEW_VERSION");
+	}
 }
 
-TEST(UpdateCheckerTest, CheckForUpdate_Prerelease_BadJson)
+// Like the positive case, except it returns a http error on download
+TEST_P(UpdateCheckerTestFixture, Install_HttpError)
 {
-	UpdateCheckerMock updater;
-	updater.QueuedResponses.push("{invalidjson");
-	updater.CheckForUpdate(UpdateCheckerBase::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", true);
-	Sleep(1000); // Wait for spawned thread to exit
-	EXPECT_EQ(updater.GetStatus(), UpdateCheckerBase::Status::Unknown);
-	EXPECT_EQ(updater.GetNewVersion(), UpdateCheckerBase::Version({0, 0, 0, 0}));
-	EXPECT_EQ(updater.GetDownloadUrl(), "");
+	auto [prerelease, dismiss_window] = GetParam();
+	if (prerelease == false)
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	}
+	else
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	}
+
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.GetInstallState(std::string(mUpdater.DllName), "knoxfighter/arcdps-killproof.me-plugin", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, std::nullopt);
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateAvailable);
+	EXPECT_EQ(state->NewVersion, UpdateCheckerMock::Version({2, 5, 2, 0}));
+	EXPECT_EQ(state->DownloadUrl, "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/download/v2.5.2/d3d9_arcdps_killproof_me.dll");
+
+	mUpdater.QueuedResponses.push(std::nullopt);
+	{
+		std::lock_guard lock(state->Lock);
+		mUpdater.PerformInstallOrUpdate(*state);
+
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateInProgress);
+		if (dismiss_window == true)
+		{
+			state->UpdateStatus = UpdateCheckerMock::Status::Dismissed;
+		}
+	}
+
+	state->FinishPendingTasks();
+
+	if (dismiss_window == true)
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Dismissed);
+	}
+	else
+	{
+		EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::UpdateError);
+	}
 }
+
+TEST_P(UpdateCheckerTestFixture, CheckForUpdate_NoUpdate)
+{
+	auto [prerelease, dismiss_window] = GetParam();
+	if (prerelease == false)
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_LATEST_RELEASE);
+	}
+	else
+	{
+		mUpdater.QueuedResponses.push(MOCK_RESPONSE_ALL_RELEASES);
+	}
+
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.CheckForUpdate(NULL, UpdateCheckerMock::Version({3, 0, 0, 0}), "knoxfighter/arcdps-killproof.me-plugin", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, UpdateCheckerMock::Version({3, 0, 0, 0}));
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Unknown);
+}
+
+TEST_P(UpdateCheckerTestFixture, CheckForUpdate_BadJson)
+{
+	auto [prerelease, dismiss_window] = GetParam();
+	mUpdater.QueuedResponses.push("[ not json data }");
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.CheckForUpdate(NULL, UpdateCheckerMock::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, UpdateCheckerMock::Version({0, 0, 1, 0}));
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Unknown);
+}
+
+TEST_P(UpdateCheckerTestFixture, CheckForUpdate_NoReleases)
+{
+	auto [prerelease, dismiss_window] = GetParam();
+	mUpdater.QueuedResponses.push("[]");
+	std::unique_ptr<UpdateCheckerMock::UpdateState> state = mUpdater.CheckForUpdate(NULL, UpdateCheckerMock::Version({0, 0, 1, 0}), "Krappa322/arcdps_unofficial_extras_releases", prerelease);
+	ASSERT_NE(state, nullptr);
+	EXPECT_EQ(state->CurrentVersion, UpdateCheckerMock::Version({0, 0, 1, 0}));
+	EXPECT_EQ(state->InstallPath, mUpdater.DllName);
+
+	state->FinishPendingTasks();
+
+	EXPECT_EQ(state->UpdateStatus, UpdateCheckerMock::Status::Unknown);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+	Stable,
+	UpdateCheckerTestFixture,
+	::testing::Values(std::make_pair(false, false), std::make_pair(false, true)));
+
+INSTANTIATE_TEST_SUITE_P(
+	PreRelease,
+	UpdateCheckerTestFixture,
+	::testing::Values(std::make_pair(true, false), std::make_pair(true, true)));
