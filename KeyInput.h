@@ -15,10 +15,11 @@
  */
 namespace ImGuiEx {
 	enum KeyCodeInputFlags_ : int32_t {
-		KeyCodeInputFlags_NoModifier = 0b1,
-		KeyCodeInputFlags_NoMouse    = 0b10,
+		KeyCodeInputFlags_NoModifier  = 1 << 0,
+		KeyCodeInputFlags_NoMouse     = 1 << 1,
+		KeyCodeInputFlags_OnlyGW2Keys = 1 << 2,
 	};
-	typedef int32_t KeyCodeInputFlags;
+	typedef int32_t KeyCodeInputFlags; // enum KeyCodeInputFlags_
 
 	/**
 	 * \brief Has to be called in `mod_wnd` or your specific window handler. This function only has to be called once per program.

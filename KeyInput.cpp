@@ -2,6 +2,34 @@
 
 #include "../imgui/imgui.h"
 
+namespace
+{
+	using KeyBinds::KeyCode;
+	static constexpr KeyCode allowedKeyCodesValues[] = {
+		KeyCode::LeftAlt, KeyCode::LeftCtrl, KeyCode::LeftShift, KeyCode::Quote, KeyCode::Hash,
+		KeyCode::CapsLock, KeyCode::Colon, KeyCode::Minus, KeyCode::Equals, KeyCode::Escape,
+		KeyCode::OpenBracket, KeyCode::NumLock, KeyCode::Period, KeyCode::CloseBracket, KeyCode::Semicolon,
+		KeyCode::Slash, KeyCode::Print, KeyCode::Tilde, KeyCode::Backspace, KeyCode::Delete, KeyCode::Enter,
+		KeyCode::Space, KeyCode::Tab, KeyCode::End, KeyCode::Home, KeyCode::Insert, KeyCode::Next,
+		KeyCode::Prior, KeyCode::ArrowDown, KeyCode::ArrowLeft, KeyCode::ArrowRight, KeyCode::ArrowUp,
+		KeyCode::F1, KeyCode::F2, KeyCode::F3, KeyCode::F4, KeyCode::F5, KeyCode::F6, KeyCode::F7, KeyCode::F8,
+		KeyCode::F9, KeyCode::F10, KeyCode::F11, KeyCode::F12, KeyCode::_0, KeyCode::_1, KeyCode::_2,
+		KeyCode::_3, KeyCode::_4, KeyCode::_5, KeyCode::_6, KeyCode::_7, KeyCode::_8, KeyCode::_9, KeyCode::A,
+		KeyCode::B, KeyCode::C, KeyCode::D, KeyCode::E, KeyCode::F, KeyCode::G, KeyCode::H, KeyCode::I,
+		KeyCode::J, KeyCode::K, KeyCode::L, KeyCode::M, KeyCode::N, KeyCode::O, KeyCode::P, KeyCode::Q,
+		KeyCode::R, KeyCode::S, KeyCode::T, KeyCode::U, KeyCode::V, KeyCode::W, KeyCode::X, KeyCode::Y,
+		KeyCode::Z, KeyCode::PlusNum, KeyCode::DecimalNum, KeyCode::DivideNum, KeyCode::MultiplyNum,
+		KeyCode::_0_NUM, KeyCode::_1_NUM, KeyCode::_2_NUM, KeyCode::_3_NUM, KeyCode::_4_NUM, KeyCode::_5_NUM,
+		KeyCode::_6_NUM, KeyCode::_7_NUM, KeyCode::_8_NUM, KeyCode::_9_NUM, KeyCode::EnterNum,
+		KeyCode::MinusNum, KeyCode::ImeKey1, KeyCode::ImeKey2, KeyCode::RightAlt, KeyCode::RightCtrl,
+		KeyCode::Backslash, KeyCode::F13, KeyCode::F14, KeyCode::F15, KeyCode::F16, KeyCode::F17, KeyCode::F18,
+		KeyCode::F19, KeyCode::F20, KeyCode::F21, KeyCode::F22, KeyCode::F23, KeyCode::F24, KeyCode::F25,
+		KeyCode::F26, KeyCode::F27, KeyCode::F28, KeyCode::F29, KeyCode::F30, KeyCode::F31, KeyCode::F32,
+		KeyCode::F33, KeyCode::F34, KeyCode::F35, KeyCode::RightShift, KeyCode::Eject, KeyCode::EqualNum,
+		KeyCode::ClearNum, KeyCode::LeftCmd, KeyCode::Function, KeyCode::RightCmd
+	};
+	static_assert(std::size(allowedKeyCodesValues) == KeyBinds::KEY_CODES_SIZE_GW2);
+}
 
 namespace ImGuiEx
 {
@@ -56,6 +84,13 @@ namespace ImGuiEx
 					}
 
 					KeyBinds::KeyCode keyCode = MsvcScanCodeToKeyCode(scanCode);
+
+					if (keyCodeInputFlags & KeyCodeInputFlags_OnlyGW2Keys) {
+						if (std::ranges::find(allowedKeyCodesValues, keyCode) == std::end(allowedKeyCodesValues)) {
+							return true;
+						}
+					}
+
 					keyCodeInputKeyState.DeviceType = KeyBinds::DeviceType::Keyboard;
 					keyCodeInputKeyState.Code = static_cast<int32_t>(keyCode);
 					if (!(keyCodeInputFlags & KeyCodeInputFlags_NoModifier)) {
