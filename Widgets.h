@@ -93,8 +93,11 @@ namespace ImGuiEx {
 
     // This code is derived from an issue in the ImGui github repo: https://github.com/ocornut/imgui/issues/1658#issuecomment-886171438
     // Therefore the original code is licensed under the same license as ImGui (MIT)
+	//
+	// returns if the value was changed.
+	// `pPopupOpen` returns if the popup is open
     template<std::ranges::common_range T, typename ValueType = std::ranges::range_value_t<T>>
-	bool FilteredCombo(const char* pLabel, T& pContainer, ValueType& pCurrent) {
+	bool FilteredCombo(const char* pLabel, T& pContainer, ValueType& pCurrent, bool* pPopupOpen = nullptr) {
 		// this is breaking the overloaded to_string functions (in theory it should work, but it doesn't :( )
     	// using std::to_string;
 
@@ -147,7 +150,9 @@ namespace ImGuiEx {
 			using CacheVectorType = std::tuple<double, ValueType>;
 			static std::vector<CacheVectorType> valueCache;
 
-			ImGui::InputText("###FilteredCombo_InputText2", searchInputBuffer, sizeof searchInputBuffer);
+			if (pPopupOpen != nullptr) {
+				*pPopupOpen = true;
+			}
 
             ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor(240, 240, 240, 255));
             ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor(0, 0, 0, 255));
@@ -162,23 +167,23 @@ namespace ImGuiEx {
             }
             if (ImGui::InputText("###FilteredCombo_InputText", searchInputBuffer, sizeof searchInputBuffer)) {
 	            // input changed, recalculate fuzzy values
-				// valueCache.clear();
-				// if (searchInputBuffer[0] == '\0') {
-				// 	for (const auto& val : pContainer) {
-				// 		valueCache.emplace_back(1, val);
-				// 	}
-				// } else {
-				// 	for (const auto& val : pContainer) {
-				// 		const auto& valStr = to_string(val);
-				// 		double ratio = rapidfuzz::fuzz::ratio(valStr, searchInputBuffer);
-				// 		if (ratio >= 0.5)
-				// 			valueCache.emplace_back(ratio, val);
-				// 	}
-				//
-				// 	std::ranges::sort(valueCache, [](const CacheVectorType& val1, const CacheVectorType& val2) {
-				// 		return std::get<0>(val1) > std::get<0>(val2);
-				// 	});
-				// }
+				valueCache.clear();
+				if (searchInputBuffer[0] == '\0') {
+					for (const auto& val : pContainer) {
+						valueCache.emplace_back(1, val);
+					}
+				} else {
+					for (const auto& val : pContainer) {
+						const auto& valStr = to_string(val);
+						double ratio = rapidfuzz::fuzz::ratio(valStr, searchInputBuffer);
+						if (ratio >= 0.5)
+							valueCache.emplace_back(ratio, val);
+					}
+				
+					std::ranges::sort(valueCache, [](const CacheVectorType& val1, const CacheVectorType& val2) {
+						return std::get<0>(val1) > std::get<0>(val2);
+					});
+				}
             }
 
             // Search Icon, you can use it if you load IconsFontAwesome5 https://github.com/juliettef/IconFontCppHeaders
@@ -210,7 +215,7 @@ namespace ImGuiEx {
 
         if (valueChanged)
             ImGui::MarkItemEdited(g.CurrentWindow->DC.LastItemId);
-
+		
         return valueChanged;
 	}
 }

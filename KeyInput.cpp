@@ -9,7 +9,7 @@ namespace ImGuiEx
 	static inline KeyBinds::Modifier keyCodeInputCurrentModifier;
 	static inline bool keyCodeInputActive = false;
 	static inline int keyCodeInputLastActiveFrame = 0;
-	static inline int keyCodeInputFlags = 0;
+	static inline KeyCodeInputFlags keyCodeInputFlags = 0;
 
 	bool KeyCodeInputWndHandle(
 		[[maybe_unused]] HWND pWindowHandle,
@@ -104,8 +104,32 @@ namespace ImGuiEx
 		return false;
 	}
 
-	void KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, KeyCodeInputFlags pFlags) {
+	void OpenKeyCodePopupState(const KeyBinds::Key& pKeyContainer, KeyCodeInputFlags pFlags) {
+		keyCodeInputActive = true;
+		keyCodeInputKeyState = pKeyContainer;
+		keyCodeInputCurrentModifier = 0;
+		keyCodeInputFlags = pFlags;
+	}
+
+	void CloseKeyCodePopupState() {
+		keyCodeInputActive = false;
+	}
+
+	void RestartKeyCodePopupState() {
+		keyCodeInputActive = true;
+	}
+
+	void KeyCodeInputActiveFrame() {
 		keyCodeInputLastActiveFrame = ImGui::GetFrameCount();
+	}
+
+	const KeyBinds::Key& GetKeyCodeInputKeyState()
+	{
+		return keyCodeInputKeyState;
+	}
+
+	void KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, KeyCodeInputFlags pFlags) {
+		KeyCodeInputActiveFrame();
 
 		ImGui::TextUnformatted(pLabel);
 		ImGui::SameLine();
@@ -120,10 +144,7 @@ namespace ImGuiEx
 		if (ImGui::Button(keyStr.c_str(), ImVec2(textSize.x + 50.f, 0.f))) {
 			ImGui::OpenPopup(popupName.c_str());
 
-			keyCodeInputKeyState = pKeyContainer;
-			keyCodeInputCurrentModifier = 0;
-			keyCodeInputActive = true;
-			keyCodeInputFlags = pFlags;
+			OpenKeyCodePopupState(pKeyContainer, pFlags);
 		}
 
 		// Always center this window when appearing
@@ -145,13 +166,13 @@ namespace ImGuiEx
 			float buttonSizeX = (windowX - ImGui::GetStyle().FramePadding.x*2 - ImGui::GetStyle().ItemSpacing.x - ImGui::GetStyle().WindowPadding.x*2) / 2;
 			if (ImGui::Button("Apply", ImVec2(buttonSizeX, 0))) {
 				pKeyContainer = keyCodeInputKeyState;
-				keyCodeInputActive = false;
+				CloseKeyCodePopupState();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SetItemDefaultFocus();
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel", ImVec2(buttonSizeX, 0))) {
-				keyCodeInputActive = false;
+				CloseKeyCodePopupState();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
