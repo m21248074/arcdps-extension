@@ -8,6 +8,7 @@
 
 #include <filesystem>
 #include <queue>
+#include <fstream>
 
 namespace
 {
