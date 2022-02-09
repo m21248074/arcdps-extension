@@ -1,8 +1,6 @@
 #pragma once
 
 #include <array>
-#include <atomic>
-#include <fstream>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -27,13 +25,12 @@
 class UpdateCheckerBase {
 public:
 	using Version = std::array<WORD, 4>;
-	
+
 	//                            / Dismissed
 	// Unknown -> UpdateAvailable                    / UpdateSuccessful
 	//                            \ UpdateInProgress
 	//                                               \ UpdateError
-	enum class Status
-	{
+	enum class Status {
 		Unknown,
 		UpdateAvailable,
 		Dismissed,
@@ -42,8 +39,7 @@ public:
 		UpdateError
 	};
 
-	struct UpdateState
-	{
+	struct UpdateState {
 		UpdateState(const std::optional<Version>& pVersion, std::string&& pInstallPath);
 		~UpdateState();
 
@@ -66,12 +62,16 @@ public:
 
 	std::optional<Version> GetCurrentVersion(HMODULE dll) noexcept;
 	void ClearFiles(HMODULE pDll) noexcept;
-	std::unique_ptr<UpdateState> CheckForUpdate(HMODULE pDll, const Version& pCurrentVersion, std::string&& pRepo, bool pAllowPreRelease) noexcept;
-	std::unique_ptr<UpdateState> GetInstallState(std::string&& pInstallPath, std::string&& pRepo, bool pAllowPreRelease) noexcept;
+	std::unique_ptr<UpdateState> CheckForUpdate(HMODULE pDll, const Version& pCurrentVersion, std::string&& pRepo,
+	                                            bool pAllowPreRelease) noexcept;
+	std::unique_ptr<UpdateState> GetInstallState(std::string&& pInstallPath, std::string&& pRepo,
+	                                             bool pAllowPreRelease) noexcept;
 	void PerformInstallOrUpdate(UpdateState& pState) noexcept; // Requires lock to be held on pState already
 
 	virtual std::optional<std::string> GetPathFromHModule(HMODULE pDll) noexcept;
-	std::unique_ptr<UpdateState> GetUpdateInternal(std::string&& pInstallPath, const std::optional<Version>& pCurrentVersion, std::string&& pRepo, bool pAllowPreRelease) noexcept;
+	std::unique_ptr<UpdateState> GetUpdateInternal(std::string&& pInstallPath,
+	                                               const std::optional<Version>& pCurrentVersion, std::string&& pRepo,
+	                                               bool pAllowPreRelease) noexcept;
 	virtual std::string GetVersionAsString(const Version& pVersion);
 	virtual bool IsNewer(const Version& pRepoVersion, const Version& pCurrentVersion);
 	virtual void Log(std::string&& pMessage);
