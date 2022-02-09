@@ -229,8 +229,7 @@ std::unique_ptr<UpdateCheckerBase::UpdateState> UpdateCheckerBase::GetUpdateInte
 }
 
 std::string UpdateCheckerBase::GetVersionAsString(const Version& pVersion) {
-	return std::to_string(pVersion.at(0)) + "." + std::to_string(pVersion.at(1)) + "." + std::to_string(pVersion.at(2))
-		+ "." + std::to_string(pVersion.at(3));
+	return std::format("{}.{}.{}.{}", pVersion.at(0), pVersion.at(1), pVersion.at(2), pVersion.at(3));
 }
 
 bool UpdateCheckerBase::IsNewer(const Version& pRepoVersion, const Version& pCurrentVersion) {
@@ -310,8 +309,6 @@ bool UpdateCheckerBase::PerformDownload(const std::string& pUrl, const std::stri
 #ifndef ARCDPS_EXTENSION_NO_CPR
 #pragma warning(push)
 #pragma warning(disable: 4996) //  error C4996: '_Header_cstdbool': warning STL4004: <ccomplex>, <cstdalign>, <cstdbool>, and <ctgmath> are deprecated in C++17.
-
-
 
 #include <cpr/cpr.h>
 #pragma warning(pop)
