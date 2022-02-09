@@ -86,6 +86,7 @@ enum cbtstatechange : uint8_t {
 	CBTS_STATRESET,  // stats reset for all players, to match arc ui (not in log)
 	CBTS_EXTENSION, // cbtevent with statechange byte set to this
 	CBTS_APIDELAYED, // cbtevent with statechange byte set to this
+	CBTS_INSTANCESTART, // src_agent is roughly the log-relative ms that the server started the instance
 	CBTS_UNKNOWN, // unknown or invalid, ignore
 
 	// always last element
