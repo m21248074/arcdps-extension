@@ -1,33 +1,50 @@
 #include "UpdateCheckerBase.h"
 
 #include <charconv>
+#include <filesystem>
+#include <format>
+#include <fstream>
 #include <optional>
-#include <thread>
-#include <sstream>
 
 #include "json.hpp"
 
-void UpdateCheckerBase::ClearFiles(HMODULE dll) {
-	CHAR dllPath[MAX_PATH] = { 0 };
-	if (GetModuleFileNameA(dll, dllPath, _countof(dllPath)) == 0) {
-		return;
-	}
+UpdateCheckerBase::UpdateState::UpdateState(const std::optional<Version>& pVersion, std::string&& pInstallPath)
+	: CurrentVersion(pVersion), InstallPath(std::move(pInstallPath)) {}
 
-	std::string dllPathTemp(dllPath);
-	dllPathTemp.append(".tmp");
+UpdateCheckerBase::UpdateState::~UpdateState() {
+	assert(Tasks.size() == 0 && "All tasks should be awaited before shutdown");
 
-	std::remove(dllPathTemp.c_str());
-
-	std::string dllPathOld(dllPath);
-	dllPathOld.append(".old");
-
-	std::remove(dllPathOld.c_str());
+	// Desparate attempt to not crash in release, this might crash itself because joining threads during static destruction is wonky on Windows
+	FinishPendingTasks();
 }
 
-std::optional<UpdateCheckerBase::Version> UpdateCheckerBase::GetCurrentVersion(HMODULE dll) {
+void UpdateCheckerBase::UpdateState::FinishPendingTasks() {
+	std::vector<std::thread> tasks;
+	{
+		std::lock_guard lock(Lock);
+		tasks = std::move(Tasks);
+	}
+
+	for (auto& task : tasks) {
+		task.join();
+	}
+}
+
+bool UpdateCheckerBase::UpdateState::ChangeStatus(Status pExpectedStatus, Status pNewStatus) {
+	std::lock_guard lock(Lock);
+	if (UpdateStatus != pExpectedStatus) {
+		return false;
+	}
+
+	UpdateStatus = pNewStatus;
+	return true;
+}
+
+std::optional<UpdateCheckerBase::Version> UpdateCheckerBase::GetCurrentVersion(HMODULE pDll) noexcept {
 	// GetModuleFileName
-	TCHAR moduleFileName[MAX_PATH + 1]{ };
-	if (!GetModuleFileName(dll, moduleFileName, MAX_PATH)) {
+	TCHAR moduleFileName[MAX_PATH + 1]{};
+	if (!GetModuleFileName(pDll, moduleFileName, MAX_PATH)) {
+		Log(std::format("GetCurrentVersion: GetModuleFileName failed - {}", GetLastError()));
 		return std::nullopt;
 	}
 
@@ -35,22 +52,25 @@ std::optional<UpdateCheckerBase::Version> UpdateCheckerBase::GetCurrentVersion(H
 	DWORD dummy; // this will get set to 0 (wtf windows api)
 	DWORD versionInfoSize = GetFileVersionInfoSize(moduleFileName, &dummy);
 	if (versionInfoSize == 0) {
+		Log(std::format("GetCurrentVersion: GetFileVersionInfoSize failed - {}", GetLastError()));
 		return std::nullopt;
 	}
 	std::vector<BYTE> data(versionInfoSize);
 
 	// GetFileVersionInfo
 	if (!GetFileVersionInfo(moduleFileName, NULL, versionInfoSize, &data[0])) {
+		Log(std::format("GetCurrentVersion: GetFileVersionInfo failed - {}", GetLastError()));
 		return std::nullopt;
 	}
 
 	UINT randomPointer = 0;
 	VS_FIXEDFILEINFO* fixedFileInfo = nullptr;
 	if (!VerQueryValue(&data[0], TEXT("\\"), (void**)&fixedFileInfo, &randomPointer)) {
+		Log(std::format("GetCurrentVersion: VerQueryValue failed - {}", GetLastError()));
 		return std::nullopt;
 	}
 
-	return Version ({
+	return Version({
 		HIWORD(fixedFileInfo->dwProductVersionMS),
 		LOWORD(fixedFileInfo->dwProductVersionMS),
 		HIWORD(fixedFileInfo->dwProductVersionLS),
@@ -58,152 +78,167 @@ std::optional<UpdateCheckerBase::Version> UpdateCheckerBase::GetCurrentVersion(H
 	});
 }
 
-std::string UpdateCheckerBase::GetVersionAsString(HMODULE dll) {
-	auto currentVersion = UpdateCheckerBase::GetCurrentVersion(dll);
-	std::stringstream version;
-	if (currentVersion) {
-		version << currentVersion->at(0) << "." << currentVersion->at(1) << "." << currentVersion->at(2) << "." << currentVersion->at(3);
+void UpdateCheckerBase::ClearFiles(HMODULE pDll) noexcept {
+	std::error_code ec;
+
+	std::optional<std::string> dllPath = GetPathFromHModule(pDll);
+	if (dllPath.has_value() == false) {
+		Log("ClearFiles: Failed to get self path");
+		return;
 	}
-	else {
-		version << __DATE__;
+
+	std::string tmpPath = *dllPath + ".tmp";
+	std::string oldPath = *dllPath + ".old";
+
+	std::filesystem::remove(tmpPath, ec);
+	if (ec != std::error_code{}) {
+		Log(std::format("Failed to remove {} - value={} message={} category={}", tmpPath, ec.value(), ec.message(),
+		                ec.category().name()));
 	}
-	return version.str();
+
+	std::filesystem::remove(oldPath, ec);
+	if (ec != std::error_code{}) {
+		Log(std::format("Failed to remove {} - value={} message={} category={}", oldPath, ec.value(), ec.message(),
+		                ec.category().name()));
+	}
 }
 
-#ifndef ARCDPS_EXTENSION_NO_CPR
-#pragma warning(push)
-#pragma warning(disable: 4996) //  error C4996: '_Header_cstdbool': warning STL4004: <ccomplex>, <cstdalign>, <cstdbool>, and <ctgmath> are deprecated in C++17.
-#include <cpr/cpr.h>
-#pragma warning(pop)
+std::unique_ptr<UpdateCheckerBase::UpdateState> UpdateCheckerBase::CheckForUpdate(
+	HMODULE pDll, const Version& pCurrentVersion, std::string&& pRepo, bool pAllowPreRelease) noexcept {
+	std::optional<std::string> dllPath = GetPathFromHModule(pDll);
+	if (dllPath.has_value() == false) {
+		Log("GetUpdate: Failed to get self path");
+		return nullptr;
+	}
 
-void UpdateCheckerBase::CheckForUpdate(Version currentVersion, std::string repo, bool allowPrerelease) {
-	version = currentVersion;
-
-	std::thread cprCall([this, repo, allowPrerelease]() {
-		try {
-			nlohmann::basic_json<> json;
-			nlohmann::basic_json<>* release;
-			if (!allowPrerelease) {
-				std::string link = "https://api.github.com/repos/";
-				link.append(repo);
-				link.append("/releases/latest");
-
-				auto response = HttpGet(link);
-				if (!response.has_value()) {
-					return;
-				}
-
-				json = nlohmann::json::parse(response.value());
-				release = &json;
-			} else {
-				std::string link = "https://api.github.com/repos/";
-				link.append(repo);
-				link.append("/releases");
-
-				auto response = HttpGet(link);
-				if (!response.has_value()) {
-					return;
-				}
-
-				json = nlohmann::json::parse(response.value());
-				release = &json[0];
-			}
-
-			const auto tagName = release->at("tag_name").get<std::string>();
-			newVersion = ParseVersion(tagName);
-
-			// load download URL (use the first asset that has a .dll ending)
-			for (const auto& item : (*release)["assets"]) {
-				const auto assetName = item["name"].get<std::string>();
-				if (assetName.size() < 4) {
-					continue;
-				}
-
-				if (std::string_view(assetName).substr(assetName.size() - 4) == ".dll")	{
-					downloadUrl = item["browser_download_url"].get<std::string>();
-					//LogD("Found download url in {} - {}", assetName, downloadUrl);
-				}
-			}
-
-			if (IsNewer(newVersion, version)) {
-				Status expected = Status::Unknown;
-				update_status.compare_exchange_strong(expected, Status::UpdateAvailable);
-			}
-		} catch (std::exception&) {
-			//LogD("Failed to get update - exception thrown");
-		}
-	});
-
-	cprCall.detach();
+	return GetUpdateInternal(std::move(*dllPath), pCurrentVersion, std::move(pRepo), pAllowPreRelease);
 }
 
-std::optional<std::string> UpdateCheckerBase::HttpGet(const std::string& url) {
-	cpr::Response response = cpr::Get(cpr::Url{ url });
+std::unique_ptr<UpdateCheckerBase::UpdateState> UpdateCheckerBase::GetInstallState(
+	std::string&& pInstallPath, std::string&& pRepo, bool pAllowPreRelease) noexcept {
+	// TODO: FIRST CHECK IF FILE ALREADY EXISTS? OR SHOULD WE USE INTERNAL STATE IN ADDON TO DETERMINE?
+	return GetUpdateInternal(std::move(pInstallPath), std::nullopt, std::move(pRepo), pAllowPreRelease);
+}
 
-	if (response.status_code != 200) {
-		//LogD("Getting {} failed {} {}", url, response.status_code, response.status_line);
+void UpdateCheckerBase::PerformInstallOrUpdate(UpdateState& pState) noexcept {
+	assert(pState.Lock.try_lock() == false && "Lock should be held when this function is called");
+
+	if (pState.UpdateStatus != Status::UpdateAvailable) {
+		Log(std::format("Tried to download update when update status was {}", static_cast<int>(pState.UpdateStatus)));
+		return;
+	}
+	pState.UpdateStatus = Status::UpdateInProgress;
+
+	// Update
+	if (pState.CurrentVersion.has_value()) {
+		pState.Tasks.emplace_back([this, &pState]() {
+			std::string dllPathTemp = pState.InstallPath + ".tmp";
+			std::string dllPathOld = pState.InstallPath + ".old";
+
+			// Reading DownloadUrl without lock is fine since it's constant as soon as it has been set
+			if (PerformDownload(pState.DownloadUrl, dllPathTemp) == false) {
+				pState.ChangeStatus(Status::UpdateInProgress, Status::UpdateError);
+				return;
+			}
+
+			if (rename(pState.InstallPath.c_str(), dllPathOld.c_str()) != 0) {
+				Log(std::format("Failed to rename {} to {} - errno={} GetLastError={}", pState.InstallPath, dllPathOld,
+				                errno, GetLastError()));
+
+				pState.ChangeStatus(Status::UpdateInProgress, Status::UpdateError);
+				return;
+			}
+
+			if (rename(dllPathTemp.c_str(), pState.InstallPath.c_str()) != 0) {
+				Log(std::format("Failed to rename {} to {} - errno={} GetLastError={}", dllPathTemp, pState.InstallPath,
+				                errno, GetLastError()));
+
+				pState.ChangeStatus(Status::UpdateInProgress, Status::UpdateError);
+				return;
+			}
+
+			Log(std::format("Successfully performed update"));
+			pState.ChangeStatus(Status::UpdateInProgress, Status::UpdateSuccessful);
+		});
+	} else // Install
+	{
+		pState.Tasks.emplace_back([this, &pState]() {
+			// Reading DownloadUrl without lock is fine since it's constant as soon as it has been set
+			if (PerformDownload(pState.DownloadUrl, pState.InstallPath) == false) {
+				pState.ChangeStatus(Status::UpdateInProgress, Status::UpdateError);
+				return;
+			}
+
+			Log(std::format("Successfully performed install"));
+			pState.ChangeStatus(Status::UpdateInProgress, Status::UpdateSuccessful);
+		});
+	}
+}
+
+std::optional<std::string> UpdateCheckerBase::GetPathFromHModule(HMODULE pDll) noexcept {
+	CHAR dllPath[MAX_PATH] = {};
+	if (GetModuleFileNameA(pDll, dllPath, _countof(dllPath)) == 0) {
+		Log(std::format("Getting path failed - GetLastError={}", GetLastError()));
 		return std::nullopt;
 	}
 
-	return response.text;
+	return std::string(dllPath);
 }
 
-void UpdateCheckerBase::UpdateAutomatically(HMODULE dll) {
-	if (downloadUrl.empty()) return;
+std::unique_ptr<UpdateCheckerBase::UpdateState> UpdateCheckerBase::GetUpdateInternal(
+	std::string&& pInstallPath, const std::optional<Version>& pCurrentVersion, std::string&& pRepo,
+	bool pAllowPreRelease) noexcept {
+	std::unique_ptr<UpdateState> result = std::make_unique<UpdateState>(pCurrentVersion, std::move(pInstallPath));
 
-	Status expected = Status::UpdateAvailable;
-	if (!update_status.compare_exchange_strong(expected, Status::UpdatingInProgress))
-		return;
-
-	std::thread t([this, dll]() {
-		cpr::Session session;
-		session.SetUrl(cpr::Url{ downloadUrl });
-
-		CHAR dllPath[MAX_PATH] = { 0 };
-		if (GetModuleFileNameA(dll, dllPath, _countof(dllPath)) == 0) {
-			update_status = Status::UpdateError;
+	// Perform the rest of the work in a newly spawned thread as a sort of poor man's async
+	std::lock_guard lock(result->Lock);
+	result->Tasks.emplace_back([this, result = result.get(), repo = std::move(pRepo), pAllowPreRelease]() mutable {
+		std::optional<std::tuple<Version, std::string>> latestRelease = std::nullopt;
+		try {
+			latestRelease = GetLatestRelease(std::move(repo), pAllowPreRelease);
+		} catch (std::exception& e) {
+			Log(std::format("GetUpdateInternal: GetLatestRelease threw {}", e.what()));
 			return;
 		}
 
-		std::string dllPathTemp(dllPath);
-		dllPathTemp.append(".tmp");
+		if (latestRelease.has_value() == false) {
+			Log("GetUpdate: GetUpdateInternal didn't find any release");
+			return;
+		}
 
-		// new context to have ofstream and session only temporary (they have to be closed later on)
-		{
-			std::ofstream outFile(dllPathTemp, std::ios::binary);
-
-			cpr::Response response = session.Download(outFile);
-			if (response.status_code != 200) {
-				// Error downloading
-				update_status = Status::UpdateError;
+		Version releaseVersion = std::get<0>(*latestRelease);
+		if (result->CurrentVersion.has_value()) {
+			if (IsNewer(releaseVersion, *result->CurrentVersion) == false) {
+				Log(std::format(
+					"GetUpdateInternal: Found new release {} which is not newer than current installed version {}",
+					GetVersionAsString(releaseVersion), GetVersionAsString(*result->CurrentVersion)));
 				return;
 			}
 		}
 
-		std::string dllPathOld(dllPath);
-		dllPathOld.append(".old");
-		
-		if (std::rename(dllPath, dllPathOld.c_str())) {
-			// Error renaming
-			update_status = Status::UpdateError;
-			return;
-		}
+		std::lock_guard lock(result->Lock);
+		result->UpdateStatus = Status::UpdateAvailable;
+		result->NewVersion = releaseVersion;
+		result->DownloadUrl = std::move(std::get<1>(*latestRelease));
 
-		if (std::rename(dllPathTemp.c_str(), dllPath)) {
-			// Error renaming
-			update_status = Status::UpdateError;
-			return;
-		}
-
-		update_status = Status::RestartPending;
+		Log(std::format("GetUpdateInternal: Found new release {} with link {}", GetVersionAsString(result->NewVersion),
+		                result->DownloadUrl));
 	});
 
-	t.detach();
+	return result;
 }
 
-bool UpdateCheckerBase::IsNewer(const Version& repoVersion, const Version& currentVersion) {
-	return std::tie(currentVersion[0], currentVersion[1], currentVersion[2])
-	     < std::tie(repoVersion[0], repoVersion[1], repoVersion[2]);
+std::string UpdateCheckerBase::GetVersionAsString(const Version& pVersion) {
+	return std::format("{}.{}.{}.{}", pVersion.at(0), pVersion.at(1), pVersion.at(2), pVersion.at(3));
+}
+
+bool UpdateCheckerBase::IsNewer(const Version& pRepoVersion, const Version& pCurrentVersion) {
+	return std::tie(pCurrentVersion[0], pCurrentVersion[1], pCurrentVersion[2])
+		< std::tie(pRepoVersion[0], pRepoVersion[1], pRepoVersion[2]);
+}
+
+void UpdateCheckerBase::Log(std::string&&) {
+	// Do nothing by default
 }
 
 UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view versionString) {
@@ -218,7 +253,7 @@ UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view vers
 		if (dotPos == std::string_view::npos) {
 			dotPos = versionString.size();
 		}
-			
+
 		std::string_view token_str = versionString.substr(start, dotPos - start);
 
 		// Remove all non-digit characters from the beginning of the token
@@ -238,21 +273,119 @@ UpdateCheckerBase::Version UpdateCheckerBase::ParseVersion(std::string_view vers
 			token_str.data() + token_str.size(),
 			result[tokenIndex]);
 		if (from_chars_result.ec != std::errc{}) {
-			//LogD("Parsing version token '{}' from '{}' failed", versionString, token_str);
+			Log(std::format("Parsing version token '{}' from '{}' failed", versionString, token_str));
 		} else {
 			tokenIndex++;
 		}
 
 		start = dotPos + 1; // + 1 to skip over the '.'
-	} while(start < versionString.size() && tokenIndex < 3);
-	
+	} while (start < versionString.size() && tokenIndex < 3);
+
 	if (tokenIndex < 3) {
-		//LogD("Failed to parse version from {} - only found {} tokens", versionString, tokenIndex);
+		Log(std::format("Failed to parse version from {} - only found {} tokens", versionString, tokenIndex));
 		return Version{};
 	}
 
 	return result;
 }
 
+bool UpdateCheckerBase::PerformDownload(const std::string& pUrl, const std::string& pDestinationPath) {
+	std::ofstream outFile(pDestinationPath, std::ios::binary);
+
+	if (HttpDownload(pUrl, outFile) == false) {
+		return false;
+	}
+
+	outFile.close();
+	if (outFile.fail() == true) {
+		Log(std::format("Downloading {} failed - output stream failure", pUrl));
+		return false;
+	}
+
+	return true;
+}
+
+
+#ifndef ARCDPS_EXTENSION_NO_CPR
+#pragma warning(push)
+#pragma warning(disable: 4996) //  error C4996: '_Header_cstdbool': warning STL4004: <ccomplex>, <cstdalign>, <cstdbool>, and <ctgmath> are deprecated in C++17.
+
+#include <cpr/cpr.h>
+#pragma warning(pop)
+
+std::optional<std::tuple<UpdateCheckerBase::Version, std::string>> UpdateCheckerBase::GetLatestRelease(
+	std::string&& pRepo, bool pAllowPreRelease) {
+	nlohmann::basic_json<> json;
+	nlohmann::basic_json<>* release;
+	if (pAllowPreRelease == false) {
+		std::string link = std::format("https://api.github.com/repos/{}/releases/latest", pRepo);
+
+		auto response = HttpGet(link);
+		if (response.has_value() == false) {
+			Log(std::format("Getting {} failed", link));
+			return std::nullopt;
+		}
+
+		json = nlohmann::json::parse(response.value());
+		release = &json;
+	} else {
+		std::string link = std::format("https://api.github.com/repos/{}/releases", pRepo);
+
+		auto response = HttpGet(link);
+		if (response.has_value() == false) {
+			Log(std::format("Getting {} failed", link));
+			return std::nullopt;
+		}
+
+		json = nlohmann::json::parse(response.value());
+		release = &json[0];
+	}
+
+	const auto tagName = release->at("tag_name").get<std::string>();
+	Version releaseVersion = ParseVersion(tagName);
+	std::string releaseDownloadUrl;
+
+	// load download URL (use the first asset that has a .dll ending)
+	for (const auto& item : (*release)["assets"]) {
+		const auto assetName = item["name"].get<std::string>();
+		if (assetName.size() < 4) {
+			continue;
+		}
+
+		if (std::string_view(assetName).substr(assetName.size() - 4) == ".dll") {
+			releaseDownloadUrl = item["browser_download_url"].get<std::string>();
+			Log(std::format("Found download url in {} - {}", assetName, releaseDownloadUrl));
+			break;
+		}
+	}
+
+	if (releaseDownloadUrl.empty()) {
+		Log(std::format("Failed to find download url for release {}", tagName));
+		return std::nullopt;
+	}
+
+	return std::make_tuple(releaseVersion, releaseDownloadUrl);
+}
+
+bool UpdateCheckerBase::HttpDownload(const std::string& pUrl, std::ofstream& pOutputStream) {
+	cpr::Response response = cpr::Download(pOutputStream, cpr::Url{pUrl});
+	if (response.status_code != 200) {
+		Log(std::format("Downloading {} failed - http failure {} {}", pUrl, response.status_code,
+		                response.status_line));
+		return false;
+	}
+
+	return true;
+}
+
+std::optional<std::string> UpdateCheckerBase::HttpGet(const std::string& pUrl) {
+	cpr::Response response = cpr::Get(cpr::Url{pUrl});
+	if (response.status_code != 200) {
+		Log(std::format("Getting {} failed - {} {}", pUrl, response.status_code, response.status_line));
+		return std::nullopt;
+	}
+
+	return response.text;
+}
 
 #endif // ARCDPS_EXTENSION_NO_CPR
