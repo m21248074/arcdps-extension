@@ -36,9 +36,10 @@ namespace ImGuiEx {
 	 * \param pLabel Shown as text next to the input button. Also shown in the popup header. Will be used as ID for the button.
 	 * \param pKeyContainer The container of the original key, when pressing `Apply` it will be saved in there.
 	 * \param pLanguage The language in which this Tool should be shown.
+	 * \param pHkl current Keyboardlayout, has to be tracked, cause `GetKeyboardLayout` is thread dependent. You can get it by tracking window events or by calling `GetKeyboardLayout` with the correct threadId as param.
 	 * \param pFlags Additional flags for the input.
 	 */
-	void KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, KeyCodeInputFlags pFlags = 0);
+	void KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, HKL pHkl, KeyCodeInputFlags pFlags = 0);
 
 	void OpenKeyCodePopupState(const KeyBinds::Key& pKeyContainer, KeyCodeInputFlags pFlags);
 	void CloseKeyCodePopupState();

@@ -163,12 +163,13 @@ namespace ImGuiEx
 		return keyCodeInputKeyState;
 	}
 
-	void KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, KeyCodeInputFlags pFlags) {
+	void KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, HKL pHkl, KeyCodeInputFlags pFlags) {
 		KeyCodeInputActiveFrame();
 
 		ImGui::TextUnformatted(pLabel);
 		ImGui::SameLine();
-		std::string keyStr = to_string(pKeyContainer, pLanguage, GetKeyboardLayout(NULL));
+
+		std::string keyStr = to_string(pKeyContainer, pLanguage, pHkl);
 		ImVec2 textSize = ImGui::CalcTextSize(keyStr.c_str());
 		keyStr.append("##");
 		keyStr.append(pLabel);
@@ -188,14 +189,15 @@ namespace ImGuiEx
 
 		ImGui::SetNextWindowSize(ImVec2(250.f, 50.f));
 		if (ImGui::BeginPopupModal(popupName.c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-			std::string keyCodeText = to_string(keyCodeInputKeyState, pLanguage, GetKeyboardLayout(NULL));
+			std::string keyCodeText = to_string(keyCodeInputKeyState, pLanguage, pHkl);
 
 			// center text
 			float windowX = ImGui::GetWindowSize().x;
+
 			const float indentation = (windowX - ImGui::CalcTextSize(keyCodeText.c_str()).x) * 0.5f;
 			ImGui::SameLine(indentation);
 			ImGui::PushTextWrapPos(ImGui::GetWindowSize().x - indentation);
-			ImGui::TextWrapped(keyCodeText.c_str());
+			ImGui::TextUnformatted(keyCodeText.c_str());
 			ImGui::PopTextWrapPos();
 
 			float buttonSizeX = (windowX - ImGui::GetStyle().FramePadding.x*2 - ImGui::GetStyle().ItemSpacing.x - ImGui::GetStyle().WindowPadding.x*2) / 2;
