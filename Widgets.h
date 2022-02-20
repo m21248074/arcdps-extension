@@ -22,6 +22,15 @@ namespace ImGuiEx {
 	void BeginMenu(const char* menu_label, std::function<void()> draw_func);
 	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags);
 	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx);
+
+	/**
+	 * Only call this function at the end of a table row.
+	 * If done before, it will not return the rect of the full table, but only the rect from beginning to the end of the current column.
+	 */
+	ImRect TableGetCurrentRowRect();
+	/**
+	 * This calls `TableGetCurrentRowRect` therefore this should also has the same limitations.
+	 */
 	bool TableIsMouseHoveringCurrentRow();
 	// returns true if the window moved
 	bool WindowReposition(ImGuiWindow* window, Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,

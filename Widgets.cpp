@@ -604,11 +604,16 @@ namespace ImGuiEx {
 			column.IsEnabledNextFrame = !column.IsEnabled;
 	}
 
-	bool TableIsMouseHoveringCurrentRow() {
+	ImRect TableGetCurrentRowRect() {
 		ImGuiTable* table = GImGui->CurrentTable;
-		if (table == nullptr) return false;
+		assert(table != nullptr);
 		ImRect row_rect(table->WorkRect.Min.x, table->RowPosY1, table->WorkRect.Max.x, table->RowPosY2);
         row_rect.ClipWith(table->BgClipRect);
+		return row_rect;
+	}
+
+	bool TableIsMouseHoveringCurrentRow() {
+		ImRect row_rect = TableGetCurrentRowRect();
 
 		return ImGui::IsMouseHoveringRect(row_rect.Min, row_rect.Max, false);
 	}
