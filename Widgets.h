@@ -85,6 +85,17 @@ namespace ImGuiEx {
 		return res;
 	}
 
+	// FIXME: This would work nicely if it was a public template, e.g. 'template<T> RadioButton(const char* label, T* v, T v_button)', but I'm not sure how we would expose it..
+	// I have fixed it, don't know what the problem is with this ...
+	template<typename T>
+	bool RadioButton(const char* label, T& v, T v_button)
+	{
+	    const bool pressed = ImGui::RadioButton(label, v == v_button);
+	    if (pressed)
+	        v = v_button;
+	    return pressed;
+	}
+
 #ifdef _WIN32
 	/// <summary>
 	/// KeyInput, has `label` on the left, a textInput in the middle and the used shortcut at the right.

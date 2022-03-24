@@ -721,6 +721,7 @@ namespace ImGuiEx {
 	}
 
 #ifdef _WIN32
+	[[deprecated]] // use KeyInput.h instead
 	void KeyInput(const char* label, const char* id, char* buffer, size_t bufSize, WPARAM& keyContainer, const char* notSetText) {
 		ImGui::TextUnformatted(label);
 		ImGui::SameLine();

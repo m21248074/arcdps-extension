@@ -50,6 +50,16 @@ struct ImGuiContext;
 typedef ModInitSignature (*GetInitAddrSignature)(const char* arcversion, ImGuiContext* imguictx, void* dxptr, HMODULE arcdll, MallocSignature mallocfn, FreeSignature freefn, UINT dxver);
 typedef ModReleaseSignature (*GetReleaseAddrSignature)();
 
+// ARCPDS dll-exports
+typedef uint64_t (*arc_export_func_u64)();
+typedef void(*e3_func_ptr)(const char* str);
+
+// Define these exports in your main.cpp
+extern arc_export_func_u64 ARC_EXPORT_E6;
+extern arc_export_func_u64 ARC_EXPORT_E7;
+extern e3_func_ptr ARC_LOG_FILE;
+extern e3_func_ptr ARC_LOG;
+
 // additional enum for alignment
 enum class Alignment {
 	Left,
@@ -85,3 +95,14 @@ enum class CornerPosition {
 };
 
 std::string to_string(CornerPosition position);
+
+enum class SizingPolicy {
+	SizeToContent,
+	SizeContentToWindow,
+	ManualWindowSize,
+
+	// always last element
+	FINAL_ENTRY
+};
+
+std::string to_string(SizingPolicy sizingPolicy);

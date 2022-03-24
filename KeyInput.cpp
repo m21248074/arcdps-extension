@@ -5,7 +5,7 @@
 namespace
 {
 	using KeyBinds::KeyCode;
-	static constexpr KeyCode allowedKeyCodesValues[] = {
+	constexpr KeyCode allowedKeyCodesValues[] = {
 		KeyCode::LeftAlt, KeyCode::LeftCtrl, KeyCode::LeftShift, KeyCode::Quote, KeyCode::Hash,
 		KeyCode::CapsLock, KeyCode::Colon, KeyCode::Minus, KeyCode::Equals, KeyCode::Escape,
 		KeyCode::OpenBracket, KeyCode::NumLock, KeyCode::Period, KeyCode::CloseBracket, KeyCode::Semicolon,
@@ -62,7 +62,7 @@ namespace ImGuiEx
 						scanCode |= 0xE000;
 					}
 
-					KeyBinds::KeyCode keyCode = MsvcScanCodeToKeyCode(scanCode);
+					KeyBinds::KeyCode keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
 					if (!(keyCodeInputFlags & KeyCodeInputFlags_NoModifier)) {
 						KeyBinds::Modifier modifier = KeyBinds::GetModifier(keyCode);
 						if (modifier != 0) {
@@ -83,7 +83,7 @@ namespace ImGuiEx
 						scanCode |= 0xE000;
 					}
 
-					KeyBinds::KeyCode keyCode = MsvcScanCodeToKeyCode(scanCode);
+					KeyBinds::KeyCode keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
 
 					if (keyCodeInputFlags & KeyCodeInputFlags_OnlyGW2Keys) {
 						if (std::ranges::find(allowedKeyCodesValues, keyCode) == std::end(allowedKeyCodesValues)) {
@@ -163,7 +163,10 @@ namespace ImGuiEx
 		return keyCodeInputKeyState;
 	}
 
-	void KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, HKL pHkl, KeyCodeInputFlags pFlags) {
+	bool KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, HKL pHkl,
+	                  KeyCodeInputFlags pFlags) {
+		bool res = false;
+
 		KeyCodeInputActiveFrame();
 
 		ImGui::TextUnformatted(pLabel);
@@ -189,22 +192,34 @@ namespace ImGuiEx
 
 		ImGui::SetNextWindowSize(ImVec2(250.f, 50.f));
 		if (ImGui::BeginPopupModal(popupName.c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-			std::string keyCodeText = to_string(keyCodeInputKeyState, pLanguage, pHkl);
+			std::string keyCodeText = to_string(keyCodeInputKeyState, pLanguage, pHkl, true);
 
 			// center text
 			float windowX = ImGui::GetWindowSize().x;
 
-			const float indentation = (windowX - ImGui::CalcTextSize(keyCodeText.c_str()).x) * 0.5f;
-			ImGui::SameLine(indentation);
-			ImGui::PushTextWrapPos(ImGui::GetWindowSize().x - indentation);
+			ImGui::SameLine();
+			// const float indentation = (windowX - ImGui::CalcTextSize(keyCodeText.c_str()).x) * 0.5f;
+			// ImGui::SameLine(indentation);
+			// ImGui::PushTextWrapPos(ImGui::GetWindowSize().x - indentation);
 			ImGui::TextUnformatted(keyCodeText.c_str());
-			ImGui::PopTextWrapPos();
+			// ImGui::PopTextWrapPos();
+
+			static float buttonSize = 100.f;
+			const float pos = buttonSize + ImGui::GetStyle().ItemSpacing.x;
+			ImGui::SameLine(ImGui::GetWindowWidth() - pos);
+			if (ImGui::Button(to_string_unbind(pLanguage).c_str())) {
+				keyCodeInputKeyState.Code = 0;
+				keyCodeInputKeyState.DeviceType = KeyBinds::DeviceType::Unset;
+				keyCodeInputKeyState.Modifier = 0;
+			}
+			buttonSize = ImGui::GetItemRectSize().x;
 
 			float buttonSizeX = (windowX - ImGui::GetStyle().FramePadding.x*2 - ImGui::GetStyle().ItemSpacing.x - ImGui::GetStyle().WindowPadding.x*2) / 2;
 			if (ImGui::Button("Apply", ImVec2(buttonSizeX, 0))) {
 				pKeyContainer = keyCodeInputKeyState;
 				CloseKeyCodePopupState();
 				ImGui::CloseCurrentPopup();
+				res = true;
 			}
 			ImGui::SetItemDefaultFocus();
 			ImGui::SameLine();
@@ -214,6 +229,8 @@ namespace ImGuiEx
 			}
 			ImGui::EndPopup();
 		}
+
+		return res;
 	}
 }
 // #endif

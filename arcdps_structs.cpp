@@ -29,6 +29,15 @@ std::string to_string(CornerPosition position) {
 	case CornerPosition::BottomRight: return lang.translate(LangKey::CornerPositionBottomRight);
 	}
 }
+
+std::string to_string(SizingPolicy sizingPolicy) {
+	switch (sizingPolicy) {
+	case SizingPolicy::SizeToContent: return lang.translate(LangKey::SizingPolicySizeToContent);
+	case SizingPolicy::SizeContentToWindow: return lang.translate(LangKey::SizingPolicySizeContentToWindow);
+	case SizingPolicy::ManualWindowSize: return lang.translate(LangKey::SizingPolicyManualWindowSize);
+	default: return "Unknown";
+	}
+}
 #endif
 
 bool is_player(ag* new_player)

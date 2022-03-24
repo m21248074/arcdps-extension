@@ -6,7 +6,7 @@
 #include <fstream>
 #include <optional>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 UpdateCheckerBase::UpdateState::UpdateState(const std::optional<Version>& pVersion, std::string&& pInstallPath)
 	: CurrentVersion(pVersion), InstallPath(std::move(pInstallPath)) {}
