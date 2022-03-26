@@ -62,9 +62,10 @@ namespace ImGuiEx
 						scanCode |= 0xE000;
 					}
 
-					KeyBinds::KeyCode keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
+					const auto& keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
+					if (!keyCode) break;
 					if (!(keyCodeInputFlags & KeyCodeInputFlags_NoModifier)) {
-						KeyBinds::Modifier modifier = KeyBinds::GetModifier(keyCode);
+						KeyBinds::Modifier modifier = KeyBinds::GetModifier(keyCode.value());
 						if (modifier != 0) {
 							keyCodeInputCurrentModifier &= !modifier;
 						}
@@ -83,7 +84,9 @@ namespace ImGuiEx
 						scanCode |= 0xE000;
 					}
 
-					KeyBinds::KeyCode keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
+					const auto& keyCodeOpt = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
+					if (!keyCodeOpt) break;
+					const KeyBinds::KeyCode& keyCode = keyCodeOpt.value();
 
 					if (keyCodeInputFlags & KeyCodeInputFlags_OnlyGW2Keys) {
 						if (std::ranges::find(allowedKeyCodesValues, keyCode) == std::end(allowedKeyCodesValues)) {

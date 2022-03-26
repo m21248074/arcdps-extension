@@ -40,7 +40,11 @@ bool KeyBindHandler::Wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 				scanCode |= 0xE000;
 			}
 
-			KeyBinds::KeyCode keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
+			const auto& keyCodeOpt = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
+			if (!keyCodeOpt) {
+				break;
+			}
+			const KeyBinds::KeyCode& keyCode = keyCodeOpt.value();
 			KeyBinds::Modifier modifier = KeyBinds::GetModifier(keyCode);
 			if (modifier != 0) {
 				mTrackedModifier |= modifier;
@@ -71,8 +75,9 @@ bool KeyBindHandler::Wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 				scanCode |= 0xE000;
 			}
 
-			KeyBinds::KeyCode keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
-			KeyBinds::Modifier modifier = KeyBinds::GetModifier(keyCode);
+			const auto& keyCode = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
+			if (!keyCode) break;
+			KeyBinds::Modifier modifier = KeyBinds::GetModifier(keyCode.value());
 			if (modifier != 0) {
 				mTrackedModifier &= !modifier;
 			}
