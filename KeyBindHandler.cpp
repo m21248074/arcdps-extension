@@ -2,6 +2,7 @@
 
 #include "arcdps_structs.h"
 
+#include <format>
 #include <ranges>
 
 uint64_t KeyBindHandler::Subscribe(Subscriber pSubscriber) {
@@ -42,6 +43,7 @@ bool KeyBindHandler::Wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 			const auto& keyCodeOpt = KeyBinds::MsvcScanCodeToKeyCode(scanCode);
 			if (!keyCodeOpt) {
+				ARC_LOG(std::format("unknown key: {}", scanCode).c_str());
 				break;
 			}
 			const KeyBinds::KeyCode& keyCode = keyCodeOpt.value();
