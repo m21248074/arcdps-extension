@@ -22,6 +22,7 @@ namespace ImGuiEx {
 	void BeginMenu(const char* menu_label, std::function<void()> draw_func);
 	bool BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags, ImGuiHoveredFlags hovered_flags);
 	void MenuItemTableColumnVisibility(ImGuiTable* table, int columnIdx);
+	bool TreeNodeEx(const char* label, ImGuiTreeNodeFlags flags, void* icon);
 
 	/**
 	 * Only call this function at the end of a table row.
