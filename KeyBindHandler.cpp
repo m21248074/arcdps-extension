@@ -20,9 +20,9 @@ void KeyBindHandler::UpdateKey(uint64_t pId, const KeyBinds::Key& pKey) {
 }
 
 void KeyBindHandler::UpdateKeys(const KeyBinds::Key& pOldKey, const KeyBinds::Key& pNewKey) {
-	for (auto& subscriber : mSubscribers) {
-		if(subscriber.second.Key == pOldKey) {
-			subscriber.second.Key = pNewKey;
+	for (auto& subscriber : mSubscribers | std::views::values) {
+		if(subscriber.Key == pOldKey) {
+			subscriber.Key = pNewKey;
 		}
 	}
 }
