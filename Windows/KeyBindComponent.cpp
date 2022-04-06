@@ -3,15 +3,21 @@
 #include "MainWindow.h"
 #include "../KeyBindHandler.h"
 
-
+/**
+ * This does only work with arcdps modifiers.
+ * To allow other input handling, i recommend adding a flag to this class and have the arcdps features optional.
+ * Alternatively, remove features here and add them in a subclass.
+ */
 KeyBindComponent::KeyBindComponent(MainWindow* pMainWindow) : ComponentBase(pMainWindow) {
 	pMainWindow->RegisterInitHook([this] {
 		mKeyBindHandlerId = KeyBindHandler::instance().Subscribe(
-		{
-			getKeyBind(),
-			[this](const KeyBinds::Key&) {
-				return getKeyBindSwitch() && KeyBindPressed();
-			}, KeyBindHandler::SubscriberFlags_ArcdpsModifier}
+			{
+				getKeyBind(),
+				[this](const KeyBinds::Key&) {
+					return getKeyBindSwitch() && KeyBindPressed();
+				},
+				KeyBindHandler::SubscriberFlags_ArcdpsModifier
+			}
 		);
 
 		if (getCloseWithEscActive()) {
@@ -24,9 +30,10 @@ KeyBindComponent::KeyBindComponent(MainWindow* pMainWindow) : ComponentBase(pMai
 			});
 		}
 	});
-	
+
 	pMainWindow->RegisterDrawStyleSubMenuHook([this] {
-		if (ImGuiEx::KeyCodeInput("Shortcut", getKeyBind(), static_cast<Language>(getCurrentLanguage()), getCurrentHKL(), ImGuiEx::KeyCodeInputFlags_NoModifier)) {
+		if (ImGuiEx::KeyCodeInput("Shortcut", getKeyBind(), static_cast<Language>(getCurrentLanguage()),
+		                          getCurrentHKL(), ImGuiEx::KeyCodeInputFlags_FixedModifier, KeyBindHandler::GetArcdpsModifier())) {
 			KeyBindHandler::instance().UpdateKey(mKeyBindHandlerId, getKeyBind());
 		}
 	});

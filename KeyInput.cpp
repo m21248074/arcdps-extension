@@ -142,9 +142,10 @@ namespace ImGuiEx
 		return false;
 	}
 
-	void OpenKeyCodePopupState(const KeyBinds::Key& pKeyContainer, KeyCodeInputFlags pFlags) {
+	void OpenKeyCodePopupState(const KeyBinds::Key& pKeyContainer, KeyCodeInputFlags pFlags, KeyBinds::Modifier pFixedModifier) {
 		keyCodeInputActive = true;
 		keyCodeInputKeyState = pKeyContainer;
+		keyCodeInputKeyState.Modifier = pFixedModifier;
 		keyCodeInputCurrentModifier = 0;
 		keyCodeInputFlags = pFlags;
 	}
@@ -167,15 +168,22 @@ namespace ImGuiEx
 	}
 
 	bool KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, HKL pHkl,
-	                  KeyCodeInputFlags pFlags) {
+	                  KeyCodeInputFlags pFlags, KeyBinds::Modifier pFixedModifier) {
 		bool res = false;
+
+		pFlags |= (pFlags & KeyCodeInputFlags_FixedModifier) ? KeyCodeInputFlags_NoModifier : 0;
 
 		KeyCodeInputActiveFrame();
 
 		ImGui::TextUnformatted(pLabel);
 		ImGui::SameLine();
 
-		std::string keyStr = to_string(pKeyContainer, pLanguage, pHkl);
+		KeyBinds::Key keyContainerCopy = pKeyContainer;
+		if (pFlags & KeyCodeInputFlags_FixedModifier) {
+			keyContainerCopy.Modifier = pFixedModifier;
+		}
+
+		std::string keyStr = to_string(keyContainerCopy, pLanguage, pHkl);
 		ImVec2 textSize = ImGui::CalcTextSize(keyStr.c_str());
 		keyStr.append("##");
 		keyStr.append(pLabel);
@@ -186,7 +194,7 @@ namespace ImGuiEx
 		if (ImGui::Button(keyStr.c_str(), ImVec2(textSize.x + 50.f, 0.f))) {
 			ImGui::OpenPopup(popupName.c_str());
 
-			OpenKeyCodePopupState(pKeyContainer, pFlags);
+			OpenKeyCodePopupState(pKeyContainer, pFlags, pFixedModifier);
 		}
 
 		// Always center this window when appearing
@@ -219,7 +227,9 @@ namespace ImGuiEx
 
 			float buttonSizeX = (windowX - ImGui::GetStyle().FramePadding.x*2 - ImGui::GetStyle().ItemSpacing.x - ImGui::GetStyle().WindowPadding.x*2) / 2;
 			if (ImGui::Button("Apply", ImVec2(buttonSizeX, 0))) {
-				pKeyContainer = keyCodeInputKeyState;
+				pKeyContainer.DeviceType = keyCodeInputKeyState.DeviceType;
+				pKeyContainer.Code = keyCodeInputKeyState.Code;
+				pKeyContainer.Modifier = pFlags & KeyCodeInputFlags_FixedModifier ? 0 : keyCodeInputKeyState.Modifier;
 				CloseKeyCodePopupState();
 				ImGui::CloseCurrentPopup();
 				res = true;

@@ -51,7 +51,7 @@ bool KeyBindHandler::Wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			if (modifier != 0) {
 				mTrackedModifier |= modifier;
 			} else {
-				KeyBinds::Modifier arcdpsModifier = getArcdpsModifier();
+				KeyBinds::Modifier arcdpsModifier = GetArcdpsModifier();
 
 				// Check if any registered KeyBind is correct
 				for (const auto& subscriber : mSubscribers | std::views::values) {
@@ -126,7 +126,7 @@ bool KeyBindHandler::Wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	return false;
 }
 
-KeyBinds::Modifier KeyBindHandler::getArcdpsModifier() {
+KeyBinds::Modifier KeyBindHandler::GetArcdpsModifier() {
 	uint64_t e7_result = ARC_EXPORT_E7();
 
 	uint16_t* ra = (uint16_t*)&e7_result;
