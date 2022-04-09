@@ -13,6 +13,7 @@ public:
 	 * This is called by the `PositioningComponentImGuiHook` below.
 	 */
 	void Reposition();
+	~PositioningComponent() override;
 
 protected:
 	virtual Position& getPositionMode() = 0;
