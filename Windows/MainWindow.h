@@ -12,7 +12,7 @@
 #include "../../imgui/imgui_internal.h"
 
 #include <functional>
-	
+
 enum MainWindowFlags_ : int {
 	MainWindowFlags_None = 0,
 	MainWindowFlags_NoStyleMenu = 1 << 0, // Do NOT show the Style submenu in the context menu
@@ -30,6 +30,9 @@ public:
 	MainWindow(MainWindow&& other) noexcept = delete;
 	MainWindow& operator=(const MainWindow& other) = delete;
 	MainWindow& operator=(MainWindow&& other) noexcept = delete;
+
+	// be a friend with other modules
+	template<size_t> friend class MainTable;
 
 	/**
 	 * Draw the Window itself, has to be called in `mod_imgui` to draw the window.
@@ -164,7 +167,7 @@ protected:
 	 * If this is true, the variable set with `SetMaxHeightCursorPos` will be used to determine the max-height.
 	 * This has to be tracked by the implementation, cause this window has no idea what it's content looks like.
 	 */
-	virtual bool getMaxHeightActive() = 0;
+	virtual bool getMaxHeightActive() { return false; }
 
 	/**
 	 * The current language the plugin is set to.
