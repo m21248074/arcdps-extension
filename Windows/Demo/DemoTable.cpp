@@ -25,7 +25,11 @@ const char* DemoTable::getCategoryName(int pCat) {
 }
 
 bool& DemoTable::getShowAlternatingBackground() {
-	return alternatingBackground;
+	return mAlternatingBackground;
+}
+
+MainTable<64>::TableSettings& DemoTable::getTableSettings() {
+	return mSettings;
 }
 
 void DemoTable::DrawRows(ImGuiTableColumnIdx pFirstColumnIndex) {

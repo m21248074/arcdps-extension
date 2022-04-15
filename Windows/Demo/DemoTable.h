@@ -40,6 +40,7 @@ protected:
 	int& getMaxDisplayed() override;
 	const char* getCategoryName(int pCat) override;
 	bool& getShowAlternatingBackground() override;
+	TableSettings& getTableSettings() override;
 
 	void DrawRows(ImGuiTableColumnIdx pFirstColumnIndex) override;
 	void Sort(const ImGuiTableColumnSortSpecs* mColumnSortSpecs) override;
@@ -48,5 +49,6 @@ private:
 	Alignment mAlignment = Alignment::Left;
 	Alignment mHeaderAlignment = Alignment::Left;
 	int mMaxDisplayed = 0;
-	bool alternatingBackground = false;
+	bool mAlternatingBackground = false;
+	TableSettings mSettings;
 };
