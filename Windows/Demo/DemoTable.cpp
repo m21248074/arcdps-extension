@@ -33,6 +33,7 @@ MainTable<64>::TableSettings& DemoTable::getTableSettings() {
 }
 
 void DemoTable::DrawRows(TableColumnIdx pFirstColumnIndex) {
+	size_t i = 0;
 	for (const Row& row : Rows) {
 		NextRow();
 
@@ -49,6 +50,11 @@ void DemoTable::DrawRows(TableColumnIdx pFirstColumnIndex) {
 		AlignedTextColumn(row.Column4.c_str());
 
 		EndMaxHeightRow();
+
+		if (IsCurrentRowHovered()) {
+			ImGui::SetTooltip(std::format("kuckuck{}", i).c_str());
+		}
+		++i;
 	}
 }
 

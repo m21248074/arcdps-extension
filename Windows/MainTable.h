@@ -156,13 +156,11 @@ private:
 protected:
 	/**
 	 * Set the next Row, will call `ImGui::TableNextRow`
-	 * TODO: Add row hovered
 	 */
 	void NextRow(ImGuiTableRowFlags row_flags = 0, float min_row_height = 0.0f); // append into the first cell of a new row.
 
 	/**
 	 * Set the next column, will call `ImGui::TableNextColumn`
-	 * TODO: Column-Row combo hovered
 	 */
 	bool NextColumn();
 
@@ -204,6 +202,17 @@ protected:
 	// - Important: if ImGuiTableFlags_PadOuterX is set but ImGuiTableFlags_PadInnerX is not set, the outer-most left and right
 	//   columns report a small offset so their CellBgRect can extend up to the outer border.
 	ImRect GetCellBgRect(int column_n);
+
+	/**
+	 * Check if the current table column is hovered.
+	 */
+	bool IsCurrentColumnHovered();
+
+	/**
+	 * Check if the current table row is hovered.
+	 * This should be called at the end of the row, before it could have wrong hitboxes!
+	 */
+	bool IsCurrentRowHovered();
 
 private:
 	// We use the terminology "Enabled" to refer to a column that is not Hidden by user/api.
@@ -2398,6 +2407,27 @@ ImGuiSortDirection MainTable<MaxColumnCount>::GetColumnNextSortDirection(TableCo
             return GetColumnAvailSortDirection(column, (n + 1) % column->SortDirectionsAvailCount);
     IM_ASSERT(0);
     return ImGuiSortDirection_None;
+}
+
+template <size_t MaxColumnCount>
+bool MainTable<MaxColumnCount>::IsCurrentColumnHovered() {
+	const ImRect& cellBgRect = GetCellBgRect(mTable.CurrentColumn);
+
+	// [[ DEBUG ]]
+	// ImGui::GetCurrentWindow()->DrawList->AddRect(cellBgRect.Min, cellBgRect.Max), 0xff0000ff);
+
+	return ImGui::IsMouseHoveringRect(cellBgRect.Min, cellBgRect.Max);
+}
+
+template <size_t MaxColumnCount>
+bool MainTable<MaxColumnCount>::IsCurrentRowHovered() {
+	ImRect row_rect(mTable.WorkRect.Min.x, mTable.RowPosY1, mTable.WorkRect.Max.x, mTable.RowPosY2);
+    row_rect.ClipWith(mTable.BgClipRect);
+
+	// [[ DEBUG ]]
+	// ImGui::GetCurrentWindow()->DrawList->AddRect(row_rect.Min, row_rect.Max, 0xff0000ff);
+
+	return ImGui::IsMouseHoveringRect(row_rect.Min, row_rect.Max, false);
 }
 
 template <size_t MaxColumnCount>
