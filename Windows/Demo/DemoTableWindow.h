@@ -39,5 +39,5 @@ private:
 	std::optional<std::string> mAppearAsInOptionOpt;
 	const std::string mAppearAsInOptionDefault = "Demo Table Window";
 
-	DemoTable mTable;
+	std::unique_ptr<DemoTable> mTable;
 };

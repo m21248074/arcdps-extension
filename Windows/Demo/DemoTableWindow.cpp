@@ -5,9 +5,10 @@
 
 #include "../../KeyBindHandler.h"
 
-DemoTableWindow::DemoTableWindow() : MainWindow(), mTable(this) {
+DemoTableWindow::DemoTableWindow() : MainWindow() {
 	CreateComponent<DemoPositioningComponent>();
 	CreateComponent<DemoKeyBindComponent>();
+	mTable = std::make_unique<DemoTable>(this);
 }
 
 bool& DemoTableWindow::GetOpenVar() {
@@ -21,12 +22,14 @@ void DemoTableWindow::SetMaxHeightCursorPos(float pNewCursorPos) {
 void DemoTableWindow::DrawContextMenu() {
 	ImGui::Text("testWindowContextMenu");
 
+	mTable->DrawColumnSetupMenu();
+
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 	ImGui::PopStyleVar();
 }
 
 void DemoTableWindow::DrawContent() {
-	mTable.Draw();
+	mTable->Draw();
 }
 
 const std::string& DemoTableWindow::getTitleDefault() {

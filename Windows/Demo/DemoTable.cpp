@@ -16,7 +16,7 @@ int& DemoTable::getMaxDisplayed() {
 	return mMaxDisplayed;
 }
 
-const char* DemoTable::getCategoryName(int pCat) {
+const char* DemoTable::getCategoryName(size_t pCat) {
 	switch (pCat) {
 		case 1: return "Cat1";
 		case 2: return "Cat2";
@@ -32,7 +32,7 @@ MainTable<64>::TableSettings& DemoTable::getTableSettings() {
 	return mSettings;
 }
 
-void DemoTable::DrawRows(ImGuiTableColumnIdx pFirstColumnIndex) {
+void DemoTable::DrawRows(TableColumnIdx pFirstColumnIndex) {
 	for (const Row& row : Rows) {
 		NextRow();
 

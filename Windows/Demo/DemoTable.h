@@ -38,11 +38,11 @@ protected:
 	Alignment& getHeaderAlignment() override;
 	std::string getTableId() override;
 	int& getMaxDisplayed() override;
-	const char* getCategoryName(int pCat) override;
+	const char* getCategoryName(size_t pCat) override;
 	bool& getShowAlternatingBackground() override;
 	TableSettings& getTableSettings() override;
 
-	void DrawRows(ImGuiTableColumnIdx pFirstColumnIndex) override;
+	void DrawRows(TableColumnIdx pFirstColumnIndex) override;
 	void Sort(const ImGuiTableColumnSortSpecs* mColumnSortSpecs) override;
 
 private:
