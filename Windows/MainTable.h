@@ -657,8 +657,9 @@ template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawStyleSubMenu() {
 	ImGui::Separator();
-	ImGui::InputInt("max displayed", &getMaxDisplayed());
 	ImGui::Checkbox("Alternating Row Background", &getShowAlternatingBackground());
+	ImGui::Checkbox("Highlight hovered row", &getHighlightHoveredRows());
+	ImGui::InputInt("max displayed", &getMaxDisplayed());
 	ImGuiEx::EnumCombo("Header Alignment", getHeaderAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
 	ImGuiEx::EnumCombo("Column Alignment", getAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
 }
@@ -1530,7 +1531,7 @@ void MainTable<MaxColumnCount>::EndRow() {
 			mTable.CurrentHoveredRow = mTable.CurrentRow;
 
 			if (getHighlightHoveredRows()) {
-				bg_col1 = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
+				bg_col1 = ImGui::GetColorU32(ImGuiCol_FrameBgHovered);
 			}
 		} else if (mTable.CurrentHoveredRow == mTable.CurrentRow) {
 			mTable.CurrentHoveredRow = -1;
