@@ -139,6 +139,7 @@ protected:
 	virtual int& getMaxDisplayed() = 0;
 	virtual bool& getShowAlternatingBackground() = 0;
 	virtual TableSettings& getTableSettings() = 0;
+	virtual bool& getHighlightHoveredRows() = 0;
 
 	/**
 	 * Get the name of each column category.
@@ -211,7 +212,6 @@ protected:
 
 	/**
 	 * Check if the current table row is hovered.
-	 * This should be called at the end of the row, before it could have wrong hitboxes!
 	 */
 	bool IsCurrentRowHovered();
 
@@ -279,18 +279,19 @@ private:
 		ImGuiID                     ID;
 		ImGuiTableFlags             Flags;
 		void*                       RawData;                    // Single allocation to hold Columns[], DisplayOrderToIndex[] and RowCellData[]
-		ImSpan<TableColumn>    Columns;                         // Point within RawData[]
-		ImSpan<TableColumnIdx> DisplayOrderToIndex;             // Point within RawData[]. Store display order of columns (when not reordered, the values are 0...Count-1)
+		ImSpan<TableColumn>         Columns;                    // Point within RawData[]
+		ImSpan<TableColumnIdx>      DisplayOrderToIndex;        // Point within RawData[]. Store display order of columns (when not reordered, the values are 0...Count-1)
 		ImSpan<ImGuiTableCellData>  RowCellData;                // Point within RawData[]. Store cells background requests for current row.
-		ColumnBitMask EnabledMaskByDisplayOrder;                // Column DisplayOrder -> IsEnabled map
-		ColumnBitMask EnabledMaskByIndex;                       // Column Index -> IsEnabled map (== not hidden by user/api) in a format adequate for iterating column without touching cold data
-		ColumnBitMask VisibleMaskByIndex;                       // Column Index -> IsVisibleX|IsVisibleY map (== not hidden by user/api && not hidden by scrolling/cliprect)
-		ColumnBitMask RequestOutputMaskByIndex;                 // Column Index -> IsVisible || AutoFit (== expect user to submit items)
+		ColumnBitMask               EnabledMaskByDisplayOrder;  // Column DisplayOrder -> IsEnabled map
+		ColumnBitMask               EnabledMaskByIndex;         // Column Index -> IsEnabled map (== not hidden by user/api) in a format adequate for iterating column without touching cold data
+		ColumnBitMask               VisibleMaskByIndex;         // Column Index -> IsVisibleX|IsVisibleY map (== not hidden by user/api && not hidden by scrolling/cliprect)
+		ColumnBitMask               RequestOutputMaskByIndex;   // Column Index -> IsVisible || AutoFit (== expect user to submit items)
 		ImGuiTableFlags             SettingsLoadedFlags;        // Which data were loaded from the .ini file (e.g. when order is not altered we won't save order)
 		int                         SettingsOffset;             // Offset in g.SettingsTables
 		int                         LastFrameActive;
 		int                         ColumnsCount;               // Number of columns declared in BeginTable()
 		int                         CurrentRow;
+		int                         CurrentHoveredRow;          // Row that is currently hovered
 		int                         CurrentColumn;
 		ImS16                       InstanceCurrent;            // Count of BeginTable() calls with same ID in the same frame (generally 0). This is a little bit similar to BeginCount for a window, but multiple table with same ID look are multiple tables, they are just synched.
 		ImS16                       InstanceInteracted;         // Mark which instance (generally 0) of the same ID is being interacted with
@@ -347,27 +348,27 @@ private:
 		ImGuiTableColumnSortSpecs   SortSpecsSingle;
 		ImVector<ImGuiTableColumnSortSpecs> SortSpecsMulti;     // FIXME-OPT: Using a small-vector pattern would work be good.
 		ImGuiTableSortSpecs         SortSpecs;                  // Public facing sorts specs, this is what we return in TableGetSortSpecs()
-		TableColumnIdx         SortSpecsCount;
-		TableColumnIdx         ColumnsEnabledCount;        // Number of enabled columns (<= ColumnsCount)
-		TableColumnIdx         ColumnsEnabledFixedCount;   // Number of enabled columns (<= ColumnsCount)
-		TableColumnIdx         DeclColumnsCount;           // Count calls to TableSetupColumn()
-		TableColumnIdx         HoveredColumnBody;          // Index of column whose visible region is being hovered. Important: == ColumnsCount when hovering empty region after the right-most column!
-		TableColumnIdx         HoveredColumnBorder;        // Index of column whose right-border is being hovered (for resizing).
-		TableColumnIdx         AutoFitSingleColumn;        // Index of single column requesting auto-fit.
-		TableColumnIdx         ResizedColumn;              // Index of column being resized. Reset when InstanceCurrent==0.
-		TableColumnIdx         LastResizedColumn;          // Index of column being resized from previous frame.
-		TableColumnIdx         HeldHeaderColumn;           // Index of column header being held.
-		TableColumnIdx         ReorderColumn;              // Index of column being reordered. (not cleared)
-		TableColumnIdx         ReorderColumnDir;           // -1 or +1
-		TableColumnIdx         LeftMostStretchedColumn;    // Index of left-most stretched column.
-		TableColumnIdx         RightMostStretchedColumn;   // Index of right-most stretched column.
-		TableColumnIdx         RightMostEnabledColumn;     // Index of right-most non-hidden column.
-		TableColumnIdx         ContextPopupColumn;         // Column right-clicked on, of -1 if opening context menu from a neutral/empty spot
-		TableColumnIdx         FreezeRowsRequest;          // Requested frozen rows count
-		TableColumnIdx         FreezeRowsCount;            // Actual frozen row count (== FreezeRowsRequest, or == 0 when no scrolling offset)
-		TableColumnIdx         FreezeColumnsRequest;       // Requested frozen columns count
-		TableColumnIdx         FreezeColumnsCount;         // Actual frozen columns count (== FreezeColumnsRequest, or == 0 when no scrolling offset)
-		TableColumnIdx         RowCellDataCurrent;         // Index of current RowCellData[] entry in current row
+		TableColumnIdx              SortSpecsCount;
+		TableColumnIdx              ColumnsEnabledCount;        // Number of enabled columns (<= ColumnsCount)
+		TableColumnIdx              ColumnsEnabledFixedCount;   // Number of enabled columns (<= ColumnsCount)
+		TableColumnIdx              DeclColumnsCount;           // Count calls to TableSetupColumn()
+		TableColumnIdx              HoveredColumnBody;          // Index of column whose visible region is being hovered. Important: == ColumnsCount when hovering empty region after the right-most column!
+		TableColumnIdx              HoveredColumnBorder;        // Index of column whose right-border is being hovered (for resizing).
+		TableColumnIdx              AutoFitSingleColumn;        // Index of single column requesting auto-fit.
+		TableColumnIdx              ResizedColumn;              // Index of column being resized. Reset when InstanceCurrent==0.
+		TableColumnIdx              LastResizedColumn;          // Index of column being resized from previous frame.
+		TableColumnIdx              HeldHeaderColumn;           // Index of column header being held.
+		TableColumnIdx              ReorderColumn;              // Index of column being reordered. (not cleared)
+		TableColumnIdx              ReorderColumnDir;           // -1 or +1
+		TableColumnIdx              LeftMostStretchedColumn;    // Index of left-most stretched column.
+		TableColumnIdx              RightMostStretchedColumn;   // Index of right-most stretched column.
+		TableColumnIdx              RightMostEnabledColumn;     // Index of right-most non-hidden column.
+		TableColumnIdx              ContextPopupColumn;         // Column right-clicked on, of -1 if opening context menu from a neutral/empty spot
+		TableColumnIdx              FreezeRowsRequest;          // Requested frozen rows count
+		TableColumnIdx              FreezeRowsCount;            // Actual frozen row count (== FreezeRowsRequest, or == 0 when no scrolling offset)
+		TableColumnIdx              FreezeColumnsRequest;       // Requested frozen columns count
+		TableColumnIdx              FreezeColumnsCount;         // Actual frozen columns count (== FreezeColumnsRequest, or == 0 when no scrolling offset)
+		TableColumnIdx              RowCellDataCurrent;         // Index of current RowCellData[] entry in current row
 		ImGuiTableDrawChannelIdx    DummyDrawChannel;           // Redirect non-visible columns here.
 		ImGuiTableDrawChannelIdx    Bg2DrawChannelCurrent;      // For Selectable() and other widgets drawing accross columns after the freezing line. Index within DrawSplitter.Channels[]
 		ImGuiTableDrawChannelIdx    Bg2DrawChannelUnfrozen;
@@ -1517,6 +1518,25 @@ void MainTable<MaxColumnCount>::EndRow() {
 		if (mTable.RowBgColor[1] != IM_COL32_DISABLE)
 			bg_col1 = mTable.RowBgColor[1];
 
+
+		// KNOX: override bg color for hovered rows
+		ImRect row_rect(mTable.WorkRect.Min.x, bg_y1, mTable.WorkRect.Max.x, bg_y2);
+		row_rect.ClipWith(mTable.BgClipRect);
+
+		// [[ DEBUG ]]
+		// ImGui::GetCurrentWindow()->DrawList->AddRect(row_rect.Min, row_rect.Max, 0xff0000ff);
+
+		if (ImGui::IsMouseHoveringRect(row_rect.Min, row_rect.Max, false) && (mTable.CurrentRow > 0 && mTable.IsUsingHeaders)) {
+			mTable.CurrentHoveredRow = mTable.CurrentRow;
+
+			if (getHighlightHoveredRows()) {
+				bg_col1 = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
+			}
+		} else if (mTable.CurrentHoveredRow == mTable.CurrentRow) {
+			mTable.CurrentHoveredRow = -1;
+		}
+
+
 		// Decide of top border color
 		ImU32 border_col = 0;
 		const float border_size = TABLE_BORDER_SIZE;
@@ -1539,8 +1559,6 @@ void MainTable<MaxColumnCount>::EndRow() {
 		// We soft/cpu clip this so all backgrounds and borders can share the same clipping rectangle
 		if (bg_col0 || bg_col1)
 		{
-			ImRect row_rect(mTable.WorkRect.Min.x, bg_y1, mTable.WorkRect.Max.x, bg_y2);
-			row_rect.ClipWith(mTable.BgClipRect);
 			if (bg_col0 != 0 && row_rect.Min.y < row_rect.Max.y)
 				window->DrawList->AddRectFilled(row_rect.Min, row_rect.Max, bg_col0);
 			if (bg_col1 != 0 && row_rect.Min.y < row_rect.Max.y)
@@ -2459,13 +2477,7 @@ bool MainTable<MaxColumnCount>::IsCurrentColumnHovered() {
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 bool MainTable<MaxColumnCount>::IsCurrentRowHovered() {
-	ImRect row_rect(mTable.WorkRect.Min.x, mTable.RowPosY1, mTable.WorkRect.Max.x, mTable.RowPosY2);
-    row_rect.ClipWith(mTable.BgClipRect);
-
-	// [[ DEBUG ]]
-	// ImGui::GetCurrentWindow()->DrawList->AddRect(row_rect.Min, row_rect.Max, 0xff0000ff);
-
-	return ImGui::IsMouseHoveringRect(row_rect.Min, row_rect.Max, false);
+	return mTable.CurrentRow == mTable.CurrentHoveredRow;
 }
 
 template <size_t MaxColumnCount>

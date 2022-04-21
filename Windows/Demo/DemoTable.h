@@ -19,14 +19,15 @@ struct Row {
 	std::string Column2;
 	std::string Column3;
 	std::string Column4;
+	std::string HoveredText;
 };
 
 static inline std::vector<Row> Rows = {
-	{"1Row1.1", "4Row1.2", "3Row1.3", "3Row1.4"},
-	{"2Row2.1", "3Row2.2", "5Row2.3", "1Row2.4"},
-	{"3Row3.1", "5Row3.2", "2Row3.3", "5Row3.4"},
-	{"4Row4.1", "2Row4.2", "1Row4.3", "4Row4.4"},
-	{"5Row5.1", "1Row5.2", "4Row5.3", "2Row5.4"},
+	{"1Row1.1", "4Row1.2", "3Row1.3", "3Row1.4", "Row1 Hovered Text"},
+	{"2Row2.1", "3Row2.2", "5Row2.3", "1Row2.4", "Row2 Hovered Text"},
+	{"3Row3.1", "5Row3.2", "2Row3.3", "5Row3.4", "Row3 Hovered Text"},
+	{"4Row4.1", "2Row4.2", "1Row4.3", "4Row4.4", "Row4 Hovered Text"},
+	{"5Row5.1", "1Row5.2", "4Row5.3", "2Row5.4", "Row5 Hovered Text"},
 };
 
 class DemoTable : public MainTable<> {
@@ -41,6 +42,7 @@ protected:
 	const char* getCategoryName(size_t pCat) override;
 	bool& getShowAlternatingBackground() override;
 	TableSettings& getTableSettings() override;
+	bool& getHighlightHoveredRows() override;
 
 	void DrawRows(TableColumnIdx pFirstColumnIndex) override;
 	void Sort(const ImGuiTableColumnSortSpecs* mColumnSortSpecs) override;
@@ -51,4 +53,5 @@ private:
 	int mMaxDisplayed = 0;
 	bool mAlternatingBackground = false;
 	TableSettings mSettings;
+	bool mHighlightHoveredRows = true;
 };

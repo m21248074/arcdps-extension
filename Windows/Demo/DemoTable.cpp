@@ -32,8 +32,11 @@ MainTable<64>::TableSettings& DemoTable::getTableSettings() {
 	return mSettings;
 }
 
+bool& DemoTable::getHighlightHoveredRows() {
+	return mHighlightHoveredRows;
+}
+
 void DemoTable::DrawRows(TableColumnIdx pFirstColumnIndex) {
-	size_t i = 0;
 	for (const Row& row : Rows) {
 		NextRow();
 
@@ -52,9 +55,9 @@ void DemoTable::DrawRows(TableColumnIdx pFirstColumnIndex) {
 		EndMaxHeightRow();
 
 		if (IsCurrentRowHovered()) {
-			ImGui::SetTooltip(std::format("kuckuck{}", i).c_str());
+			ARC_LOG("IsCurrentRowHovered!");
+			ImGui::SetTooltip(row.HoveredText.c_str());
 		}
-		++i;
 	}
 }
 
