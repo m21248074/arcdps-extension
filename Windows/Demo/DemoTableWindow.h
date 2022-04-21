@@ -19,11 +19,13 @@ protected:
 	const std::string& getWindowID() override;
 	bool& getShowTitleBar() override;
 	bool& getShowBackground() override;
-	bool& getShowScrollbar() override;
 	std::optional<ImVec2>& getPadding() override;
 	SizingPolicy& getSizingPolicy() override;
 	std::optional<std::string>& getAppearAsInOption() override;
 	const std::string& getAppearAsInOptionDefault() override;
+
+public:
+	bool& GetShowScrollbar() override;
 
 private:
 	bool mOpen = true;

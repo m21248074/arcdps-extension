@@ -31,9 +31,6 @@ public:
 	MainWindow& operator=(const MainWindow& other) = delete;
 	MainWindow& operator=(MainWindow&& other) noexcept = delete;
 
-	// be a friend with other modules
-	template<size_t> friend class MainTable;
-
 	/**
 	 * Draw the Window itself, has to be called in `mod_imgui` to draw the window.
 	 * It will only be drawn if `GetOpenVar` returns true.
@@ -87,6 +84,15 @@ public:
 
 	typedef std::function<void()> DrawStyleSubMenuHookFunction;
 	void RegisterDrawStyleSubMenuHook(DrawStyleSubMenuHookFunction pFun);
+
+	/**
+	 * This has to be `true` to show the scrollbar.
+	 * Therefore setting it to `true` by default is recommended.
+	 * A scrollbar is only shown when the window is bigger than it's content.
+	 */
+	virtual bool& GetShowScrollbar() = 0;
+
+	float GetMaxCursorPos();
 
 protected:
 	ImGuiWindow* mThisWindow = nullptr;
@@ -148,13 +154,6 @@ protected:
 	 * Therefore setting it to `true` by default is recommended.
 	 */
 	virtual bool& getShowBackground() = 0;
-
-	/**
-	 * This has to be `true` to show the scrollbar.
-	 * Therefore setting it to `true` by default is recommended.
-	 * A scrollbar is only shown when the window is bigger than it's content.
-	 */
-	virtual bool& getShowScrollbar() = 0;
 
 	/**
 	 * This padding is optional, if the optional is not set, no change to the window padding is applied.

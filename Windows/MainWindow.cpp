@@ -24,7 +24,7 @@ void MainWindow::Draw(ImGuiWindowFlags imGuiWindowFlags, MainWindowFlags mainWin
 		imGuiWindowFlags |= ImGuiWindowFlags_NoBackground;
 	}
 
-	if (!getShowScrollbar()) {
+	if (!GetShowScrollbar()) {
 		imGuiWindowFlags |= ImGuiWindowFlags_NoScrollbar;
 	}
 
@@ -158,10 +158,14 @@ void MainWindow::RegisterDrawStyleSubMenuHook(DrawStyleSubMenuHookFunction pFun)
 	mDrawStyleSubMenuHooks.emplace_back(pFun);
 }
 
+float MainWindow::GetMaxCursorPos() {
+	return mMaxHeightCursorPos;
+}
+
 void MainWindow::DrawStyleSettingsSubMenu() {
 	ImGui::Checkbox("Title bar", &getShowTitleBar());
 	ImGui::Checkbox("Background", &getShowBackground());
-	ImGui::Checkbox("Scrollbar", &getShowScrollbar());
+	ImGui::Checkbox("Scrollbar", &GetShowScrollbar());
 
 	// padding
 	ImGui::Text("padding");

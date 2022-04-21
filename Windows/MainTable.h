@@ -80,6 +80,7 @@ concept SmallerThanMaxColumnAmount = requires {
  * - Call `DrawColumnSetupMenu()` in `DrawContextMenu()` if you want to hide your columns.
  */
 template <size_t MaxColumnCount = 64>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 class MainTable {
 public:
 	typedef std::bitset<MaxColumnCount> ColumnBitMask;
@@ -132,7 +133,7 @@ protected:
 
 	virtual Alignment& getAlignment() = 0;
 	virtual Alignment& getHeaderAlignment() = 0;
-	virtual bool getShowScrollbar() { return mMainWindow->getShowScrollbar(); }
+	virtual bool getShowScrollbar() { return mMainWindow->GetShowScrollbar(); }
 	virtual std::string getTableId() = 0;
 	virtual bool getMaxHeightActive() { return getMaxDisplayed() != 0; }
 	virtual int& getMaxDisplayed() = 0;
@@ -545,6 +546,7 @@ private:
 };
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::Draw() {
 	ImGuiTableFlags tableFlags = ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Hideable |
 		ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Sortable |
@@ -554,7 +556,7 @@ void MainTable<MaxColumnCount>::Draw() {
 		tableFlags |= ImGuiTableFlags_RowBg;
 	}
 
-	ImVec2 outerSize(0.f, getMaxHeightActive() ? mMainWindow->mMaxHeightCursorPos : 0.f);
+	ImVec2 outerSize(0.f, getMaxHeightActive() ? mMainWindow->GetMaxCursorPos() : 0.f);
 
 	if (Begin(getTableId().c_str(), mColumns.size(), tableFlags, outerSize, 0,
 							getShowScrollbar() ? 0 : ImGuiWindowFlags_NoScrollbar)) {
@@ -618,6 +620,7 @@ void MainTable<MaxColumnCount>::Draw() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawColumnSetupMenu() {
 	if (ImGui::BeginMenu("Column Setup")) {
 		std::vector<std::vector<size_t>> categories;
@@ -650,6 +653,7 @@ void MainTable<MaxColumnCount>::DrawColumnSetupMenu() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawStyleSubMenu() {
 	ImGui::Separator();
 	ImGui::InputInt("max displayed", &getMaxDisplayed());
@@ -659,6 +663,7 @@ void MainTable<MaxColumnCount>::DrawStyleSubMenu() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::NextRow(ImGuiTableRowFlags row_flags, float min_row_height) {
 	if (!mTable.IsLayoutLocked)
 		UpdateLayout();
@@ -680,6 +685,7 @@ void MainTable<MaxColumnCount>::NextRow(ImGuiTableRowFlags row_flags, float min_
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 bool MainTable<MaxColumnCount>::NextColumn() {
 	if (mTable.IsInsideRow && mTable.CurrentColumn + 1 < mTable.ColumnsCount)
 	{
@@ -700,6 +706,7 @@ bool MainTable<MaxColumnCount>::NextColumn() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::EndMaxHeightRow() {
 	if (mCurrentRow < getMaxDisplayed()) {
 		mMainWindow->SetMaxHeightCursorPos();
@@ -710,6 +717,7 @@ void MainTable<MaxColumnCount>::EndMaxHeightRow() {
 
 // Helper
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 ImGuiTableFlags MainTable<MaxColumnCount>::TableFixFlags(ImGuiTableFlags flags, ImGuiWindow* outer_window)
 {
 	// Adjust flags: set default sizing policy
@@ -749,6 +757,7 @@ ImGuiTableFlags MainTable<MaxColumnCount>::TableFixFlags(ImGuiTableFlags flags, 
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::BeginInitMemory(int columns_count) {
 	// Allocate single buffer for our arrays
 	ImSpanAllocator<3> span_allocator;
@@ -764,6 +773,7 @@ void MainTable<MaxColumnCount>::BeginInitMemory(int columns_count) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::ResetSettings() {
 	mTable.IsInitializing = mTable.IsSettingsDirty = true;
 	mTable.IsResetAllRequest = false;
@@ -772,6 +782,7 @@ void MainTable<MaxColumnCount>::ResetSettings() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::LoadSettingsImGuiIni() {
 	ImGuiContext& g = *GImGui;
 	mTable.IsSettingsRequestLoad = false;
@@ -837,6 +848,7 @@ void MainTable<MaxColumnCount>::LoadSettingsImGuiIni() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::LoadSettingsCustom() {
 	mTable.IsSettingsRequestLoad = false;
 	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
@@ -890,6 +902,7 @@ void MainTable<MaxColumnCount>::LoadSettingsCustom() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::BeginApplyRequests() {
 	// Handle resizing request
 	// (We process this at the first TableBegin of the frame)
@@ -957,6 +970,7 @@ void MainTable<MaxColumnCount>::BeginApplyRequests() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 ImGuiTableSettings* MainTable<MaxColumnCount>::GetBoundSettings() {
 	if (mTable.SettingsOffset != -1)
 	{
@@ -971,6 +985,7 @@ ImGuiTableSettings* MainTable<MaxColumnCount>::GetBoundSettings() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::UpdateLayout() {
 	ImGuiContext& g = *GImGui;
 	IM_ASSERT(mTable.IsLayoutLocked == false);
@@ -1384,6 +1399,7 @@ void MainTable<MaxColumnCount>::UpdateLayout() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SortSpecsBuild() {
 	IM_ASSERT(mTable.IsSortSpecsDirty);
 	SortSpecsSanitize();
@@ -1410,6 +1426,7 @@ void MainTable<MaxColumnCount>::SortSpecsBuild() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::TableSetupColumnFlags(TableColumn* column, ImGuiTableColumnFlags flags_in) {
 	ImGuiTableColumnFlags flags = flags_in;
 
@@ -1465,6 +1482,7 @@ void MainTable<MaxColumnCount>::TableSetupColumnFlags(TableColumn* column, ImGui
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::EndRow() {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = g.CurrentWindow;
@@ -1595,6 +1613,7 @@ void MainTable<MaxColumnCount>::EndRow() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawBorders() {
 	ImGuiWindow* inner_window = mTable.InnerWindow;
 	if (!mTable.OuterWindow->ClipRect.Overlaps(mTable.OuterRect))
@@ -1690,6 +1709,7 @@ void MainTable<MaxColumnCount>::DrawBorders() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::MergeDrawChannels() {
 	ImGuiContext& g = *GImGui;
 	ImDrawListSplitter* splitter = &mTable.DrawSplitter;
@@ -1834,6 +1854,7 @@ void MainTable<MaxColumnCount>::MergeDrawChannels() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 float MainTable<MaxColumnCount>::GetColumnWidthAuto(TableColumn* column) {
 	const float content_width_body = ImMax(column->ContentMaxXFrozen, column->ContentMaxXUnfrozen) - column->WorkMinX;
 	const float content_width_headers = column->ContentMaxXHeadersIdeal - column->WorkMinX;
@@ -1850,6 +1871,7 @@ float MainTable<MaxColumnCount>::GetColumnWidthAuto(TableColumn* column) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SaveSettingsImGuiIni() {
 	mTable.IsSettingsDirty = false;
 	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
@@ -1905,6 +1927,7 @@ void MainTable<MaxColumnCount>::SaveSettingsImGuiIni() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SaveSettingsCustom() {
 	mTable.IsSettingsDirty = false;
 	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
@@ -1954,6 +1977,7 @@ void MainTable<MaxColumnCount>::SaveSettingsCustom() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::MigrateSettings() {
 	TableSettings& tableSettings = getTableSettings();
 	tableSettings.IniMigrated = true;
@@ -1964,6 +1988,7 @@ void MainTable<MaxColumnCount>::MigrateSettings() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SetupColumnFlags(TableColumn* column, ImGuiTableColumnFlags flags_in) {
 	ImGuiTableColumnFlags flags = flags_in;
 
@@ -2019,6 +2044,7 @@ void MainTable<MaxColumnCount>::SetupColumnFlags(TableColumn* column, ImGuiTable
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 float MainTable<MaxColumnCount>::GetMaxColumnWidth(int column_n) {
 	const TableColumn* column = &mTable.Columns[column_n];
 	float max_width = FLT_MAX;
@@ -2049,6 +2075,7 @@ float MainTable<MaxColumnCount>::GetMaxColumnWidth(int column_n) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SetupDrawChannels() {
 	const int freeze_row_multiplier = (mTable.FreezeRowsCount > 0) ? 2 : 1;
 	const int channels_for_row = (mTable.Flags & ImGuiTableFlags_NoClip) ? 1 : mTable.ColumnsEnabledCount;
@@ -2088,6 +2115,7 @@ void MainTable<MaxColumnCount>::SetupDrawChannels() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::UpdateBorders() {
 	ImGuiContext& g = *GImGui;
 	IM_ASSERT(mTable.Flags & ImGuiTableFlags_Resizable);
@@ -2149,6 +2177,7 @@ void MainTable<MaxColumnCount>::UpdateBorders() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SortSpecsSanitize() {
 	IM_ASSERT(mTable.Flags & ImGuiTableFlags_Sortable);
 
@@ -2219,6 +2248,7 @@ void MainTable<MaxColumnCount>::SortSpecsSanitize() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::FixColumnSortDirection(TableColumn* column) {
 	if (column->SortOrder == -1 || (column->SortDirectionsAvailMask & (1 << column->SortDirection)) != 0)
 		return;
@@ -2227,6 +2257,7 @@ void MainTable<MaxColumnCount>::FixColumnSortDirection(TableColumn* column) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::EndCell() {
 	TableColumn* column = &mTable.Columns[mTable.CurrentColumn];
 	ImGuiWindow* window = mTable.InnerWindow;
@@ -2247,6 +2278,7 @@ void MainTable<MaxColumnCount>::EndCell() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::BeginCell(int column_n) {
 	TableColumn* column = &mTable.Columns[column_n];
 	ImGuiWindow* window = mTable.InnerWindow;
@@ -2295,6 +2327,7 @@ void MainTable<MaxColumnCount>::BeginCell(int column_n) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::BeginRow() {
 	ImGuiWindow* window = mTable.InnerWindow;
 	IM_ASSERT(!mTable.IsInsideRow);
@@ -2327,6 +2360,7 @@ void MainTable<MaxColumnCount>::BeginRow() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SetBgColor(ImGuiTableBgTarget target, ImU32 color, int column_n) {
 	IM_ASSERT(target != ImGuiTableBgTarget_None);
 
@@ -2367,6 +2401,7 @@ void MainTable<MaxColumnCount>::SetBgColor(ImGuiTableBgTarget target, ImU32 colo
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SetColumnSortDirection(int column_n, ImGuiSortDirection sort_direction,
 	bool append_to_sort_specs) {
 	if (!(mTable.Flags & ImGuiTableFlags_SortMulti))
@@ -2398,6 +2433,7 @@ void MainTable<MaxColumnCount>::SetColumnSortDirection(int column_n, ImGuiSortDi
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 ImGuiSortDirection MainTable<MaxColumnCount>::GetColumnNextSortDirection(TableColumn* column) {
 	IM_ASSERT(column->SortDirectionsAvailCount > 0);
     if (column->SortOrder == -1)
@@ -2410,6 +2446,7 @@ ImGuiSortDirection MainTable<MaxColumnCount>::GetColumnNextSortDirection(TableCo
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 bool MainTable<MaxColumnCount>::IsCurrentColumnHovered() {
 	const ImRect& cellBgRect = GetCellBgRect(mTable.CurrentColumn);
 
@@ -2420,6 +2457,7 @@ bool MainTable<MaxColumnCount>::IsCurrentColumnHovered() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 bool MainTable<MaxColumnCount>::IsCurrentRowHovered() {
 	ImRect row_rect(mTable.WorkRect.Min.x, mTable.RowPosY1, mTable.WorkRect.Max.x, mTable.RowPosY2);
     row_rect.ClipWith(mTable.BgClipRect);
@@ -2431,6 +2469,7 @@ bool MainTable<MaxColumnCount>::IsCurrentRowHovered() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 bool MainTable<MaxColumnCount>::Begin(const char* str_id, int columns_count, ImGuiTableFlags flags,
 									  const ImVec2& outer_size, float inner_width,
 									  ImGuiWindowFlags child_window_flags) {
@@ -2670,6 +2709,7 @@ bool MainTable<MaxColumnCount>::Begin(const char* str_id, int columns_count, ImG
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::End() {
 	ImGuiContext& g = *GImGui;
 
@@ -2847,6 +2887,7 @@ void MainTable<MaxColumnCount>::End() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>:: MenuItemColumnVisibility(int TableColumnIdx) {
 	TableColumn& column = mTable.Columns[TableColumnIdx];
 	const char* columnName = GetColumnName(TableColumnIdx);
@@ -2859,6 +2900,7 @@ void MainTable<MaxColumnCount>:: MenuItemColumnVisibility(int TableColumnIdx) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 const char* MainTable<MaxColumnCount>::GetColumnName(int column_n)
 {
 	if (mTable.IsLayoutLocked == false && column_n >= mTable.DeclColumnsCount)
@@ -2870,6 +2912,7 @@ const char* MainTable<MaxColumnCount>::GetColumnName(int column_n)
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SetupScrollFreeze(int columns, int rows) {
 	IM_ASSERT(mTable.IsLayoutLocked == false && "Need to call TableSetupColumn() before first row!");
 	IM_ASSERT(columns >= 0 && columns < IMGUI_TABLE_MAX_COLUMNS);
@@ -2883,6 +2926,7 @@ void MainTable<MaxColumnCount>::SetupScrollFreeze(int columns, int rows) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 ImRect MainTable<MaxColumnCount>::GetCellBgRect(int column_n) {
 	const TableColumn* column = &mTable.Columns[column_n];
 	float x1 = column->MinX;
@@ -2895,6 +2939,7 @@ ImRect MainTable<MaxColumnCount>::GetCellBgRect(int column_n) {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 ImGuiTableSortSpecs* MainTable<MaxColumnCount>::GetSortSpecs() {
 	if (!(mTable.Flags & ImGuiTableFlags_Sortable))
 		return NULL;
@@ -2910,6 +2955,7 @@ ImGuiTableSortSpecs* MainTable<MaxColumnCount>::GetSortSpecs() {
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SetupColumn(const char* label, ImGuiTableColumnFlags flags, float init_width_or_weight,
 	ImGuiID user_id) {
 	IM_ASSERT(mTable.IsLayoutLocked == false && "Need to call call TableSetupColumn() before first row!");
@@ -2976,6 +3022,7 @@ void MainTable<MaxColumnCount>::SetupColumn(const char* label, ImGuiTableColumnF
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label, ImTextureID texture,
 	Alignment alignment) {
 	// TODO change eventually (to line height or something)
@@ -3165,6 +3212,7 @@ void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label,
 }
 
 template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::AlignedTextColumn(const char* text) {
 	const float posX = ImGui::GetCursorPosX();
 	float newX = posX;

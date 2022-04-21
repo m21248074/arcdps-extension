@@ -63,7 +63,7 @@ bool& DemoWindow::getShowBackground() {
 	return mGetShowBackground;
 }
 
-bool& DemoWindow::getShowScrollbar() {
+bool& DemoWindow::GetShowScrollbar() {
 	return mShowScrollbar;
 }
 

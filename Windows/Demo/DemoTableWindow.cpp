@@ -52,7 +52,7 @@ bool& DemoTableWindow::getShowBackground() {
 	return mGetShowBackground;
 }
 
-bool& DemoTableWindow::getShowScrollbar() {
+bool& DemoTableWindow::GetShowScrollbar() {
 	return mShowScrollbar;
 }
 
