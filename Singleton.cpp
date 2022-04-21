@@ -1,5 +1,7 @@
 #include "Singleton.h"
 
+SingletonManager g_singletonManagerInstance;
+
 BaseSingleton* BaseSingleton::Store(std::unique_ptr<BaseSingleton>&& ptr)
 {
 	g_singletonManagerInstance.singletons_.push(std::move(ptr));
