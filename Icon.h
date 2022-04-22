@@ -1,12 +1,9 @@
 #pragma once
 
-#include <atomic>
 #include <Windows.h>
 #include <d3d9.h>
 #include <d3d11.h>
 #include <map>
-#include <mutex>
-#include <vector>
 
 class IconLoader;
 

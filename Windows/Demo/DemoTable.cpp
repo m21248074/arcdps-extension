@@ -16,11 +16,9 @@ int& DemoTable::getMaxDisplayed() {
 	return mMaxDisplayed;
 }
 
-const char* DemoTable::getCategoryName(size_t pCat) {
-	switch (pCat) {
-		case 1: return "Cat1";
-		case 2: return "Cat2";
-	}
+const char* DemoTable::getCategoryName(const std::string& pCat) {
+	if (pCat == "1") return "Cat1";
+	if (pCat == "1.1") return "Cat1.1";
 	return "";
 }
 

@@ -5,10 +5,10 @@
 #include "../../arcdps_structs.h"
 
 static const std::vector<MainTableColumn> tableColumns = {
-	{0, []{return "Column1";}, []{ return nullptr; }, 0},
-	{1, []{return "Column2";}, []{ return nullptr; }, 0},
-	{2, []{return "Column3";}, []{ return nullptr; }, 1},
-	{3, []{return "Column4";}, []{ return nullptr; }, 2},
+	{0, []{return "Column1";}, []{ return nullptr; }, "0"},
+	{1, []{return "Column2";}, []{ return nullptr; }, "0"},
+	{2, []{return "Column3";}, []{ return nullptr; }, "1"},
+	{3, []{return "Column4";}, []{ return nullptr; }, "1.1"},
 };
 
 /**
@@ -39,7 +39,7 @@ protected:
 	Alignment& getHeaderAlignment() override;
 	std::string getTableId() override;
 	int& getMaxDisplayed() override;
-	const char* getCategoryName(size_t pCat) override;
+	const char* getCategoryName(const std::string& pCat) override;
 	bool& getShowAlternatingBackground() override;
 	TableSettings& getTableSettings() override;
 	bool& getHighlightHoveredRows() override;

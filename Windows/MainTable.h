@@ -13,6 +13,7 @@
 #include <bitset>
 #include <functional>
 #include <string>
+#include <map>
 
 // Disable conversion warnings in this file
 #pragma warning( push )
@@ -50,7 +51,8 @@ struct MainTableColumn {
 	ImU32 UserId = 0;
 	std::function<std::string()> Name;
 	std::function<void*()> Texture;
-	uint32_t Category = 0; // The category for this Column in context menu. `0` is top-level.
+	std::string Category; // The category for this Column in context menu. `0` is top-level. Only one sublevel is currently supported, e.g. `1.1`.
+	bool DefaultVisibility = true;
 };
 
 enum MainTableFlags_ {
@@ -85,13 +87,7 @@ class MainTable {
 public:
 	typedef std::bitset<MaxColumnCount> ColumnBitMask;
 
-	MainTable(std::vector<MainTableColumn> pColumns, MainWindow* pMainWindow, MainTableFlags pFlags = 0) : mMainWindow(pMainWindow),
-		mColumns(std::move(pColumns)), mFlags(pFlags) {
-
-		IM_ASSERT(mColumns.size() < MaxColumnCount);
-
-		mMainWindow->RegisterDrawStyleSubMenuHook([this] { DrawStyleSubMenu(); });
-	}
+	MainTable(std::vector<MainTableColumn> pColumns, MainWindow* pMainWindow, MainTableFlags pFlags = 0);
 
 	virtual ~MainTable() = default;
 
@@ -145,7 +141,7 @@ protected:
 	 * Get the name of each column category.
 	 * Categories are defined in `MainTableColumn`.
 	 */
-	virtual const char* getCategoryName(size_t pCat) = 0;
+	virtual const char* getCategoryName(const std::string& pCat) = 0;
 
 private:
 	MainWindow* mMainWindow;
@@ -153,6 +149,14 @@ private:
 	int mCurrentRow = 0;
 	std::atomic_bool mSortNeeded = false;
 	MainTableFlags mFlags = 0;
+
+	struct Category {
+		std::vector<size_t> Indices;
+		std::map<size_t, Category> Categories;
+	};
+	Category mCategories;
+
+	void DrawColumnSetupMenuIteratorFunc(Category pCategory, std::string pCatName = "");
 
 	// Utilities to control ImGui, use these instead of ImGui directly!
 protected:
@@ -544,7 +548,56 @@ private:
 	// - Note that the PreferSortAscending flag is never checked, it is essentially the default and therefore a no-op.
 	IM_STATIC_ASSERT(ImGuiSortDirection_None == 0 && ImGuiSortDirection_Ascending == 1 && ImGuiSortDirection_Descending == 2);
 	ImGuiSortDirection GetColumnNextSortDirection(TableColumn* column);
+
+	// 'width' = inner column width, without padding
+	void SetColumnWidth(int column_n, float width);
+
+	void UpdateColumnsWeightFromWidth();
 };
+
+template <size_t MaxColumnCount>
+	requires SmallerThanMaxColumnAmount<MaxColumnCount>
+MainTable<MaxColumnCount>::MainTable(std::vector<MainTableColumn> pColumns, MainWindow* pMainWindow, MainTableFlags pFlags)
+	: mMainWindow(pMainWindow), mColumns(std::move(pColumns)), mFlags(pFlags) {
+
+	IM_ASSERT(mColumns.size() < MaxColumnCount);
+
+	mMainWindow->RegisterDrawStyleSubMenuHook([this] { DrawStyleSubMenu(); });
+
+	// generate categories
+	for (size_t i = 0; i < mColumns.size(); ++i) {
+		const auto& column = mColumns[i];
+		std::string cat = column.Category;
+		size_t pos = 0;
+		std::vector<size_t> token;
+		while (true) {
+			if ((pos = cat.find('.')) != std::string::npos) {
+				std::string sub = cat.substr(0, pos);
+				size_t dat = 0;
+				std::from_chars(sub.data(), sub.data() + sub.size(), dat);
+				token.push_back(dat);
+				cat.erase(0, pos + 1);
+			} else {
+				size_t dat = 0;
+				std::from_chars(cat.data(), cat.data() + cat.size(), dat);
+				token.push_back(dat);
+				break;
+			}
+		}
+
+		if (token[0] == 0) {
+			mCategories.Indices.emplace_back(i);
+			continue;
+		}
+
+		Category* category = &mCategories;
+		for (size_t tok : token) {
+			category = &category->Categories[tok];
+		}
+
+		category->Indices.emplace_back(i);
+	}
+}
 
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
@@ -579,6 +632,9 @@ void MainTable<MaxColumnCount>::Draw() {
 			ImGuiTableColumnFlags columnFlags = ImGuiTableColumnFlags_PreferSortDescending;
 			if (first == i) {
 				columnFlags |= ImGuiTableColumnFlags_IndentEnable;
+			}
+			if (!column.DefaultVisibility) {
+				columnFlags |= ImGuiTableColumnFlags_DefaultHide;
 			}
 			SetupColumn(column.Name().c_str(), columnFlags, 0, column.UserId);
 		}
@@ -622,32 +678,68 @@ void MainTable<MaxColumnCount>::Draw() {
 
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::DrawColumnSetupMenuIteratorFunc(Category pCategory, std::string pCatName) {
+	for (const auto& index : pCategory.Indices) {
+		MenuItemColumnVisibility(index);
+	}
+
+	for (const auto& [key, value] : pCategory.Categories) {
+		std::string catName = pCatName;
+		if (!catName.empty()) catName.append(".");
+		catName.append(std::to_string(key));
+		if (ImGui::BeginMenu(getCategoryName(catName))) {
+			DrawColumnSetupMenuIteratorFunc(value, catName);
+
+			ImGui::EndMenu();
+		}
+	}
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawColumnSetupMenu() {
 	if (ImGui::BeginMenu("Column Setup")) {
-		std::vector<std::vector<size_t>> categories;
-		for (size_t i = 0; i < mColumns.size(); ++i) {
-			const auto& column = mColumns[i];
-			if (categories.size() <= column.Category) {
-				categories.resize(column.Category + 1);
-			}
-			categories[column.Category].emplace_back(i);
-		}
+		DrawColumnSetupMenuIteratorFunc(mCategories);
 
-		for (const auto& idx : categories[0]) {
-			MenuItemColumnVisibility(idx);
-		}
-
-		for (size_t i = 1; i < categories.size(); ++i) {
-			const auto& category = categories[i];
-
-			if (ImGui::BeginMenu(getCategoryName(i))) {
-				for (const auto& value : category) {
-					MenuItemColumnVisibility(value);
-				}
-
-				ImGui::EndMenu();
-			}
-		}
+		// for (const auto& index : mCategories.Indices) {
+		// 	MenuItemColumnVisibility(index);
+		// }
+		//
+		// for (const auto& [key, value] : mCategories.Categories) {
+		// 	if (ImGui::BeginMenu(getCategoryName(key))) {
+		// 		for (const auto& index : value.Indices) {
+		// 			MenuItemColumnVisibility(index);
+		// 		}
+		//
+		// 		for (const auto& [key, value] : mCategories.Categories) {
+		// 			...
+		// 		}
+		//
+		// 		ImGui::EndMenu();
+		// 	}
+		// }
+		//
+		// std::map<std::string, size_t> categories;
+		// for (size_t i = 0; i < mColumns.size(); ++i) {
+		// 	const auto& column = mColumns[i];
+		// 	categories[column.Category] = i;
+		// }
+		//
+		// for (const auto& idx : categories["0"]) {
+		// 	MenuItemColumnVisibility(idx);
+		// }
+		//
+		// for (size_t i = 1; i < categories.size(); ++i) {
+		// 	const auto& category = categories[i];
+		//
+		// 	if (ImGui::BeginMenu(getCategoryName(i))) {
+		// 		for (const auto& value : category) {
+		// 			MenuItemColumnVisibility(value);
+		// 		}
+		//
+		// 		ImGui::EndMenu();
+		// 	}
+		// }
 
 		ImGui::EndMenu();
 	}
@@ -912,7 +1004,7 @@ void MainTable<MaxColumnCount>::BeginApplyRequests() {
 	if (mTable.InstanceCurrent == 0)
 	{
 		if (mTable.ResizedColumn != -1 && mTable.ResizedColumnNextWidth != FLT_MAX)
-			ImGui::TableSetColumnWidth(mTable.ResizedColumn, mTable.ResizedColumnNextWidth);
+			SetColumnWidth(mTable.ResizedColumn, mTable.ResizedColumnNextWidth);
 		mTable.LastResizedColumn = mTable.ResizedColumn;
 		mTable.ResizedColumnNextWidth = FLT_MAX;
 		mTable.ResizedColumn = -1;
@@ -921,7 +1013,7 @@ void MainTable<MaxColumnCount>::BeginApplyRequests() {
 		// FIXME-TABLE: Would be nice to redistribute available stretch space accordingly to other weights, instead of giving it all to siblings.
 		if (mTable.AutoFitSingleColumn != -1)
 		{
-			ImGui::TableSetColumnWidth(mTable.AutoFitSingleColumn, mTable.Columns[mTable.AutoFitSingleColumn].WidthAuto);
+			SetColumnWidth(mTable.AutoFitSingleColumn, mTable.Columns[mTable.AutoFitSingleColumn].WidthAuto);
 			mTable.AutoFitSingleColumn = -1;
 		}
 	}
@@ -2462,6 +2554,116 @@ ImGuiSortDirection MainTable<MaxColumnCount>::GetColumnNextSortDirection(TableCo
             return GetColumnAvailSortDirection(column, (n + 1) % column->SortDirectionsAvailCount);
     IM_ASSERT(0);
     return ImGuiSortDirection_None;
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::SetColumnWidth(int column_n, float width) {
+    IM_ASSERT(mTable.IsLayoutLocked == false);
+    IM_ASSERT(column_n >= 0 && column_n < mTable.ColumnsCount);
+    TableColumn* column_0 = &mTable.Columns[column_n];
+    float column_0_width = width;
+
+    // Apply constraints early
+    // Compare both requested and actual given width to avoid overwriting requested width when column is stuck (minimum size, bounded)
+    IM_ASSERT(mTable.MinColumnWidth > 0.0f);
+    const float min_width = mTable.MinColumnWidth;
+    const float max_width = ImMax(min_width, GetMaxColumnWidth(column_n));
+    column_0_width = ImClamp(column_0_width, min_width, max_width);
+    if (column_0->WidthGiven == column_0_width || column_0->WidthRequest == column_0_width)
+        return;
+
+    //IMGUI_DEBUG_LOG("TableSetColumnWidth(%d, %.1f->%.1f)\n", column_0_idx, column_0->WidthGiven, column_0_width);
+    TableColumn* column_1 = (column_0->NextEnabledColumn != -1) ? &mTable.Columns[column_0->NextEnabledColumn] : NULL;
+
+    // In this surprisingly not simple because of how we support mixing Fixed and multiple Stretch columns.
+    // - All fixed: easy.
+    // - All stretch: easy.
+    // - One or more fixed + one stretch: easy.
+    // - One or more fixed + more than one stretch: tricky.
+    // Qt when manual resize is enabled only support a single _trailing_ stretch column.
+
+    // When forwarding resize from Wn| to Fn+1| we need to be considerate of the _NoResize flag on Fn+1.
+    // FIXME-TABLE: Find a way to rewrite all of this so interactions feel more consistent for the user.
+    // Scenarios:
+    // - F1 F2 F3  resize from F1| or F2|   --> ok: alter ->WidthRequested of Fixed column. Subsequent columns will be offset.
+    // - F1 F2 F3  resize from F3|          --> ok: alter ->WidthRequested of Fixed column. If active, ScrollX extent can be altered.
+    // - F1 F2 W3  resize from F1| or F2|   --> ok: alter ->WidthRequested of Fixed column. If active, ScrollX extent can be altered, but it doesn't make much sense as the Stretch column will always be minimal size.
+    // - F1 F2 W3  resize from W3|          --> ok: no-op (disabled by Resize Rule 1)
+    // - W1 W2 W3  resize from W1| or W2|   --> ok
+    // - W1 W2 W3  resize from W3|          --> ok: no-op (disabled by Resize Rule 1)
+    // - W1 F2 F3  resize from F3|          --> ok: no-op (disabled by Resize Rule 1)
+    // - W1 F2     resize from F2|          --> ok: no-op (disabled by Resize Rule 1)
+    // - W1 W2 F3  resize from W1| or W2|   --> ok
+    // - W1 F2 W3  resize from W1| or F2|   --> ok
+    // - F1 W2 F3  resize from W2|          --> ok
+    // - F1 W3 F2  resize from W3|          --> ok
+    // - W1 F2 F3  resize from W1|          --> ok: equivalent to resizing |F2. F3 will not move.
+    // - W1 F2 F3  resize from F2|          --> ok
+    // All resizes from a Wx columns are locking other columns.
+
+    // Possible improvements:
+    // - W1 W2 W3  resize W1|               --> to not be stuck, both W2 and W3 would stretch down. Seems possible to fix. Would be most beneficial to simplify resize of all-weighted columns.
+    // - W3 F1 F2  resize W3|               --> to not be stuck past F1|, both F1 and F2 would need to stretch down, which would be lossy or ambiguous. Seems hard to fix.
+
+    // [Resize Rule 1] Can't resize from right of right-most visible column if there is any Stretch column. Implemented in TableUpdateLayout().
+
+    // If we have all Fixed columns OR resizing a Fixed column that doesn't come after a Stretch one, we can do an offsetting resize.
+    // This is the preferred resize path
+    if (column_0->Flags & ImGuiTableColumnFlags_WidthFixed)
+        if (!column_1 || mTable.LeftMostStretchedColumn == -1 || mTable.Columns[mTable.LeftMostStretchedColumn].DisplayOrder >= column_0->DisplayOrder)
+        {
+            column_0->WidthRequest = column_0_width;
+            mTable.IsSettingsDirty = true;
+            return;
+        }
+
+    // We can also use previous column if there's no next one (this is used when doing an auto-fit on the right-most stretch column)
+    if (column_1 == NULL)
+        column_1 = (column_0->PrevEnabledColumn != -1) ? &mTable.Columns[column_0->PrevEnabledColumn] : NULL;
+    if (column_1 == NULL)
+        return;
+
+    // Resizing from right-side of a Stretch column before a Fixed column forward sizing to left-side of fixed column.
+    // (old_a + old_b == new_a + new_b) --> (new_a == old_a + old_b - new_b)
+    float column_1_width = ImMax(column_1->WidthRequest - (column_0_width - column_0->WidthRequest), min_width);
+    column_0_width = column_0->WidthRequest + column_1->WidthRequest - column_1_width;
+    IM_ASSERT(column_0_width > 0.0f && column_1_width > 0.0f);
+    column_0->WidthRequest = column_0_width;
+    column_1->WidthRequest = column_1_width;
+    if ((column_0->Flags | column_1->Flags) & ImGuiTableColumnFlags_WidthStretch)
+        UpdateColumnsWeightFromWidth();
+    mTable.IsSettingsDirty = true;
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::UpdateColumnsWeightFromWidth() {
+	IM_ASSERT(mTable.LeftMostStretchedColumn != -1 && mTable.RightMostStretchedColumn != -1);
+
+    // Measure existing quantity
+    float visible_weight = 0.0f;
+    float visible_width = 0.0f;
+    for (int column_n = 0; column_n < mTable.ColumnsCount; column_n++)
+    {
+        TableColumn* column = &mTable.Columns[column_n];
+        if (!column->IsEnabled || !(column->Flags & ImGuiTableColumnFlags_WidthStretch))
+            continue;
+        IM_ASSERT(column->StretchWeight > 0.0f);
+        visible_weight += column->StretchWeight;
+        visible_width += column->WidthRequest;
+    }
+    IM_ASSERT(visible_weight > 0.0f && visible_width > 0.0f);
+
+    // Apply new weights
+    for (int column_n = 0; column_n < mTable.ColumnsCount; column_n++)
+    {
+        TableColumn* column = &mTable.Columns[column_n];
+        if (!column->IsEnabled || !(column->Flags & ImGuiTableColumnFlags_WidthStretch))
+            continue;
+        column->StretchWeight = (column->WidthRequest / visible_width) * visible_weight;
+        IM_ASSERT(column->StretchWeight > 0.0f);
+    }
 }
 
 template <size_t MaxColumnCount>
