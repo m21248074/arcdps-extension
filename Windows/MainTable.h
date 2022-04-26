@@ -77,7 +77,8 @@ concept SmallerThanMaxColumnAmount = requires {
  * How to use:
  * - Implement your own version of this class with all virtual void functions implemented.
  * - Use your derived class in your window.
- * - Make sure this class is constructed AFTER other components, so it's hooks latest.
+ * - Make sure this class is constructed AFTER other components, so it hooks last.
+ * - `pColumns` in the constructor is saved as reference in this class, the calling object has to be valid the whole lifetime of this class!
  * - Call `Draw()` in `DrawContent()`
  * - Call `DrawColumnSetupMenu()` in `DrawContextMenu()` if you want to hide your columns.
  */
@@ -87,7 +88,7 @@ class MainTable {
 public:
 	typedef std::bitset<MaxColumnCount> ColumnBitMask;
 
-	MainTable(std::vector<MainTableColumn> pColumns, MainWindow* pMainWindow, MainTableFlags pFlags = 0);
+	MainTable(const std::vector<MainTableColumn>& pColumns, MainWindow* pMainWindow, MainTableFlags pFlags = 0);
 
 	virtual ~MainTable() = default;
 
@@ -122,7 +123,11 @@ public:
 protected:
 	// Draw Rows here
 	virtual void DrawRows(TableColumnIdx pFirstColumnIndex) = 0;
-	// This is called, when the table has to be resorted!
+	/*
+	 * This is called, when the table has to be resorted!
+	 * - mColumnSortSpecs is guaranteed to be a valid pointer.
+	 * - mSortNeeded is already set back to false.
+	 */
 	virtual void Sort(const ImGuiTableColumnSortSpecs* mColumnSortSpecs) = 0;
 
 	virtual void DrawStyleSubMenu();
@@ -145,7 +150,7 @@ protected:
 
 private:
 	MainWindow* mMainWindow;
-	std::vector<MainTableColumn> mColumns;
+	const std::vector<MainTableColumn>& mColumns;
 	int mCurrentRow = 0;
 	std::atomic_bool mSortNeeded = false;
 	MainTableFlags mFlags = 0;
@@ -219,7 +224,8 @@ protected:
 	 */
 	bool IsCurrentRowHovered();
 
-private:
+	int GetColumnIndex();
+
 	// We use the terminology "Enabled" to refer to a column that is not Hidden by user/api.
 	// We use the terminology "Clipped" to refer to a column that is out of sight because of scrolling/clipping.
 	// This is in contrast with some user-facing api such as IsItemVisible() / IsRectVisible() which use "Visible" to mean "not clipped".
@@ -397,6 +403,8 @@ private:
 	};
 
 	Table mTable;
+
+private:
 	static ImGuiTableFlags TableFixFlags(ImGuiTableFlags flags, ImGuiWindow* outer_window);
 
 	// For reference, the average total _allocation count_ for a table is:
@@ -557,8 +565,8 @@ private:
 
 template <size_t MaxColumnCount>
 	requires SmallerThanMaxColumnAmount<MaxColumnCount>
-MainTable<MaxColumnCount>::MainTable(std::vector<MainTableColumn> pColumns, MainWindow* pMainWindow, MainTableFlags pFlags)
-	: mMainWindow(pMainWindow), mColumns(std::move(pColumns)), mFlags(pFlags) {
+MainTable<MaxColumnCount>::MainTable(const std::vector<MainTableColumn>& pColumns, MainWindow* pMainWindow, MainTableFlags pFlags)
+	: mMainWindow(pMainWindow), mColumns(pColumns), mFlags(pFlags) {
 
 	IM_ASSERT(mColumns.size() < MaxColumnCount);
 
@@ -700,46 +708,6 @@ requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawColumnSetupMenu() {
 	if (ImGui::BeginMenu("Column Setup")) {
 		DrawColumnSetupMenuIteratorFunc(mCategories);
-
-		// for (const auto& index : mCategories.Indices) {
-		// 	MenuItemColumnVisibility(index);
-		// }
-		//
-		// for (const auto& [key, value] : mCategories.Categories) {
-		// 	if (ImGui::BeginMenu(getCategoryName(key))) {
-		// 		for (const auto& index : value.Indices) {
-		// 			MenuItemColumnVisibility(index);
-		// 		}
-		//
-		// 		for (const auto& [key, value] : mCategories.Categories) {
-		// 			...
-		// 		}
-		//
-		// 		ImGui::EndMenu();
-		// 	}
-		// }
-		//
-		// std::map<std::string, size_t> categories;
-		// for (size_t i = 0; i < mColumns.size(); ++i) {
-		// 	const auto& column = mColumns[i];
-		// 	categories[column.Category] = i;
-		// }
-		//
-		// for (const auto& idx : categories["0"]) {
-		// 	MenuItemColumnVisibility(idx);
-		// }
-		//
-		// for (size_t i = 1; i < categories.size(); ++i) {
-		// 	const auto& category = categories[i];
-		//
-		// 	if (ImGui::BeginMenu(getCategoryName(i))) {
-		// 		for (const auto& value : category) {
-		// 			MenuItemColumnVisibility(value);
-		// 		}
-		//
-		// 		ImGui::EndMenu();
-		// 	}
-		// }
 
 		ImGui::EndMenu();
 	}
@@ -2681,6 +2649,12 @@ template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 bool MainTable<MaxColumnCount>::IsCurrentRowHovered() {
 	return mTable.CurrentRow == mTable.CurrentHoveredRow;
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+int MainTable<MaxColumnCount>::GetColumnIndex() {
+    return mTable.CurrentColumn;
 }
 
 template <size_t MaxColumnCount>
