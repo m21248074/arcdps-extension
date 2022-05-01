@@ -59,14 +59,19 @@ Icon::Icon(UINT name, HMODULE dll, IDirect3DDevice9* d3d9Device, ID3D11Device* d
 
 	PRINT_LINE()
 
-	HRESULT coInitializeResult = CoInitialize(NULL);
-	if (!SUCCEEDED(coInitializeResult)) {
-		// error coInitalizing instance
-		std::string text = "Error creating WIC intance: ";
-		text.append(nameString);
-		text.append(" - ");
-		text.append(std::to_string(coInitializeResult));
-		throw std::runtime_error(text);
+	{
+		ULONG_PTR contextToken;
+		if (CoGetContextToken(&contextToken) == CO_E_NOTINITIALIZED) {
+			HRESULT coInitializeResult = CoInitialize(NULL);
+			if (!SUCCEEDED(coInitializeResult)) {
+				// error coInitializing instance
+				std::string text = "Error creating WIC intance: ";
+				text.append(nameString);
+				text.append(" - ");
+				text.append(std::to_string(coInitializeResult));
+				throw std::runtime_error(text);
+			}
+		}
 	}
 
 	PRINT_LINE()
