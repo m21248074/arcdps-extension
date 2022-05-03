@@ -81,6 +81,7 @@ concept SmallerThanMaxColumnAmount = requires {
  * - `pColumns` in the constructor is saved as reference in this class, the calling object has to be valid the whole lifetime of this class!
  * - Call `Draw()` in `DrawContent()`
  * - Call `DrawColumnSetupMenu()` in `DrawContextMenu()` if you want to hide your columns.
+ * - Use `MigrateSettings` when you made changes to the table, that need the settings to be migrated. NEVER migrate within the Settings object itself, cause that would be too early.
  */
 template <size_t MaxColumnCount = 64>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
@@ -114,9 +115,9 @@ public:
 	    ImU8                    IsStretch : 1 = 0;
 	};
 	struct TableSettings {
-		bool                             IniMigrated = false; // Is set to true if the ImGui Ini was migrated.
-	    ImGuiTableFlags                  SaveFlags = 0;   // Indicate data we want to save using the Resizable/Reorderable/Sortable/Hideable flags (could be using its own flags..)
-	    float                            RefScale = 0;    // Reference scale to be able to rescale columns on font/dpi changes.
+		ImU32                            Version = 0;   // Is set to true if the ImGui Ini was migrated.
+	    ImGuiTableFlags                  SaveFlags = 0; // Indicate data we want to save using the Resizable/Reorderable/Sortable/Hideable flags (could be using its own flags..)
+	    float                            RefScale = 0;  // Reference scale to be able to rescale columns on font/dpi changes.
 		std::vector<TableColumnSettings> Columns;
 	};
 
@@ -141,6 +142,11 @@ protected:
 	virtual bool& getShowAlternatingBackground() = 0;
 	virtual TableSettings& getTableSettings() = 0;
 	virtual bool& getHighlightHoveredRows() = 0;
+
+	/**
+	 * Called when the migration of this TableSetting should be done.
+	 */
+	virtual void MigrateSettings() {}
 
 	/**
 	 * Get the name of each column category.
@@ -423,7 +429,7 @@ private:
 	void LoadSettingsCustom();
 	void SaveSettingsImGuiIni();
 	void SaveSettingsCustom();
-	void MigrateSettings();
+	void MigrateIniSettings();
 
 	// Apply queued resizing/reordering/hiding requests
 	void BeginApplyRequests();
@@ -916,12 +922,15 @@ void MainTable<MaxColumnCount>::LoadSettingsCustom() {
 	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
 		return;
 
-	// TODO: get from somewhere
-	const TableSettings& settings = getTableSettings();
+	TableSettings& settings = getTableSettings();
 
-	if (!settings.IniMigrated) {
-		MigrateSettings();
+	// Migration
+	if (settings.Version == 0) {
+		MigrateIniSettings();
+		settings.Version = 1;
 	}
+
+	MigrateSettings();
 
 	mTable.SettingsLoadedFlags = settings.SaveFlags;
 	mTable.RefScale = settings.RefScale;
@@ -2057,13 +2066,11 @@ void MainTable<MaxColumnCount>::SaveSettingsCustom() {
 
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
-void MainTable<MaxColumnCount>::MigrateSettings() {
-	TableSettings& tableSettings = getTableSettings();
-	tableSettings.IniMigrated = true;
-
+void MainTable<MaxColumnCount>::MigrateIniSettings() {
 	LoadSettingsImGuiIni();
 
-	mTable.IsSettingsDirty = true;
+	// save settings again
+	SaveSettingsCustom();
 }
 
 template <size_t MaxColumnCount>
