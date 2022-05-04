@@ -15,6 +15,8 @@ enum class MountIndex : uint8_t {
     Roller_Beetle,
     Warclaw,
     Skyscale,
+    Skiff,
+    SiegeTurtle
 };
 
 // size: 88

@@ -100,9 +100,15 @@ public:
 	MainTable& operator=(MainTable&& pOther) noexcept = delete;
 
 	void Draw();
-	virtual void DrawColumnSetupMenu();
+	void DrawColumnSetupMenu();
 	static size_t GetMaxColumnCount() { return MaxColumnCount; }
 	void RequestSort() { mSortNeeded = true; }
+
+	void SetSpecificColumnSetup(const std::vector<size_t>& pNewColumns);
+	void ResetSpecificColumnSetup();
+	bool GetSpecificColumnsActive() const {
+		return mSpecificColumnsActive;
+	}
 
 	struct TableColumnSettings {
 	    float                   WidthOrWeight = 0.0f;
@@ -124,6 +130,7 @@ public:
 protected:
 	// Draw Rows here
 	virtual void DrawRows(TableColumnIdx pFirstColumnIndex) = 0;
+
 	/*
 	 * This is called, when the table has to be resorted!
 	 * - mColumnSortSpecs is guaranteed to be a valid pointer.
@@ -132,6 +139,7 @@ protected:
 	virtual void Sort(const ImGuiTableColumnSortSpecs* mColumnSortSpecs) = 0;
 
 	virtual void DrawStyleSubMenu();
+	virtual void DrawColumnSetupSubMenu();
 
 	virtual Alignment& getAlignment() = 0;
 	virtual Alignment& getHeaderAlignment() = 0;
@@ -142,6 +150,15 @@ protected:
 	virtual bool& getShowAlternatingBackground() = 0;
 	virtual TableSettings& getTableSettings() = 0;
 	virtual bool& getHighlightHoveredRows() = 0;
+
+	/**
+	 * Set this to true if you want to use the feature "custom columns".
+	 * Set a custom column setup with `SetSpecificColumnSetup`.
+	 * If you want to go back to normal columns call `ResetSpecificColumnSetup`.
+	 * While custom columns are active the settings saving is disabled.
+	 */
+	virtual bool getCustomColumnsFeatureActive() { return false; }
+	virtual bool& getCustomColumnsActive() { return mCustomColumnsActiveTemp; }
 
 	/**
 	 * Called when the migration of this TableSetting should be done.
@@ -168,6 +185,12 @@ private:
 	Category mCategories;
 
 	void DrawColumnSetupMenuIteratorFunc(Category pCategory, std::string pCatName = "");
+
+	std::atomic_bool mSpecificColumnsUpdate = false;
+	bool mSpecificColumnsActive = false;
+	std::vector<size_t> mSpecificColumnCache;
+
+	bool mCustomColumnsActiveTemp = false; // only here to allow users to have the custom columns feature disabled.
 
 	// Utilities to control ImGui, use these instead of ImGui directly!
 protected:
@@ -206,6 +229,7 @@ protected:
 	 */
 	void AlignedTextColumn(const char* text);
 
+	void ApplySpecificColumnSetup();
 	bool Begin(const char* str_id, int columns_count, ImGuiTableFlags flags, const ImVec2& outer_size, float inner_width, ImGuiWindowFlags child_window_flags);
 	void End();
 
@@ -713,10 +737,41 @@ template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawColumnSetupMenu() {
 	if (ImGui::BeginMenu("Column Setup")) {
-		DrawColumnSetupMenuIteratorFunc(mCategories);
+		DrawColumnSetupSubMenu();
 
 		ImGui::EndMenu();
 	}
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::DrawColumnSetupSubMenu() {
+	if (getCustomColumnsFeatureActive()) {
+		if (ImGui::Checkbox("Show Columns based on map", &getCustomColumnsActive())) {
+			if (getCustomColumnsActive()) {
+				mSpecificColumnsUpdate = true;
+				mSpecificColumnsActive = true;
+			}
+		}
+	}
+
+	DrawColumnSetupMenuIteratorFunc(mCategories);
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::SetSpecificColumnSetup(const std::vector<size_t>& pNewColumns) {
+	mSpecificColumnsUpdate = true;
+	mSpecificColumnsActive = true;
+
+	mSpecificColumnCache = pNewColumns;
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::ResetSpecificColumnSetup() {
+	mSpecificColumnsUpdate = true;
+	mSpecificColumnsActive = false;
 }
 
 template <size_t MaxColumnCount>
@@ -1962,7 +2017,7 @@ template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SaveSettingsImGuiIni() {
 	mTable.IsSettingsDirty = false;
-	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
+	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings || (getCustomColumnsActive() && mSpecificColumnsActive))
 		return;
 
 	// Bind or create settings data
@@ -2018,7 +2073,7 @@ template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SaveSettingsCustom() {
 	mTable.IsSettingsDirty = false;
-	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
+	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings || (getCustomColumnsActive() && mSpecificColumnsActive))
 		return;
 
 	// Bind or create settings data
@@ -2067,10 +2122,15 @@ void MainTable<MaxColumnCount>::SaveSettingsCustom() {
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::MigrateIniSettings() {
+	bool backup = mSpecificColumnsUpdate;
+	mSpecificColumnsActive = false;
+
 	LoadSettingsImGuiIni();
 
 	// save settings again
 	SaveSettingsCustom();
+
+	mSpecificColumnsActive = backup;
 }
 
 template <size_t MaxColumnCount>
@@ -2873,6 +2933,20 @@ bool MainTable<MaxColumnCount>::Begin(const char* str_id, int columns_count, ImG
 	if (mTable.IsSettingsRequestLoad)
 		LoadSettingsCustom();
 
+	if (getCustomColumnsActive()) {
+		bool expected = true;
+		if (mSpecificColumnsUpdate.compare_exchange_strong(expected, false)) {
+			if (mSpecificColumnsActive) {
+				ApplySpecificColumnSetup();
+			} else {
+				LoadSettingsCustom();
+			}
+		}
+	} else if (mSpecificColumnsActive) {
+		LoadSettingsCustom();
+		mSpecificColumnsActive = false;
+	}
+
 	// Handle DPI/font resize
 	// This is designed to facilitate DPI changes with the assumption that e.g. style.CellPadding has been scaled as well.
 	// It will also react to changing fonts with mixed results. It doesn't need to be perfect but merely provide a decent transition.
@@ -3091,7 +3165,7 @@ void MainTable<MaxColumnCount>:: MenuItemColumnVisibility(int TableColumnIdx) {
 	bool menu_item_active = (column.Flags & ImGuiTableColumnFlags_NoHide) ? false : true;
 	if (column.IsEnabled && mTable.ColumnsEnabledCount <= 1)
 		menu_item_active = false;
-	if (ImGui::MenuItem(columnName, NULL, column.IsEnabled, menu_item_active))
+	if (ImGui::MenuItem(columnName, NULL, column.IsEnabled, menu_item_active && !mSpecificColumnsActive))
 		column.IsEnabledNextFrame = !column.IsEnabled;
 }
 
@@ -3435,6 +3509,16 @@ void MainTable<MaxColumnCount>::AlignedTextColumn(const char* text) {
 	ImGui::SetCursorPosX(newX);
 
 	ImGui::TextUnformatted(text);
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::ApplySpecificColumnSetup() {
+	for (int i = 0; i < mTable.Columns.size(); ++i) {
+		auto& column = mTable.Columns[i];
+		bool enabled = std::ranges::find_if(mSpecificColumnCache, [i, this](const size_t& pVal)->bool { return mColumns.at(i).UserId == pVal;}) != mSpecificColumnCache.end();
+		column.IsEnabledNextFrame = enabled;
+	}
 }
 
 #pragma warning( pop )
