@@ -159,6 +159,8 @@ protected:
 	 */
 	virtual bool getCustomColumnsFeatureActive() { return false; }
 	virtual bool& getCustomColumnsActive() { return mCustomColumnsActiveTemp; }
+	// Used to ignore the first N columns, so they are not changed.
+	virtual int getCustomColumnsFirstColumn() { return 0; }
 
 	/**
 	 * Called when the migration of this TableSetting should be done.
@@ -3514,7 +3516,7 @@ void MainTable<MaxColumnCount>::AlignedTextColumn(const char* text) {
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::ApplySpecificColumnSetup() {
-	for (int i = 0; i < mTable.Columns.size(); ++i) {
+	for (int i = getCustomColumnsFirstColumn(); i < mTable.Columns.size(); ++i) {
 		auto& column = mTable.Columns[i];
 		bool enabled = std::ranges::find_if(mSpecificColumnCache, [i, this](const size_t& pVal)->bool { return mColumns.at(i).UserId == pVal;}) != mSpecificColumnCache.end();
 		column.IsEnabledNextFrame = enabled;
