@@ -38,6 +38,43 @@ std::string to_string(SizingPolicy sizingPolicy) {
 	default: return "Unknown";
 	}
 }
+#else
+std::string to_string(Alignment alignment) {
+	switch (alignment) {
+	case Alignment::Left: return "Left";
+	case Alignment::Center: return "Center";
+	case Alignment::Right: return "Right";
+	case Alignment::Unaligned: return "Unaligned";
+	default: return "Unknown";
+	}
+}
+
+std::string to_string(Position position) {
+	switch (position) {
+	case Position::Manual: return "Manual";
+	case Position::ScreenRelative: return "Screen Relative";
+	case Position::WindowRelative: return "Window Relative";
+	default: return "Unknown";
+	}
+}
+
+std::string to_string(CornerPosition position) {
+	switch (position) {
+	case CornerPosition::TopLeft: return "Top-Left";
+	case CornerPosition::TopRight: return "Top-Right";
+	case CornerPosition::BottomLeft: return "Bottom-Left";
+	case CornerPosition::BottomRight: return "Bottom-Right";
+	}
+}
+
+std::string to_string(SizingPolicy sizingPolicy) {
+	switch (sizingPolicy) {
+	case SizingPolicy::SizeToContent: return "Size to Content";
+	case SizingPolicy::SizeContentToWindow: return "Size Content to Window";
+	case SizingPolicy::ManualWindowSize: return "Manuel Window Size";
+	default: return "Unknown";
+	}
+}
 #endif
 
 bool is_player(ag* new_player)

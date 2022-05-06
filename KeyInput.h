@@ -16,9 +16,10 @@
  */
 namespace ImGuiEx {
 	enum KeyCodeInputFlags_ : int32_t {
-		KeyCodeInputFlags_NoModifier  = 1 << 0,
-		KeyCodeInputFlags_NoMouse     = 1 << 1,
-		KeyCodeInputFlags_OnlyGW2Keys = 1 << 2,
+		KeyCodeInputFlags_NoModifier    = 1 << 0,
+		KeyCodeInputFlags_NoMouse       = 1 << 1,
+		KeyCodeInputFlags_OnlyGW2Keys   = 1 << 2,
+		KeyCodeInputFlags_FixedModifier = 1 << 3, // Will set NoModifier internally, Always use the Modifier given in parameter `pFixedModifier`.
 	};
 	typedef int32_t KeyCodeInputFlags; // enum KeyCodeInputFlags_
 
@@ -41,7 +42,7 @@ namespace ImGuiEx {
 	 * \param pFlags Additional flags for the input.
 	 */
 	bool KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, HKL pHkl,
-	                  KeyCodeInputFlags pFlags = 0);
+	                  KeyCodeInputFlags pFlags = 0, KeyBinds::Modifier pFixedModifier = 0);
 
 	void OpenKeyCodePopupState(const KeyBinds::Key& pKeyContainer, KeyCodeInputFlags pFlags);
 	void CloseKeyCodePopupState();

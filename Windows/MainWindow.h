@@ -12,7 +12,7 @@
 #include "../../imgui/imgui_internal.h"
 
 #include <functional>
-	
+
 enum MainWindowFlags_ : int {
 	MainWindowFlags_None = 0,
 	MainWindowFlags_NoStyleMenu = 1 << 0, // Do NOT show the Style submenu in the context menu
@@ -85,6 +85,15 @@ public:
 	typedef std::function<void()> DrawStyleSubMenuHookFunction;
 	void RegisterDrawStyleSubMenuHook(DrawStyleSubMenuHookFunction pFun);
 
+	/**
+	 * This has to be `true` to show the scrollbar.
+	 * Therefore setting it to `true` by default is recommended.
+	 * A scrollbar is only shown when the window is bigger than it's content.
+	 */
+	virtual bool& GetShowScrollbar() = 0;
+
+	float GetMaxCursorPos();
+
 protected:
 	ImGuiWindow* mThisWindow = nullptr;
 
@@ -147,13 +156,6 @@ protected:
 	virtual bool& getShowBackground() = 0;
 
 	/**
-	 * This has to be `true` to show the scrollbar.
-	 * Therefore setting it to `true` by default is recommended.
-	 * A scrollbar is only shown when the window is bigger than it's content.
-	 */
-	virtual bool& getShowScrollbar() = 0;
-
-	/**
 	 * This padding is optional, if the optional is not set, no change to the window padding is applied.
 	 * Default should be nullopt.
 	 */
@@ -164,7 +166,7 @@ protected:
 	 * If this is true, the variable set with `SetMaxHeightCursorPos` will be used to determine the max-height.
 	 * This has to be tracked by the implementation, cause this window has no idea what it's content looks like.
 	 */
-	virtual bool getMaxHeightActive() = 0;
+	virtual bool getMaxHeightActive() { return false; }
 
 	/**
 	 * The current language the plugin is set to.

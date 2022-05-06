@@ -11,6 +11,14 @@
 #include <functional>
 #include <Windows.h>
 
+/**
+ * To Use:
+ * - This class only works with arcdps, 
+ * - Make sure you have set tha extern variables in `arcdps_structs.h`. Those are called here.
+ * - The Singleton also has to be setup
+ * - Call `Wnd` in `mod_wnd` (arcdps callback)
+ * - 
+ */
 class KeyBindHandler : public Singleton<KeyBindHandler> {
 public:
 	enum SubscriberFlags_ {
@@ -58,6 +66,11 @@ public:
 	 */
 	bool Wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+	/**
+	 * Call to get the arcdps modifier as KeyBindModifier (here cause it cannot be in KeyBindHelper)
+	 */
+	static KeyBinds::Modifier GetArcdpsModifier();
+
 private:
 	static uint64_t getNewId() {
 	    static uint64_t the_id;
@@ -67,6 +80,5 @@ private:
 	std::unordered_map<uint64_t, Subscriber> mSubscribers;
 	KeyBinds::Modifier mTrackedModifier = 0;
 
-	KeyBinds::Modifier getArcdpsModifier();
-	KeyBinds::Modifier getArcdpsModifierSingle(uint16_t pMod);
+	static KeyBinds::Modifier getArcdpsModifierSingle(uint16_t pMod);
 };

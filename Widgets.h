@@ -25,6 +25,13 @@ namespace ImGuiEx {
 	bool TreeNodeEx(const char* label, ImGuiTreeNodeFlags flags, void* icon);
 
 	/**
+	 * Same as `ImGui::BeginTable()` with additional parameter `child_window_flags`
+	 * That parameter are flags for the child window to allow further personalization.
+	 * It is only used if the table uses a child window to render (ScrollX or ScrollY set).
+	 */
+	bool BeginTable(const char* str_id, int column, ImGuiTableFlags flags = 0, const ImVec2& outer_size = ImVec2(0.0f, 0.0f), float inner_width = 0.0f, ImGuiWindowFlags child_window_flags = 0);
+
+	/**
 	 * Only call this function at the end of a table row.
 	 * If done before, it will not return the rect of the full table, but only the rect from beginning to the end of the current column.
 	 */

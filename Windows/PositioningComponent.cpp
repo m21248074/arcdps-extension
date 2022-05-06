@@ -2,6 +2,8 @@
 
 #include "../Widgets.h"
 
+#include <algorithm>
+
 PositioningComponent::PositioningComponent(MainWindow* pMainWindow) : ComponentBase(pMainWindow) {
 	pMainWindow->RegisterPreDrawHook([this](ImGuiWindowFlags& PH1) {
 		PreDrawHookFunction(std::forward<decltype(PH1)>(PH1));
@@ -152,6 +154,11 @@ void PositioningComponent::Reposition() {
 			getSelfPanelCorner()
 		);
 	}
+}
+
+PositioningComponent::~PositioningComponent() {
+	auto& components = PositioningComponentImGuiHook::POSITIONING_COMPONENTS;
+	components.erase(std::ranges::remove(components, this).begin(), components.end());
 }
 
 void PositioningComponentImGuiHook::InstallHooks(ImGuiContext* imGuiContext) {
