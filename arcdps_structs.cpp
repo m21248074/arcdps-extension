@@ -64,6 +64,7 @@ std::string to_string(CornerPosition position) {
 	case CornerPosition::TopRight: return "Top-Right";
 	case CornerPosition::BottomLeft: return "Bottom-Left";
 	case CornerPosition::BottomRight: return "Bottom-Right";
+	default: return "Unknown";
 	}
 }
 
