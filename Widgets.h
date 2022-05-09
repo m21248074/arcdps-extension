@@ -119,13 +119,15 @@ namespace ImGuiEx {
 	void KeyInput(const char* label, const char* id, char* buffer, size_t bufSize, WPARAM& keyContainer, const char* notSetText);
 #endif
 
+
     // This code is derived from an issue in the ImGui github repo: https://github.com/ocornut/imgui/issues/1658#issuecomment-886171438
     // Therefore the original code is licensed under the same license as ImGui (MIT)
 	//
 	// returns if the value was changed.
 	// `pPopupOpen` returns if the popup is open
-    template<std::ranges::common_range T, typename ValueType = std::ranges::range_value_t<T>>
-	bool FilteredCombo(const char* pLabel, T& pContainer, ValueType& pCurrent, bool* pPopupOpen = nullptr) {
+    template<std::ranges::viewable_range T, typename ValueType = std::ranges::views::all_t<T>>
+    // template<std::ranges::common_range T, typename ValueType = std::ranges::range_value_t<T>>
+	bool FilteredCombo(const char* pLabel, const T& pContainer, ValueType& pCurrent, bool* pPopupOpen = nullptr) {
 		// this is breaking the overloaded to_string functions (in theory it should work, but it doesn't :( )
     	// using std::to_string;
 
@@ -245,5 +247,16 @@ namespace ImGuiEx {
             ImGui::MarkItemEdited(g.CurrentWindow->DC.LastItemId);
 		
         return valueChanged;
+	}
+
+	// template<typename T, typename ValueType>
+	// requires std::ranges::common_range<T> && (!std::ranges::viewable_range<T>)
+	// bool test(const char* pLabel, const T& pContainer, ValueType& pCurrent, bool* pPopupOpen = nullptr) {
+	//     return FilteredCombo(pLabel, std::ranges::views::all(pContainer), pCurrent, pPopupOpen);
+	// }
+	template<std::ranges::common_range T, typename ValueType = std::ranges::range_value_t<T>>
+	requires (!std::ranges::viewable_range<T>)
+	bool FilteredCombo(const char* pLabel, const T& pContainer, ValueType& pCurrent, bool* pPopupOpen = nullptr) {
+		return FilteredCombo(pLabel, std::ranges::views::all(pContainer), pCurrent, pPopupOpen);
 	}
 }

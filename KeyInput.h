@@ -44,7 +44,7 @@ namespace ImGuiEx {
 	bool KeyCodeInput(const char* pLabel, KeyBinds::Key& pKeyContainer, Language pLanguage, HKL pHkl,
 	                  KeyCodeInputFlags pFlags = 0, KeyBinds::Modifier pFixedModifier = 0);
 
-	void OpenKeyCodePopupState(const KeyBinds::Key& pKeyContainer, KeyCodeInputFlags pFlags);
+	void OpenKeyCodePopupState(const KeyBinds::Key& pKeyContainer, KeyCodeInputFlags pFlags, KeyBinds::Modifier pFixedModifier = 0);
 	void CloseKeyCodePopupState();
 	void RestartKeyCodePopupState();
 	void KeyCodeInputActiveFrame();
