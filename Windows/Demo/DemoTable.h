@@ -32,7 +32,7 @@ static inline std::vector<Row> Rows = {
 
 class DemoTable : public MainTable<> {
 public:
-	DemoTable(MainWindow* pMainWindow) : MainTable<>(tableColumns, pMainWindow, MainTableFlags_SubWindow) {}
+	explicit DemoTable(MainWindow* pMainWindow) : MainTable<>(tableColumns, pMainWindow, MainTableFlags_SubWindow) {}
 
 protected:
 	Alignment& getAlignment() override;
@@ -43,6 +43,7 @@ protected:
 	bool& getShowAlternatingBackground() override;
 	TableSettings& getTableSettings() override;
 	bool& getHighlightHoveredRows() override;
+	bool& getShowHeaderAsText() override;
 
 	void DrawRows(TableColumnIdx pFirstColumnIndex) override;
 	void Sort(const ImGuiTableColumnSortSpecs* mColumnSortSpecs) override;
@@ -54,4 +55,5 @@ private:
 	bool mAlternatingBackground = false;
 	TableSettings mSettings;
 	bool mHighlightHoveredRows = true;
+	bool mShowHeaderAsText = false;
 };

@@ -1,7 +1,10 @@
 #include "KeyBindComponent.h"
 
 #include "MainWindow.h"
+
 #include "../KeyBindHandler.h"
+#include "../Localization.h"
+#include "../ExtensionTranslations.h"
 
 /**
  * This does only work with arcdps modifiers.
@@ -32,7 +35,7 @@ KeyBindComponent::KeyBindComponent(MainWindow* pMainWindow) : ComponentBase(pMai
 	});
 
 	pMainWindow->RegisterDrawStyleSubMenuHook([this] {
-		if (ImGuiEx::KeyCodeInput("Shortcut", getKeyBind(), static_cast<Language>(getCurrentLanguage()),
+		if (ImGuiEx::KeyCodeInput(Localization::STranslate(ET_Shortcut).c_str(), getKeyBind(), static_cast<Language>(getCurrentLanguage()),
 		                          getCurrentHKL(), ImGuiEx::KeyCodeInputFlags_FixedModifier, KeyBindHandler::GetArcdpsModifier())) {
 			KeyBindHandler::instance().UpdateKey(mKeyBindHandlerId, getKeyBind());
 		}

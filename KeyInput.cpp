@@ -2,6 +2,19 @@
 
 #include "../imgui/imgui.h"
 
+#ifndef ARCDPS_EXTENSION_NO_LANG_H
+#include "Localization.h"
+#include "ExtensionTranslations.h"
+
+#define POPUP_NAME_TEXT Localization::STranslate(ET_KeyInputPopupName)
+#define APPLY_TEXT Localization::STranslate(ET_ApplyButton).c_str()
+#define CANCEL_TEXT Localization::STranslate(ET_CancelButton).c_str()
+#else
+#define POPUP_NAME_TEXT "KeyBind"
+#define APPLY_TEXT "Apply"
+#define CANCEL_TEXT "Cancel"
+#endif
+
 namespace
 {
 	using KeyBinds::KeyCode;
@@ -188,7 +201,8 @@ namespace ImGuiEx
 		keyStr.append("##");
 		keyStr.append(pLabel);
 
-		std::string popupName = "KeyBind - ";
+		std::string popupName = POPUP_NAME_TEXT;
+		popupName.append(" - ");
 		popupName.append(pLabel);
 
 		if (ImGui::Button(keyStr.c_str(), ImVec2(textSize.x + 50.f, 0.f))) {
@@ -226,7 +240,7 @@ namespace ImGuiEx
 			buttonSize = ImGui::GetItemRectSize().x;
 
 			float buttonSizeX = (windowX - ImGui::GetStyle().FramePadding.x*2 - ImGui::GetStyle().ItemSpacing.x - ImGui::GetStyle().WindowPadding.x*2) / 2;
-			if (ImGui::Button("Apply", ImVec2(buttonSizeX, 0))) {
+			if (ImGui::Button(APPLY_TEXT, ImVec2(buttonSizeX, 0))) {
 				pKeyContainer.DeviceType = keyCodeInputKeyState.DeviceType;
 				pKeyContainer.Code = keyCodeInputKeyState.Code;
 				pKeyContainer.Modifier = pFlags & KeyCodeInputFlags_FixedModifier ? 0 : keyCodeInputKeyState.Modifier;
@@ -236,7 +250,7 @@ namespace ImGuiEx
 			}
 			ImGui::SetItemDefaultFocus();
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel", ImVec2(buttonSizeX, 0))) {
+			if (ImGui::Button(CANCEL_TEXT, ImVec2(buttonSizeX, 0))) {
 				CloseKeyCodePopupState();
 				ImGui::CloseCurrentPopup();
 			}

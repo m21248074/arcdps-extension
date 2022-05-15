@@ -9,6 +9,8 @@
 #include "../../imgui/imgui.h"
 #include "../Widgets.h"
 #include "../ImGui_Math.h"
+#include "../Localization.h"
+#include "../ExtensionTranslations.h"
 
 #include <bitset>
 #include <functional>
@@ -150,6 +152,7 @@ protected:
 	virtual bool& getShowAlternatingBackground() = 0;
 	virtual TableSettings& getTableSettings() = 0;
 	virtual bool& getHighlightHoveredRows() = 0;
+	virtual bool& getShowHeaderAsText() = 0;
 
 	/**
 	 * Set this to true if you want to use the feature "custom columns".
@@ -738,7 +741,7 @@ void MainTable<MaxColumnCount>::DrawColumnSetupMenuIteratorFunc(Category pCatego
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawColumnSetupMenu() {
-	if (ImGui::BeginMenu("Column Setup")) {
+	if (ImGui::BeginMenu(Localization::STranslate(ET_ColumnSetup).c_str())) {
 		DrawColumnSetupSubMenu();
 
 		ImGui::EndMenu();
@@ -749,7 +752,7 @@ template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawColumnSetupSubMenu() {
 	if (getCustomColumnsFeatureActive()) {
-		if (ImGui::Checkbox("Show Columns based on map", &getCustomColumnsActive())) {
+		if (ImGui::Checkbox(Localization::STranslate(ET_ShowBasedOnMap).c_str(), &getCustomColumnsActive())) {
 			if (getCustomColumnsActive()) {
 				mSpecificColumnsUpdate = true;
 				mSpecificColumnsActive = true;
@@ -780,11 +783,12 @@ template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::DrawStyleSubMenu() {
 	ImGui::Separator();
-	ImGui::Checkbox("Alternating Row Background", &getShowAlternatingBackground());
-	ImGui::Checkbox("Highlight hovered row", &getHighlightHoveredRows());
-	ImGui::InputInt("max displayed", &getMaxDisplayed());
-	ImGuiEx::EnumCombo("Header Alignment", getHeaderAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
-	ImGuiEx::EnumCombo("Column Alignment", getAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
+	ImGui::Checkbox(Localization::STranslate(ET_AlternatingRowBg).c_str(), &getShowAlternatingBackground());
+	ImGui::Checkbox(Localization::STranslate(ET_HighlightHoveredRow).c_str(), &getHighlightHoveredRows());
+	ImGui::Checkbox(Localization::STranslate(ET_SettingsShowHeaderText).c_str(), &getShowHeaderAsText());
+	ImGui::InputInt(Localization::STranslate(ET_MaxDisplayed).c_str(), &getMaxDisplayed());
+	ImGuiEx::EnumCombo(Localization::STranslate(ET_HeaderAlignment).c_str(), getHeaderAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
+	ImGuiEx::EnumCombo(Localization::STranslate(ET_ColumnAlignment).c_str(), getAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
 }
 
 template <size_t MaxColumnCount>
@@ -3301,7 +3305,7 @@ void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label,
 	const float image_size = 16.f;
 
 	// Show label if texture is null
-	if (!texture) {
+	if (!texture || getShowHeaderAsText()) {
 		show_label = true;
 	}
 

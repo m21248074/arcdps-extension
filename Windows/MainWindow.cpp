@@ -2,6 +2,8 @@
 
 #include "../Widgets.h"
 #include "../imgui_stdlib.h"
+#include "../Localization.h"
+#include "../ExtensionTranslations.h"
 
 MainWindow::~MainWindow() {
 	mComponents.clear();
@@ -87,7 +89,7 @@ void MainWindow::Draw(ImGuiWindowFlags imGuiWindowFlags, MainWindowFlags mainWin
 		}
 
 		if (!(mainWindowFlags & MainWindowFlags_NoStyleMenu)) {
-			if (ImGui::BeginMenu("Style")) {
+			if (ImGui::BeginMenu(Localization::STranslate(ET_Style).c_str())) {
 				DrawStyleSettingsSubMenu();
 
 				for (const auto& drawStyleSubMenuHook : mDrawStyleSubMenuHooks | std::ranges::views::reverse) {
@@ -163,12 +165,12 @@ float MainWindow::GetMaxCursorPos() {
 }
 
 void MainWindow::DrawStyleSettingsSubMenu() {
-	ImGui::Checkbox("Title bar", &getShowTitleBar());
-	ImGui::Checkbox("Background", &getShowBackground());
-	ImGui::Checkbox("Scrollbar", &GetShowScrollbar());
+	ImGui::Checkbox(Localization::STranslate(ET_TitleBar).c_str(), &getShowTitleBar());
+	ImGui::Checkbox(Localization::STranslate(ET_Background).c_str(), &getShowBackground());
+	ImGui::Checkbox(Localization::STranslate(ET_Scrollbar).c_str(), &GetShowScrollbar());
 
 	// padding
-	ImGui::Text("padding");
+	ImGui::Text(Localization::STranslate(ET_Padding).c_str());
 	ImGui::SameLine();
 	auto& padding = getPadding();
 	mPaddingActive = padding.has_value();
@@ -197,7 +199,7 @@ void MainWindow::DrawStyleSettingsSubMenu() {
 	ImGui::Separator();
 
 	// sizing policy
-	ImGui::Text("Sizing Policy");
+	ImGui::TextUnformatted(Localization::STranslate(ET_SizingPolicy).c_str());
 	ImGui::SameLine();
 	auto& sizingPolicy = getSizingPolicy();
 	ImGuiEx::EnumCombo("##sizingPolicyEnumCombo", sizingPolicy, SizingPolicy::FINAL_ENTRY);
@@ -214,7 +216,7 @@ void MainWindow::DrawStyleSettingsSubMenu() {
 	} else {
 		mAppearAsInOptionTextBuffer = "";
 	}
-	if (ImGui::InputText("appear as in option###appearAsInOption", &mAppearAsInOptionTextBuffer)) {
+	if (ImGui::InputText(std::format("{}###appearAsInOption", Localization::STranslate(ET_AppearAsInOption)).c_str(), &mAppearAsInOptionTextBuffer)) {
 		if (mAppearAsInOptionTextBuffer.empty()) {
 			appearAsInOptionOpt.reset();
 		} else {
@@ -228,7 +230,7 @@ void MainWindow::DrawStyleSettingsSubMenu() {
 	} else {
 		mTitleBuffer = "";
 	}
-	if (ImGui::InputText("title bar###titleBar", &mTitleBuffer)) {
+	if (ImGui::InputText(std::format("{}###titleBar", Localization::STranslate(ET_TitleBarText)).c_str(), &mTitleBuffer)) {
 		if (mTitleBuffer.empty()) {
 			titleOpt.reset();
 		} else {
@@ -238,6 +240,5 @@ void MainWindow::DrawStyleSettingsSubMenu() {
 }
 
 bool MainWindow::KeyBindPressed() {
-	// TODO: implement proper checks
 	return true;
 }

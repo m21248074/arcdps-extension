@@ -34,6 +34,10 @@ bool& DemoTable::getHighlightHoveredRows() {
 	return mHighlightHoveredRows;
 }
 
+bool& DemoTable::getShowHeaderAsText() {
+	return mShowHeaderAsText;
+}
+
 void DemoTable::DrawRows(TableColumnIdx pFirstColumnIndex) {
 	for (const Row& row : Rows) {
 		NextRow();

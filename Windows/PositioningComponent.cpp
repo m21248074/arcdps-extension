@@ -1,6 +1,8 @@
 #include "PositioningComponent.h"
 
 #include "../Widgets.h"
+#include "../Localization.h"
+#include "../ExtensionTranslations.h"
 
 #include <algorithm>
 
@@ -23,7 +25,7 @@ void PositioningComponent::PreDrawHookFunction(ImGuiWindowFlags& pFlags) {
 }
 
 void PositioningComponent::DrawPositionSettingsSubMenu() {
-	if (ImGui::BeginMenu("Position")) {
+	if (ImGui::BeginMenu(Localization::STranslate(ET_Position).c_str())) {
 		Position& position = getPositionMode();
 		CornerPosition& cornerPosition = getCornerPosition();
 		ImVec2& windowVector = getCornerVector();
@@ -58,7 +60,7 @@ void PositioningComponent::DrawPositionSettingsSubMenu() {
 		if (position == Position::WindowRelative) {
 			ImGui::Indent(15.f);
 
-			ImGui::TextUnformatted("from anchor panel corner");
+			ImGui::TextUnformatted(Localization::STranslate(ET_FromAnchorPanelCorner).c_str());
 			ImGui::PushID("anchorPanelCornerPositionRadioButton");
 			ImGuiEx::RadioButton(to_string(CornerPosition::TopLeft).c_str(), anchorPanelCornerPosition,
 			                     CornerPosition::TopLeft);
@@ -70,7 +72,7 @@ void PositioningComponent::DrawPositionSettingsSubMenu() {
 			                     CornerPosition::BottomRight);
 			ImGui::PopID();
 
-			ImGui::TextUnformatted("to this panel corner");
+			ImGui::TextUnformatted(Localization::STranslate(ET_ThisPanelCorner).c_str());
 			ImGui::PushID("selfPanelCornerPositionRadioButton");
 			ImGuiEx::RadioButton(to_string(CornerPosition::TopLeft).c_str(), selfPanelCornerPosition,
 			                     CornerPosition::TopLeft);
@@ -98,7 +100,7 @@ void PositioningComponent::DrawPositionSettingsSubMenu() {
 				}
 			}
 
-			if (ImGui::BeginCombo("anchor window", selectedWindowName.c_str()) == true) {
+			if (ImGui::BeginCombo(Localization::STranslate(ET_AnchorWindow).c_str(), selectedWindowName.c_str()) == true) {
 				// This doesn't return the same thing as RootWindow interestingly enough, RootWindow returns a "higher" parent
 				ImGuiWindow* parent = ImGui::GetCurrentWindowRead();
 				while (parent->ParentWindow != nullptr) {

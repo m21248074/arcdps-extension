@@ -1,41 +1,43 @@
 #include "arcdps_structs.h"
 
 #ifndef ARCDPS_EXTENSION_NO_LANG_H
-#include "../Lang.h"
+#include "Localization.h"
+#include "ExtensionTranslations.h"
 std::string to_string(Alignment alignment) {
 	switch (alignment) {
-	case Alignment::Left: return lang.translate(LangKey::Left);
-	case Alignment::Center: return lang.translate(LangKey::Center);
-	case Alignment::Right: return lang.translate(LangKey::Right);
-	case Alignment::Unaligned: return lang.translate(LangKey::Unaligned);
+	case Alignment::Left: return Localization::STranslate(ET_Left);
+	case Alignment::Center: return Localization::STranslate(ET_Center);
+	case Alignment::Right: return Localization::STranslate(ET_Right);
+	case Alignment::Unaligned: return Localization::STranslate(ET_Unaligned);
 	default: return "Unknown";
 	}
 }
 
 std::string to_string(Position position) {
 	switch (position) {
-	case Position::Manual: return lang.translate(LangKey::PositionManual);
-	case Position::ScreenRelative: return lang.translate(LangKey::PositionScreenRelative);
-	case Position::WindowRelative: return lang.translate(LangKey::PositionWindowRelative);
-	default: return "Unknown";
+	case Position::Manual: return Localization::STranslate(ET_PositionManual);
+	case Position::ScreenRelative: return Localization::STranslate(ET_PositionScreenRelative);
+	case Position::WindowRelative: return Localization::STranslate(ET_PositionWindowRelative);
+	default: return Localization::STranslate(ET_Unknown);
 	}
 }
 
 std::string to_string(CornerPosition position) {
 	switch (position) {
-	case CornerPosition::TopLeft: return lang.translate(LangKey::CornerPositionTopLeft);
-	case CornerPosition::TopRight: return lang.translate(LangKey::CornerPositionTopRight);
-	case CornerPosition::BottomLeft: return lang.translate(LangKey::CornerPositionBottomLeft);
-	case CornerPosition::BottomRight: return lang.translate(LangKey::CornerPositionBottomRight);
+	case CornerPosition::TopLeft: return Localization::STranslate(ET_CornerPositionTopLeft);
+	case CornerPosition::TopRight: return Localization::STranslate(ET_CornerPositionTopRight);
+	case CornerPosition::BottomLeft: return Localization::STranslate(ET_CornerPositionBottomLeft);
+	case CornerPosition::BottomRight: return Localization::STranslate(ET_CornerPositionBottomRight);
+	default: return Localization::STranslate(ET_Unknown);
 	}
 }
 
 std::string to_string(SizingPolicy sizingPolicy) {
 	switch (sizingPolicy) {
-	case SizingPolicy::SizeToContent: return lang.translate(LangKey::SizingPolicySizeToContent);
-	case SizingPolicy::SizeContentToWindow: return lang.translate(LangKey::SizingPolicySizeContentToWindow);
-	case SizingPolicy::ManualWindowSize: return lang.translate(LangKey::SizingPolicyManualWindowSize);
-	default: return "Unknown";
+	case SizingPolicy::SizeToContent: return Localization::STranslate(ET_SizingPolicySizeToContent);
+	case SizingPolicy::SizeContentToWindow: return Localization::STranslate(ET_SizingPolicySizeContentToWindow);
+	case SizingPolicy::ManualWindowSize: return Localization::STranslate(ET_SizingPolicyManualWindowSize);
+	default: return Localization::STranslate(ET_Unknown);
 	}
 }
 #else

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <format>
 #include <functional>
+#include <map>
 #include <ranges>
 
 namespace ImGuiEx {
@@ -44,36 +45,101 @@ namespace ImGuiEx {
 	bool WindowReposition(ImGuiWindow* window, Position position, const ImVec2& cornerVector, CornerPosition cornerPosition, ImGuiID fromWindowID,
 	                      CornerPosition anchorPanelCornerPosition, CornerPosition selfPanelCornerPosition);
 
+	/**
+	 * @return if element was freshly selected.
+	 */
 	template <typename E>
 	requires std::is_enum_v<E>
-	void Selectable(E& storage, E value) {
-		if (ImGui::Selectable(to_string(value).c_str())) {
+	bool Selectable(E& storage, E value) {
+		const bool selected = ImGui::Selectable(to_string(value).c_str());
+		if (selected) {
 			storage = value;
 		}
+		return selected;
 	}
 
-	template <typename E>
-	requires std::is_enum_v<E>
-	void EnumCombo(const char* label, E& storage, std::initializer_list<E> values) {
+	/**
+	 * @return A new element was selected
+	 */
+	template <typename E, std::ranges::range R>
+	requires (std::is_enum_v<E> && std::same_as<std::ranges::range_value_t<R>, E>)
+	bool EnumCombo(const char* label, E& storage, const R& values, const std::map<E, std::function<const std::string&()>>& pPopupText = {}) {
 		if (ImGui::BeginCombo(label, to_string(storage).c_str())) {
+			bool selected = false;
 			for (const E& val : values) {
-				ImGuiEx::Selectable(storage, val);
+				if (ImGuiEx::Selectable(storage, val)) {
+					selected = true;
+				}
+
+				if (ImGui::IsItemHovered()) {
+					if (const auto& iterator = pPopupText.find(val); iterator != pPopupText.end()) {
+						const auto& second = iterator->second();
+						ImGui::SetTooltip("%s", second.c_str());
+					}
+				}
 			}
 
 			ImGui::EndCombo();
+
+			return selected;
 		}
+
+		return false;
 	}
 
 	template <typename E>
-	requires std::is_enum_v<E>
-	void EnumCombo(const char* label, E& storage, E lastElement) {
+	requires (std::is_enum_v<E>)
+	bool EnumCombo(const char* label, E& storage, const std::initializer_list<E>& values, const std::map<E, std::function<const std::string&()>>& pPopupText = {}) {
 		if (ImGui::BeginCombo(label, to_string(storage).c_str())) {
-			for (uint64_t i = 0; i < static_cast<uint64_t>(lastElement); ++i) {
-				ImGuiEx::Selectable(storage, static_cast<E>(i));
+			bool selected = false;
+			for (const E& val : values) {
+				if (ImGuiEx::Selectable(storage, val)) {
+					selected = true;
+				}
+
+				if (ImGui::IsItemHovered()) {
+					if (const auto& iterator = pPopupText.find(val); iterator != pPopupText.end()) {
+						ImGui::SetTooltip("%s", iterator->second().c_str());
+					}
+				}
 			}
 
 			ImGui::EndCombo();
+
+			return selected;
 		}
+
+		return false;
+	}
+
+	/**
+	 * This is not really save and also iterates over values, that are not defined!
+	 * Be really careful, when using this!
+	 *
+	 * @return A new element was selected
+	 */
+	template <typename E>
+	requires std::is_enum_v<E>
+	bool EnumCombo(const char* label, E& storage, E lastElement, const std::map<uint64_t, std::function<const std::string&()>>& pPopupText = {}) {
+		if (ImGui::BeginCombo(label, to_string(storage).c_str())) {
+			bool selected = false;
+			for (uint64_t i = 0; i < static_cast<uint64_t>(lastElement); ++i) {
+				if (ImGuiEx::Selectable(storage, static_cast<E>(i))) {
+					selected = true;
+				}
+
+				if (ImGui::IsItemHovered()) {
+					if (const auto& iterator = pPopupText.find(i); iterator != pPopupText.end()) {
+						ImGui::SetTooltip("%s", iterator->second().c_str());
+					}
+				}
+			}
+
+			ImGui::EndCombo();
+
+			return selected;
+		}
+		return false;
 	}
 
 	template <typename E>
@@ -94,7 +160,7 @@ namespace ImGuiEx {
 	}
 
 	// FIXME: This would work nicely if it was a public template, e.g. 'template<T> RadioButton(const char* label, T* v, T v_button)', but I'm not sure how we would expose it..
-	// I have fixed it, don't know what the problem is with this ...
+	// I have fixed it, don't know what the problem is with this ... --knox
 	template<typename T>
 	bool RadioButton(const char* label, T& v, T v_button)
 	{
@@ -102,6 +168,13 @@ namespace ImGuiEx {
 	    if (pressed)
 	        v = v_button;
 	    return pressed;
+	}
+
+	template<class... Args>
+	void TextColored(const ImVec4& col, const std::string& fmt, Args&&... args) {
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+	    ImGui::TextEx(std::vformat(fmt, std::make_format_args(args...)).c_str(), NULL, ImGuiTextFlags_NoWidthForLargeClippedText); // Skip formatting
+	    ImGui::PopStyleColor();
 	}
 
 #ifdef _WIN32

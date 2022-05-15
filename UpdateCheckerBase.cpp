@@ -12,7 +12,7 @@ UpdateCheckerBase::UpdateState::UpdateState(const std::optional<Version>& pVersi
 	: CurrentVersion(pVersion), InstallPath(std::move(pInstallPath)) {}
 
 UpdateCheckerBase::UpdateState::~UpdateState() {
-	assert(Tasks.size() == 0 && "All tasks should be awaited before shutdown");
+	assert(Tasks.empty() && "All tasks should be awaited before shutdown");
 
 	// Desparate attempt to not crash in release, this might crash itself because joining threads during static destruction is wonky on Windows
 	FinishPendingTasks();
