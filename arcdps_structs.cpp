@@ -80,6 +80,17 @@ std::string to_string(SizingPolicy sizingPolicy) {
 }
 #endif
 
+uint64_t arcExportDefaults() {
+	return 0;
+}
+
+void e3Defaults(const char*) {}
+
+arc_export_func_u64 ARC_EXPORT_E6 = arcExportDefaults;
+arc_export_func_u64 ARC_EXPORT_E7 = arcExportDefaults;
+e3_func_ptr ARC_LOG_FILE = e3Defaults;
+e3_func_ptr ARC_LOG = e3Defaults;
+
 bool is_player(ag* new_player)
 {
 	return new_player

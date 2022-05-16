@@ -13,12 +13,21 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Source Files\Windows">
+      <UniqueIdentifier>{99d0f818-77f5-4b5d-90a9-7880082d9339}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\Demo">
+      <UniqueIdentifier>{b0fee6d2-9368-4691-85cb-7937ebc03b61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Windows">
+      <UniqueIdentifier>{3b1873d6-9dd0-43ba-b8dd-336558e952a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Windows\Demo">
+      <UniqueIdentifier>{190ac73f-c497-4031-816f-b7a76ca8b9d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="arcdps_structs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BigTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imgui_stdlib.cpp">
@@ -42,35 +51,32 @@
     <ClCompile Include="UpdateCheckerBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UpdateCheckerTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\KeyBindComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\MainWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\PositioningComponent.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="windows\demo\DemoWindow.cpp">
+      <Filter>Source Files\Windows\Demo</Filter>
     </ClCompile>
     <ClCompile Include="windows\demo\DemoKeyBindComponent.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Windows\Demo</Filter>
     </ClCompile>
     <ClCompile Include="windows\demo\DemoPositioningComponent.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Windows\Demo</Filter>
     </ClCompile>
     <ClCompile Include="windows\demo\DemoTable.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Windows\Demo</Filter>
     </ClCompile>
     <ClCompile Include="windows\demo\DemoTableWindow.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Windows\Demo</Filter>
     </ClCompile>
-    <ClCompile Include="windows\demo\DemoWindow.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="windows\MainWindow.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\PositioningComponent.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\KeyBindComponent.cpp">
+      <Filter>Source Files\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,9 +84,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="arcdps_structs_slim.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BigTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtensionTranslations.h">
@@ -129,34 +132,34 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="windows\ComponentBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\KeyBindComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\MainTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\MainWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\PositioningComponent.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
     <ClInclude Include="windows\demo\DemoKeyBindComponent.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Windows\Demo</Filter>
     </ClInclude>
     <ClInclude Include="windows\demo\DemoPositioningComponent.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Windows\Demo</Filter>
     </ClInclude>
     <ClInclude Include="windows\demo\DemoTable.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Windows\Demo</Filter>
     </ClInclude>
     <ClInclude Include="windows\demo\DemoTableWindow.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Windows\Demo</Filter>
     </ClInclude>
     <ClInclude Include="windows\demo\DemoWindow.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Windows\Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\KeyBindComponent.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MainWindow.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\MainTable.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\PositioningComponent.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

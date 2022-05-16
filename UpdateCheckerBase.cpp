@@ -5,6 +5,7 @@
 #include <format>
 #include <fstream>
 #include <optional>
+#include <cassert>
 
 #include <nlohmann/json.hpp>
 

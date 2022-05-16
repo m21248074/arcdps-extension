@@ -1,7 +1,6 @@
 #pragma once
 #include <optional>
 
-// nlohmann/json should be added with vcpkg
 #include <nlohmann/json.hpp>
 
 #define NLOHMANN_JSON_FROM_NON_THROWING(v1) if (nlohmann_json_j.contains(#v1)) nlohmann_json_j.at(#v1).get_to(nlohmann_json_t.v1);
