@@ -6,7 +6,7 @@
 
 #include "../imgui/imgui.h"
 
-void UpdateChecker::Draw(const std::unique_ptr<UpdateState>& pUpdateState, const std::string& pPluginName, const char* pRepoReleaseLink) {
+void UpdateChecker::Draw(const std::unique_ptr<UpdateState>& pUpdateState, const std::string& pPluginName, const std::string& pRepoReleaseLink) {
 	if (!pUpdateState) {
 		// wrongly initialized UpdateChecker, nothing to do here!
 		return;
@@ -28,9 +28,9 @@ void UpdateChecker::Draw(const std::unique_ptr<UpdateState>& pUpdateState, const
 			                   Localization::STranslate(ET_UpdateNewVersion), newVersion[0], newVersion[1],
 			                   newVersion[2]);
 			if (ImGui::Button(Localization::STranslate(ET_UpdateOpenPage).c_str())) {
-				std::thread([&pRepoReleaseLink]() {
+				std::thread([pRepoReleaseLink]() {
 					ShellExecuteA(nullptr, nullptr,
-					              pRepoReleaseLink, nullptr,
+					              pRepoReleaseLink.c_str(), nullptr,
 					              nullptr, SW_SHOW);
 				}).detach();
 			}

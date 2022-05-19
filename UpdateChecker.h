@@ -11,5 +11,5 @@
  */
 class UpdateChecker final : public UpdateCheckerBase, public Singleton<UpdateChecker> {
 public:
-	void Draw(const std::unique_ptr<UpdateState>& pUpdateState, const std::string& pPluginName, const char* pRepoReleaseLink);
+	void Draw(const std::unique_ptr<UpdateState>& pUpdateState, const std::string& pPluginName, const std::string& pRepoReleaseLink);
 };
