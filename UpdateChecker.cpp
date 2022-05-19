@@ -24,7 +24,7 @@ void UpdateChecker::Draw(const std::unique_ptr<UpdateState>& pUpdateState, const
 			ImGuiEx::TextColored(ImVec4(1.f, 0.f, 0.f, 1.f), "{}: {}.{}.{}",
 			                   Localization::STranslate(ET_UpdateCurrentVersion), currentVersion[0], currentVersion[1],
 			                   currentVersion[2]);
-			ImGui::TextColored(ImVec4(0.f, 1.f, 0.f, 1.f), "{}: {}.{}.{}",
+			ImGuiEx::TextColored(ImVec4(0.f, 1.f, 0.f, 1.f), "{}: {}.{}.{}",
 			                   Localization::STranslate(ET_UpdateNewVersion), newVersion[0], newVersion[1],
 			                   newVersion[2]);
 			if (ImGui::Button(Localization::STranslate(ET_UpdateOpenPage).c_str())) {
