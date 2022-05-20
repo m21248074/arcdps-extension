@@ -233,6 +233,14 @@ protected:
 	 * Alternatively use `ImGui::Text()` directly.
 	 */
 	void AlignedTextColumn(const char* text);
+	void AlignedTextColumn(const std::string& text);
+	template<typename ...Args>
+	void AlignedTextColumn(std::string_view format, Args&& ...args);
+
+	/**
+	 * Aligned Spinner
+	 */
+	bool SpinnerAligned(const char* label, float radius, float thickness, const ImU32& color, Alignment alignment);
 
 	void ApplySpecificColumnSetup();
 	bool Begin(const char* str_id, int columns_count, ImGuiTableFlags flags, const ImVec2& outer_size, float inner_width, ImGuiWindowFlags child_window_flags);
@@ -3442,13 +3450,13 @@ void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label,
 
 		switch (alignment) {
 			case Alignment::Center:
-				// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (label_size.x / 2);
-				newX = label_pos.x + ((cell_r.Max.x - label_pos.x - mTable.CellPaddingX) / 2) - (label_size.x / 2);
-				// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
+				newX = ellipsis_max - ((ellipsis_max - label_pos.x) / 2) - (label_size.x / 2);
+				
+				if (newX <= label_pos.x) newX = label_pos.x;
 				break;
 			case Alignment::Right:
 				newX = ellipsis_max - label_size.x;
-				// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
+				if (newX <= label_pos.x) newX = label_pos.x;
 				break;
 		}
 
@@ -3460,13 +3468,13 @@ void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label,
 
 		switch (alignment) {
 			case Alignment::Center:
-				// newX = label_pos.x + ((ellipsis_max - label_pos.x) / 2) - (image_size / 2);
-				newX = label_pos.x + ((cell_r.Max.x - label_pos.x - mTable.CellPaddingX) / 2) - (image_size / 2);
-				// ImGui::SetCursorPosX(cursorPosX + (textSpace / 2 - contentSize.x / 2));
+				newX = ellipsis_max - ((ellipsis_max - label_pos.x) / 2) - (image_size / 2);
+				if (newX <= label_pos.x) newX = label_pos.x;
 				break;
 			case Alignment::Right:
 				newX = ellipsis_max - image_size;
 				// ImGui::SetCursorPosX(cursorPosX + textSpace - contentSize.x);
+				if (newX <= label_pos.x) newX = label_pos.x;
 				break;
 		}
 
@@ -3515,6 +3523,53 @@ void MainTable<MaxColumnCount>::AlignedTextColumn(const char* text) {
 	ImGui::SetCursorPosX(newX);
 
 	ImGui::TextUnformatted(text);
+
+	// Set cursorMaxPos manually, so right aligned elements also shrink the column
+	window->DC.CursorMaxPos.x = posX + textWidth;
+}
+
+template <size_t MaxColumnCount>
+	requires SmallerThanMaxColumnAmount<MaxColumnCount>
+void MainTable<MaxColumnCount>::AlignedTextColumn(const std::string& text) {
+	AlignedTextColumn(text.c_str());
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+template <typename ... Args>
+void MainTable<MaxColumnCount>::AlignedTextColumn(std::string_view format, Args&&... args) {
+	AlignedTextColumn(std::vformat(format, std::make_format_args(args...)));
+}
+
+template <size_t MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
+bool MainTable<MaxColumnCount>::SpinnerAligned(const char* label, float radius, float thickness, const ImU32& color,
+	Alignment alignment) {
+	const float posX = ImGui::GetCursorPosX();
+	float newX = posX;
+	float elementWidth = radius * 2 + thickness * 2;
+	ImGuiWindow* window = ImGui::GetCurrentWindowRead();
+	float columnWidth = window->WorkRect.Max.x - window->DC.CursorPos.x;
+
+	switch (alignment) {
+		case Alignment::Left:
+			break;
+		case Alignment::Center:
+			newX = posX + columnWidth / 2 - elementWidth / 2;
+			break;
+		case Alignment::Right:
+			newX = posX + columnWidth - elementWidth;
+			break;
+	}
+
+	// Clip to left, if text is bigger than current column
+	if (newX < posX) {
+		newX = posX;
+	}
+
+	ImGui::SetCursorPosX(newX);
+
+	return ImGuiEx::Spinner(label, radius, thickness, color);
 }
 
 template <size_t MaxColumnCount>
