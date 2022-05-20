@@ -1657,7 +1657,6 @@ void MainTable<MaxColumnCount>::EndRow() {
 		if (mTable.RowBgColor[1] != IM_COL32_DISABLE)
 			bg_col1 = mTable.RowBgColor[1];
 
-
 		// KNOX: override bg color for hovered rows
 		ImRect row_rect(mTable.WorkRect.Min.x, bg_y1, mTable.WorkRect.Max.x, bg_y2);
 		row_rect.ClipWith(mTable.BgClipRect);
@@ -1665,7 +1664,7 @@ void MainTable<MaxColumnCount>::EndRow() {
 		// [[ DEBUG ]]
 		// ImGui::GetCurrentWindow()->DrawList->AddRect(row_rect.Min, row_rect.Max, 0xff0000ff);
 
-		if (ImGui::IsMouseHoveringRect(row_rect.Min, row_rect.Max, false) && (mTable.CurrentRow > 0 && mTable.IsUsingHeaders)) {
+		if (ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(row_rect.Min, row_rect.Max, false) && (mTable.CurrentRow > 0 && mTable.IsUsingHeaders)) {
 			mTable.CurrentHoveredRow = mTable.CurrentRow;
 
 			if (getHighlightHoveredRows()) {
