@@ -240,7 +240,7 @@ protected:
 	/**
 	 * Aligned Spinner
 	 */
-	bool SpinnerAligned(const char* label, float radius, float thickness, const ImU32& color, Alignment alignment);
+	bool SpinnerAligned(const char* label, float radius, float thickness, const ImU32& color);
 
 	void ApplySpecificColumnSetup();
 	bool Begin(const char* str_id, int columns_count, ImGuiTableFlags flags, const ImVec2& outer_size, float inner_width, ImGuiWindowFlags child_window_flags);
@@ -3543,15 +3543,14 @@ void MainTable<MaxColumnCount>::AlignedTextColumn(std::string_view format, Args&
 
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
-bool MainTable<MaxColumnCount>::SpinnerAligned(const char* label, float radius, float thickness, const ImU32& color,
-	Alignment alignment) {
+bool MainTable<MaxColumnCount>::SpinnerAligned(const char* label, float radius, float thickness, const ImU32& color) {
 	const float posX = ImGui::GetCursorPosX();
 	float newX = posX;
 	float elementWidth = radius * 2 + thickness * 2;
 	ImGuiWindow* window = ImGui::GetCurrentWindowRead();
 	float columnWidth = window->WorkRect.Max.x - window->DC.CursorPos.x;
 
-	switch (alignment) {
+	switch (getAlignment()) {
 		case Alignment::Left:
 			break;
 		case Alignment::Center:
