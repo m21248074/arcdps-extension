@@ -187,10 +187,10 @@ void MainWindow::DrawStyleSettingsSubMenu() {
 	}
 	mPaddingBuffer[0] = padding ? padding.value().x : 0.f;
 	mPaddingBuffer[1] = padding ? padding.value().y : 0.f;
-	if (ImGui::DragFloat2("##paddingInputFloat", mPaddingBuffer, 0.1f, 0, 0, "%1.f")) {
+	if (ImGui::DragFloat2("##paddingInputFloat", mPaddingBuffer, 0.1f, 0, FLT_MAX, "%1.f")) {
 		auto& value = padding.value();
-		value.x = mPaddingBuffer[0];
-		value.y = mPaddingBuffer[1];
+		value.x = mPaddingBuffer[0] >= 0 ? mPaddingBuffer[0] : 0;
+		value.y = mPaddingBuffer[1] >= 0 ? mPaddingBuffer[1] : 0;
 	}
 	if (!padding) {
 		ImGui::PopItemFlag();
