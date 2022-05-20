@@ -2722,7 +2722,7 @@ bool MainTable<MaxColumnCount>::IsCurrentColumnHovered() {
 	// [[ DEBUG ]]
 	// ImGui::GetCurrentWindow()->DrawList->AddRect(cellBgRect.Min, cellBgRect.Max), 0xff0000ff);
 
-	return ImGui::IsMouseHoveringRect(cellBgRect.Min, cellBgRect.Max);
+	return ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(cellBgRect.Min, cellBgRect.Max);
 }
 
 template <size_t MaxColumnCount>
