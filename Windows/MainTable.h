@@ -3524,11 +3524,11 @@ void MainTable<MaxColumnCount>::AlignedTextColumn(const char* text) {
 	ImGui::TextUnformatted(text);
 
 	// Set cursorMaxPos manually, so right aligned elements also shrink the column
-	window->DC.CursorMaxPos.x = posX + textWidth;
+	window->DC.CursorMaxPos.x = window->Pos.x + posX + textWidth;
 }
 
 template <size_t MaxColumnCount>
-	requires SmallerThanMaxColumnAmount<MaxColumnCount>
+requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::AlignedTextColumn(const std::string& text) {
 	AlignedTextColumn(text.c_str());
 }
