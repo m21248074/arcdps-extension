@@ -167,6 +167,8 @@ protected:
 
 	/**
 	 * Called when the migration of this TableSetting should be done.
+	 *
+	 * Also migrate the settings when you ADD new columns, else they have the absolute default values (which will show them)
 	 */
 	virtual void MigrateSettings() {}
 
@@ -2138,10 +2140,48 @@ void MainTable<MaxColumnCount>::MigrateIniSettings() {
 	bool backup = mSpecificColumnsUpdate;
 	mSpecificColumnsActive = false;
 
-	LoadSettingsImGuiIni();
+	TableSettings& tableSettings = getTableSettings();
 
-	// save settings again
-	SaveSettingsCustom();
+	// move all settings to the new object, without changing the Table object
+	ImGuiContext& g = *GImGui;
+
+	// Bind settings
+	ImGuiTableSettings* settings;
+	if (mTable.SettingsOffset == -1)
+	{
+		settings = ImGui::TableSettingsFindByID(mTable.ID);
+		if (settings == NULL)
+			return;
+		mTable.SettingsOffset = g.SettingsTables.offset_from_ptr(settings);
+	}
+	else
+	{
+		settings = GetBoundSettings();
+	}
+
+	tableSettings.SaveFlags = settings->SaveFlags;
+	tableSettings.RefScale = settings->RefScale;
+
+	tableSettings.Columns.resize(settings->ColumnsCount);
+
+	// Serialize ImGuiTableSettings/ImGuiTableColumnSettings into ImGuiTable/ImGuiTableColumn
+	ImGuiTableColumnSettings* column_settings = settings->GetColumnSettings();
+	for (int data_n = 0; data_n < settings->ColumnsCount; data_n++, column_settings++)
+	{
+		int column_n = column_settings->Index;
+		if (column_n < 0 || column_n >= mTable.ColumnsCount)
+			continue;
+
+		auto& column = tableSettings.Columns[column_n];
+
+		column.DisplayOrder = column_settings->DisplayOrder;
+		column.SortOrder = column_settings->SortOrder;
+		column.IsEnabled = column_settings->IsEnabled;
+		column.IsStretch = column_settings->IsStretch;
+		column.SortDirection = column_settings->SortDirection;
+		column.UserID = column_settings->UserID;
+		column.WidthOrWeight = column_settings->WidthOrWeight;
+	}
 
 	mSpecificColumnsActive = backup;
 }
