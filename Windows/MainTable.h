@@ -3388,10 +3388,14 @@ void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label,
 	char sort_order_suf[4] = "";
 	const float ARROW_SCALE = 0.65f;
 	if ((mTable.Flags & ImGuiTableFlags_Sortable) && !(column->Flags & ImGuiTableColumnFlags_NoSort)) {
-		w_arrow = ImFloor(g.FontSize * ARROW_SCALE + g.Style.FramePadding.x);
-		if (column->SortOrder > 0) {
-			ImFormatString(sort_order_suf, IM_ARRAYSIZE(sort_order_suf), "%d", column->SortOrder + 1);
-			w_sort_text = g.Style.ItemInnerSpacing.x + ImGui::CalcTextSize(sort_order_suf).x;
+		if (column->SortOrder > -1) {
+			w_arrow = ImFloor(g.FontSize * ARROW_SCALE + g.Style.FramePadding.x);
+			if (column->SortOrder > 0) {
+				ImFormatString(sort_order_suf, IM_ARRAYSIZE(sort_order_suf), "%d", column->SortOrder + 1);
+				w_sort_text = g.Style.ItemInnerSpacing.x + ImGui::CalcTextSize(sort_order_suf).x;
+			}
+		} else {
+			w_arrow = g.Style.ItemInnerSpacing.x;
 		}
 	}
 
