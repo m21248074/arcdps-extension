@@ -1,5 +1,6 @@
 #pragma once
 
+#include "arcdps_structs.h"
 #include "UpdateCheckerBase.h"
 #include "Singleton.h"
 
@@ -12,4 +13,7 @@
 class UpdateChecker final : public UpdateCheckerBase, public Singleton<UpdateChecker> {
 public:
 	void Draw(const std::unique_ptr<UpdateState>& pUpdateState, const std::string& pPluginName, const std::string& pRepoReleaseLink);
+	// void Log(std::string&& pMessage) override {
+	// 	ARC_LOG_FILE(pMessage.c_str());
+	// }
 };

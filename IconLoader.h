@@ -10,6 +10,8 @@
 #include <thread>
 #include <wincodec.h>
 #include <atlbase.h>
+#include <ranges>
+#include <utility>
 
 /**
  * Call `Setup()` in `mod_init()`. This is needed, so this class knows about the dll and the directx device!
@@ -41,7 +43,10 @@ private:
 		UINT Height = 0;
 		Status Status = Status::Pending;
 		UINT LoadResourceId = 0;
+		DXGI_FORMAT DxgiFormat = DXGI_FORMAT_UNKNOWN;
 
+		DXGI_FORMAT GetFormatDx11(WICPixelFormatGUID pPixelFormat);
+		_D3DFORMAT GetFormatDx9();
 		void LoadIntoDirectXDevice();
 		void* GetTexture(UINT pResourceId);
 		void Load();
@@ -101,9 +106,192 @@ void* IconLoader<IdType>::GetTexture(IdType pId, UINT pResourceId) {
 	return texture->second.GetTexture(pResourceId);
 }
 
+/*
+ * Array of needed GUID conversions.
+ * CurrentGUID -> WantedGUID
+ */
+static const std::vector<std::pair<GUID, GUID>> WIC_CONVERT = 
+{
+    // Note target GUID in this conversion table must be one of those directly supported formats (above).
+
+    { GUID_WICPixelFormatBlackWhite,            GUID_WICPixelFormat8bppGray }, // DXGI_FORMAT_R8_UNORM
+
+    { GUID_WICPixelFormat1bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+    { GUID_WICPixelFormat2bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+    { GUID_WICPixelFormat4bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+    { GUID_WICPixelFormat8bppIndexed,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+
+    { GUID_WICPixelFormat2bppGray,              GUID_WICPixelFormat8bppGray }, // DXGI_FORMAT_R8_UNORM 
+    { GUID_WICPixelFormat4bppGray,              GUID_WICPixelFormat8bppGray }, // DXGI_FORMAT_R8_UNORM 
+
+    { GUID_WICPixelFormat16bppGrayFixedPoint,   GUID_WICPixelFormat16bppGrayHalf }, // DXGI_FORMAT_R16_FLOAT 
+    { GUID_WICPixelFormat32bppGrayFixedPoint,   GUID_WICPixelFormat32bppGrayFloat }, // DXGI_FORMAT_R32_FLOAT 
+
+#ifdef DXGI_1_2_FORMATS
+
+    { GUID_WICPixelFormat16bppBGR555,           GUID_WICPixelFormat16bppBGRA5551 }, // DXGI_FORMAT_B5G5R5A1_UNORM
+
+#else
+
+    { GUID_WICPixelFormat16bppBGR555,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM
+    { GUID_WICPixelFormat16bppBGRA5551,         GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM
+    { GUID_WICPixelFormat16bppBGR565,           GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM
+
+#endif // DXGI_1_2_FORMATS
+
+    { GUID_WICPixelFormat32bppBGR101010,        GUID_WICPixelFormat32bppRGBA1010102 }, // DXGI_FORMAT_R10G10B10A2_UNORM
+
+    { GUID_WICPixelFormat24bppBGR,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+    { GUID_WICPixelFormat24bppRGB,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+    { GUID_WICPixelFormat32bppPBGRA,            GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+    { GUID_WICPixelFormat32bppPRGBA,            GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+
+    { GUID_WICPixelFormat48bppRGB,              GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+    { GUID_WICPixelFormat48bppBGR,              GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+    { GUID_WICPixelFormat64bppBGRA,             GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+    { GUID_WICPixelFormat64bppPRGBA,            GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+    { GUID_WICPixelFormat64bppPBGRA,            GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+
+    { GUID_WICPixelFormat48bppRGBFixedPoint,    GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+    { GUID_WICPixelFormat48bppBGRFixedPoint,    GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+    { GUID_WICPixelFormat64bppRGBAFixedPoint,   GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+    { GUID_WICPixelFormat64bppBGRAFixedPoint,   GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+    { GUID_WICPixelFormat64bppRGBFixedPoint,    GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+    { GUID_WICPixelFormat64bppRGBHalf,          GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+    { GUID_WICPixelFormat48bppRGBHalf,          GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+
+    { GUID_WICPixelFormat96bppRGBFixedPoint,    GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+    { GUID_WICPixelFormat128bppPRGBAFloat,      GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+    { GUID_WICPixelFormat128bppRGBFloat,        GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+    { GUID_WICPixelFormat128bppRGBAFixedPoint,  GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+    { GUID_WICPixelFormat128bppRGBFixedPoint,   GUID_WICPixelFormat128bppRGBAFloat }, // DXGI_FORMAT_R32G32B32A32_FLOAT 
+
+    { GUID_WICPixelFormat32bppCMYK,             GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM 
+    { GUID_WICPixelFormat64bppCMYK,             GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+    { GUID_WICPixelFormat40bppCMYKAlpha,        GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+    { GUID_WICPixelFormat80bppCMYKAlpha,        GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+
+#if (_WIN32_WINNT >= 0x0602 /*_WIN32_WINNT_WIN8*/)
+    { GUID_WICPixelFormat32bppRGB,              GUID_WICPixelFormat32bppRGBA }, // DXGI_FORMAT_R8G8B8A8_UNORM
+    { GUID_WICPixelFormat64bppRGB,              GUID_WICPixelFormat64bppRGBA }, // DXGI_FORMAT_R16G16B16A16_UNORM
+    { GUID_WICPixelFormat64bppPRGBAHalf,        GUID_WICPixelFormat64bppRGBAHalf }, // DXGI_FORMAT_R16G16B16A16_FLOAT 
+#endif
+
+    // We don't support n-channel formats
+};
+
+template <typename IdType>
+DXGI_FORMAT IconLoader<IdType>::Texture::GetFormatDx11(WICPixelFormatGUID pPixelFormat) {
+	if (pPixelFormat == GUID_WICPixelFormat128bppRGBAFloat) {
+		return DXGI_FORMAT_R32G32B32A32_FLOAT;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat64bppRGBAHalf) {
+		return DXGI_FORMAT_R16G16B16A16_FLOAT;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat64bppRGBA) {
+		return DXGI_FORMAT_R16G16B16A16_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat32bppRGBA) {
+		return DXGI_FORMAT_R8G8B8A8_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat32bppBGRA) {
+		return DXGI_FORMAT_B8G8R8A8_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat32bppBGR) {
+		return DXGI_FORMAT_B8G8R8X8_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat32bppRGBA1010102XR) {
+		return DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat32bppRGBA1010102) {
+		return DXGI_FORMAT_R10G10B10A2_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat32bppRGBE) {
+		return DXGI_FORMAT_R9G9B9E5_SHAREDEXP;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat16bppBGRA5551) {
+		return DXGI_FORMAT_B5G5R5A1_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat16bppBGR565) {
+		return DXGI_FORMAT_B5G6R5_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat32bppGrayFloat) {
+		return DXGI_FORMAT_R32_FLOAT;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat16bppGrayHalf) {
+		return DXGI_FORMAT_R16_FLOAT;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat16bppGray) {
+		return DXGI_FORMAT_R16_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat8bppGray) {
+		return DXGI_FORMAT_R8_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat8bppAlpha) {
+		return DXGI_FORMAT_A8_UNORM;
+	}
+	if (pPixelFormat == GUID_WICPixelFormat96bppRGBFloat) {
+		return DXGI_FORMAT_R32G32B32_FLOAT;
+	}
+
+	throw std::runtime_error("Given DX11 Format is not supported!");
+}
+
+static const std::map<DXGI_FORMAT, _D3DFORMAT> DX9_FORMAT = {
+	{DXGI_FORMAT_B8G8R8A8_UNORM , D3DFMT_A8R8G8B8},
+	{DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, D3DFMT_A8R8G8B8},
+	{DXGI_FORMAT_B8G8R8X8_UNORM, D3DFMT_X8R8G8B8},
+	{DXGI_FORMAT_B8G8R8X8_UNORM_SRGB, D3DFMT_X8R8G8B8},
+	{DXGI_FORMAT_B5G6R5_UNORM, D3DFMT_R5G6B5},
+	// {DXGI_FORMAT_B5G5R5A1_UNORM, D3DFMT_A1R5G5B5},
+	// {DXGI_FORMAT_B4G4R4A4_UNORM, D3DFMT_A4R4G4B4},
+	{DXGI_FORMAT_A8_UNORM, D3DFMT_A8},
+	{DXGI_FORMAT_R8G8B8A8_UNORM, D3DFMT_A8B8G8R8}, // TODO
+	{DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, D3DFMT_A8B8G8R8}, // TODO
+	{DXGI_FORMAT_R16G16_UNORM, D3DFMT_G16R16},
+	{DXGI_FORMAT_R16G16B16A16_UNORM, D3DFMT_A16B16G16R16},
+	{DXGI_FORMAT_R8_UNORM, D3DFMT_L8},
+	// {DXGI_FORMAT_R8G8_UNORM, D3DFMT_A8L8},
+	// {DXGI_FORMAT_R8G8_SNORM, D3DFMT_V8U8},
+	// {DXGI_FORMAT_R8G8B8A8_SNORM, D3DFMT_Q8W8V8U8},
+	// {DXGI_FORMAT_R16G16_SNORM, D3DFMT_V16U16},
+	// {DXGI_FORMAT_G8R8_G8B8_UNORM, D3DFMT_R8G8_B8G8},
+	// {DXGI_FORMAT_R8G8_B8G8_UNORM, D3DFMT_G8R8_G8B8},
+	// {DXGI_FORMAT_BC1_UNORM, D3DFMT_DXT1},
+	// {DXGI_FORMAT_BC1_UNORM_SRGB, D3DFMT_DXT1},
+	// {DXGI_FORMAT_BC1_UNORM, D3DFMT_DXT2},
+	// {DXGI_FORMAT_BC1_UNORM_SRGB, D3DFMT_DXT2},
+	// {DXGI_FORMAT_BC2_UNORM, D3DFMT_DXT3},
+	// {DXGI_FORMAT_BC2_UNORM_SRGB, D3DFMT_DXT3},
+	// {DXGI_FORMAT_BC2_UNORM, D3DFMT_DXT4},
+	// {DXGI_FORMAT_BC2_UNORM_SRGB, D3DFMT_DXT4},
+	// {DXGI_FORMAT_BC3_UNORM, D3DFMT_DXT5},
+	// {DXGI_FORMAT_BC3_UNORM_SRGB, D3DFMT_DXT5},
+	// {DXGI_FORMAT_D16_UNORM, D3DFMT_D16},
+	// {DXGI_FORMAT_D32_FLOAT, D3DFMT_D32F_LOCKABLE},
+	{DXGI_FORMAT_R16_UNORM, D3DFMT_L16},
+	// {DXGI_FORMAT_R16_UINT, D3DFMT_INDEX16},
+	// {DXGI_FORMAT_R32_UINT, D3DFMT_INDEX32},
+	// {DXGI_FORMAT_R16G16B16A16_SNORM, D3DFMT_Q16W16V16U16},
+	{DXGI_FORMAT_R16_FLOAT, D3DFMT_R16F},
+	{DXGI_FORMAT_R16G16_FLOAT, D3DFMT_G16R16F},
+	{DXGI_FORMAT_R16G16B16A16_FLOAT, D3DFMT_A16B16G16R16F},
+	{DXGI_FORMAT_R32_FLOAT, D3DFMT_R32F},
+	{DXGI_FORMAT_R32G32_FLOAT, D3DFMT_G32R32F},
+	{DXGI_FORMAT_R32G32B32A32_FLOAT, D3DFMT_A32B32G32R32F},
+};
+
+template <typename IdType>
+_D3DFORMAT IconLoader<IdType>::Texture::GetFormatDx9() {
+	const auto& pair = DX9_FORMAT.find(DxgiFormat);
+	if (pair != DX9_FORMAT.end()) {
+		return pair->second;
+	}
+	throw std::runtime_error("Given DX9 Format is not supported!");
+}
+
 template <typename IdType>
 void IconLoader<IdType>::Texture::LoadIntoDirectXDevice() {
-	
 	// Create texture
 	if (mIconLoader.mD3d11Device) {
 		D3D11_TEXTURE2D_DESC desc;
@@ -112,7 +300,7 @@ void IconLoader<IdType>::Texture::LoadIntoDirectXDevice() {
 		desc.Height = Height;
 		desc.MipLevels = 1;
 		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		desc.Format = DxgiFormat;
 		desc.SampleDesc.Count = 1;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -134,21 +322,40 @@ void IconLoader<IdType>::Texture::LoadIntoDirectXDevice() {
 		// Create texture view
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		ZeroMemory(&srvDesc, sizeof(srvDesc));
-		srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		srvDesc.Format = DxgiFormat;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = desc.MipLevels;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		
 		mIconLoader.mD3d11Device->CreateShaderResourceView(pTexture, &srvDesc, &mD11Texture);
-		if (!SUCCEEDED(createTexture2DRes)) {
+		if (FAILED(createTexture2DRes)) {
 			// error copying pixels to buffer
 			std::string text = "Error creating shader Resource View: ";
 			text.append(std::to_string(createTexture2DRes));
 			throw std::runtime_error(text);
 		}
 	} else if (mIconLoader.mD3d9Device) {
-		HRESULT createTextureRes = mIconLoader.mD3d9Device->CreateTexture(Width, Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &mD9Texture, NULL);
-		if (!SUCCEEDED(createTextureRes)) {
+		_D3DFORMAT d3Dformat = GetFormatDx9();
+
+		// This is really dirty, but i don't know how to fix it properly :(
+		// Also DX9 support will be dropped in the near future.
+		if (d3Dformat == D3DFMT_A8B8G8R8) {
+			// convert from abgr to argb
+			uint8_t* point = mPixelBuffer.get();
+			size_t size = Width * Height;
+			uint8_t val = 0;
+			for (size_t i = 0; i < size; ++i) {
+				val = point[0];
+				point[0] = point[2];
+				point[2] = val;
+				point += 4;
+			}
+
+			d3Dformat = D3DFMT_A8R8G8B8;
+		}
+	
+		HRESULT createTextureRes = mIconLoader.mD3d9Device->CreateTexture(Width, Height, 1, 0, d3Dformat, D3DPOOL_MANAGED, &mD9Texture, NULL);
+		if (FAILED(createTextureRes)) {
 			// error creating d3d9 texture
 			std::string text = "Error creating d3d9 texture: ";
 			text.append(std::to_string(createTextureRes));
@@ -158,7 +365,7 @@ void IconLoader<IdType>::Texture::LoadIntoDirectXDevice() {
 		D3DLOCKED_RECT rect;
 		mD9Texture->LockRect(0, &rect, 0, D3DLOCK_DISCARD);
 		unsigned char* dest = static_cast<unsigned char*>(rect.pBits);
-		memcpy(dest, mPixelBuffer.get(), sizeof(char) * Width * Height * 4);
+		memcpy(dest, mPixelBuffer.get(), sizeof(uint8_t) * Width * Height * 4);
 		mD9Texture->UnlockRect(0);
 	}
 
@@ -209,38 +416,22 @@ template <typename IdType>
 void IconLoader<IdType>::Texture::LoadFromResource() {
 	HRSRC imageResHandle = FindResource(mIconLoader.mDll, MAKEINTRESOURCE(LoadResourceId), L"PNG");
 	if (!imageResHandle) {
-		// not found
-		// std::string text = "Error finding Resource: ";
-		// text.append(nameString);
-		// throw std::runtime_error(text);
 		return;
 	}
 
 	// does not need to be freed
 	HGLOBAL imageResDataHandle = LoadResource(mIconLoader.mDll, imageResHandle);
 	if (!imageResDataHandle) {
-		// loading failed
-		// std::string text = "Error loading resource: ";
-		// text.append(nameString);
-		// throw std::runtime_error(text);
 		return;
 	}
 
 	LPVOID imageFile = LockResource(imageResDataHandle);
 	if (!imageFile) {
-		// locking failed
-		// std::string text = "Error locking resource: ";
-		// text.append(nameString);
-		// throw std::runtime_error(text);
 		return;
 	}
 
 	DWORD imageFileSize = SizeofResource(mIconLoader.mDll, imageResHandle);
 	if (!imageFileSize) {
-		// error getting size of file
-		// std::string text = "Error getting Size of Resource: ";
-		// text.append(nameString);
-		// throw std::runtime_error(text);
 		return;
 	}
 
@@ -248,13 +439,7 @@ void IconLoader<IdType>::Texture::LoadFromResource() {
 		ULONG_PTR contextToken;
 		if (CoGetContextToken(&contextToken) == CO_E_NOTINITIALIZED) {
 			HRESULT coInitializeResult = CoInitialize(NULL);
-			if (!SUCCEEDED(coInitializeResult)) {
-				// error coInitializing instance
-				// std::string text = "Error creating WIC intance: ";
-				// text.append(nameString);
-				// text.append(" - ");
-				// text.append(std::to_string(coInitializeResult));
-				// throw std::runtime_error(text);
+			if (FAILED(coInitializeResult)) {
 				return;
 			}
 		}
@@ -263,132 +448,119 @@ void IconLoader<IdType>::Texture::LoadFromResource() {
 	CComPtr<IWICImagingFactory> m_pIWICFactory;
 	// IWICImagingFactory* m_pIWICFactory = NULL;
 	HRESULT createInstance = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pIWICFactory));
-	if (!SUCCEEDED(createInstance)) {
-		// error creating instance
-		// std::string text = "Error creating WIC intance: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(createInstance));
-		// throw std::runtime_error(text);
+	if (FAILED(createInstance)) {
 		return;
 	}
 
 	CComPtr<IWICStream> pIWICStream;
 	HRESULT streamRes = m_pIWICFactory->CreateStream(&pIWICStream);
-	if (!SUCCEEDED(streamRes)) {
-		// creating stream failed
-		// std::string text = "Error creating WIC stream: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(streamRes));
-		// throw std::runtime_error(text);
+	if (FAILED(streamRes)) {
 		return;
 	}
 
 	HRESULT initializeFromMemoryRes = pIWICStream->InitializeFromMemory(reinterpret_cast<BYTE*>(imageFile), imageFileSize);
-	if (!SUCCEEDED(initializeFromMemoryRes)) {
-		// error initializing from memory
-		// std::string text = "Error initializing WICStream from memory: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(initializeFromMemoryRes));
-		// throw std::runtime_error(text);
+	if (FAILED(initializeFromMemoryRes)) {
 		return;
 	}
 
 	CComPtr<IWICBitmapDecoder> pIDecoder;
 	HRESULT decoderFromStreamRes = m_pIWICFactory->CreateDecoderFromStream(pIWICStream, NULL, WICDecodeMetadataCacheOnLoad, &pIDecoder);
-	if (!SUCCEEDED(decoderFromStreamRes)) {
-		// error creating decode from stream
-		// std::string text = "Error creating decoder from stream: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(decoderFromStreamRes));
-		// throw std::runtime_error(text);
+	if (FAILED(decoderFromStreamRes)) {
 		return;
 	}
 
 	CComPtr<IWICBitmapFrameDecode> pIDecodeFrame;
 	HRESULT getFrameRes = pIDecoder->GetFrame(0, &pIDecodeFrame);
-	if (!SUCCEEDED(getFrameRes)) {
-		// error getting frame from decoder
-		// std::string text = "Error getting frame 0: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(getFrameRes));
-		// throw std::runtime_error(text);
+	if (FAILED(getFrameRes)) {
 		return;
 	}
 
-	WICPixelFormatGUID pixelFormat;
-	HRESULT pixelFormatRes = pIDecodeFrame->GetPixelFormat(&pixelFormat);
-	if (!SUCCEEDED(pixelFormatRes)) {
-		// error getting pixel format
-		// std::string text = "Error getting pixel format: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(pixelFormatRes));
-		// throw std::runtime_error(text);
+	HRESULT getSizeRes = pIDecodeFrame->GetSize( &Width, &Height );
+	if (FAILED(getSizeRes)) {
 		return;
+	}
+
+	if (Width <= 0 || Height <= 0) {
+		return;
+	}
+
+	// get pixel format (color-depth)
+    WICPixelFormatGUID pixelFormat;
+	HRESULT pixelFormatRes = pIDecodeFrame->GetPixelFormat(&pixelFormat);
+	if (FAILED(pixelFormatRes)) {
+		return;
+	}
+
+	// not auto cause intellisense is not able to deduct it...
+	const std::ranges::iterator_t<decltype(WIC_CONVERT)>& convertFormat = std::ranges::find_if(WIC_CONVERT, [&pixelFormat](const auto& pPair) { return std::get<0>(pPair) == pixelFormat; });
+
+	WICPixelFormatGUID targetFormat = pixelFormat;
+
+	if (convertFormat != WIC_CONVERT.end()) {
+		targetFormat = convertFormat->second;
 	}
 
 	CComPtr<IWICComponentInfo> pIComponentInfo;
-	HRESULT componentInfoRes = m_pIWICFactory->CreateComponentInfo(pixelFormat, &pIComponentInfo);
-	if (!SUCCEEDED(componentInfoRes)) {
-		// error creating component info
-		// std::string text = "Error creating component info: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(componentInfoRes));
-		// throw std::runtime_error(text);
+	HRESULT componentInfoRes = m_pIWICFactory->CreateComponentInfo(targetFormat, &pIComponentInfo);
+	if (FAILED(componentInfoRes)) {
+		return;
+	}
+
+	WICComponentType componentType;
+	HRESULT componentTypeRes = pIComponentInfo->GetComponentType(&componentType);
+    if (FAILED(componentTypeRes)) {
+	    return;
+    }
+
+	if ( componentType != WICPixelFormat ) {
 		return;
 	}
 
 	CComPtr<IWICPixelFormatInfo> pIPixelFormatInfo;
-	// HRESULT pixelFormatInfoRes = pIComponentInfo->QueryInterface(__uuidof(IWICPixelFormatInfo), reinterpret_cast<void**>(&pIPixelFormatInfo));
 	HRESULT pixelFormatInfoRes = pIComponentInfo->QueryInterface(__uuidof(IWICPixelFormatInfo), reinterpret_cast<void**>(&pIPixelFormatInfo));
-	if (!SUCCEEDED(pixelFormatInfoRes)) {
-		// error querying pixel format info
-		// std::string text = "Error querying format info: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(pixelFormatInfoRes));
-		// throw std::runtime_error(text);
+	if (FAILED(pixelFormatInfoRes)) {
 		return;
 	}
 
 	UINT bitsPerPixel;
 	HRESULT bitsPerPixelRes = pIPixelFormatInfo->GetBitsPerPixel(&bitsPerPixel);
-	if (!SUCCEEDED(bitsPerPixelRes)) {
-		// error getting bits per pixel
-		// std::string text = "Error getting bits per pixel: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(bitsPerPixelRes));
-		// throw std::runtime_error(text);
+	if (FAILED(bitsPerPixelRes)) {
 		return;
 	}
 
-	pIDecodeFrame->GetSize(&Width, &Height);
+	// Allocate temporary memory for image
+    size_t rowPitch = ( Width * bitsPerPixel + 7 ) / 8;
+    size_t imageSize = rowPitch * Height;
 
-	float totalPixels = (float)(bitsPerPixel) * (float)(Width) + 7.f; // +7 forces to next byte if needed
-	UINT stride = (UINT)(totalPixels / 8.f);
-
-	UINT totalPixelAmount = Width * Height * stride;
-
-	// unsigned char* pixelBuffer = new unsigned char[1048576]; // 1MB size
-	std::unique_ptr<unsigned char[]> pixelBuffer(new unsigned char[totalPixelAmount]);
+    std::unique_ptr<uint8_t[]> pixelBuffer(new uint8_t[imageSize]);
 	mPixelBuffer = std::move(pixelBuffer);
-	HRESULT copyPixelsRes = pIDecodeFrame->CopyPixels(NULL, stride, totalPixelAmount, mPixelBuffer.get());
-	if (!SUCCEEDED(copyPixelsRes)) {
-		// error copying pixels to buffer
-		// std::string text = "Error copying pixels: ";
-		// text.append(nameString);
-		// text.append(" - ");
-		// text.append(std::to_string(copyPixelsRes));
-		// throw std::runtime_error(text);
-		return;
+
+	if (convertFormat == WIC_CONVERT.end()) {
+		// no conversion needed, just copy it
+		HRESULT copyPixelsRes = pIDecodeFrame->CopyPixels(NULL, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), mPixelBuffer.get());
+		if (FAILED(copyPixelsRes)) {
+			return;
+		}
+	} else {
+		// convert it
+		CComPtr<IWICFormatConverter> formatConverter;
+		HRESULT formatConverterRes = m_pIWICFactory->CreateFormatConverter(&formatConverter);
+		if (FAILED(formatConverterRes)) {
+			return;
+		}
+
+		HRESULT initConverterRes = formatConverter->Initialize(pIDecodeFrame, targetFormat, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
+		if (FAILED(initConverterRes)) {
+			return;
+		}
+
+		HRESULT copyPixelsRes = formatConverter->CopyPixels(NULL, static_cast<UINT>(rowPitch), static_cast<UINT>(imageSize), mPixelBuffer.get());
+		if (FAILED(copyPixelsRes)) {
+			return;
+		}
 	}
+
+	DxgiFormat = GetFormatDx11(targetFormat);
 
 	Status = Status::Loaded;
 }
