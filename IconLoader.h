@@ -50,6 +50,7 @@ private:
 		void LoadIntoDirectXDevice();
 		void* GetTexture(UINT pResourceId);
 		void Load();
+		void LoadFrame(const CComPtr<IWICBitmapFrameDecode>& pIDecodeFrame, const CComPtr<IWICImagingFactory>& pIWICFactory);
 		void LoadFromResource();
 
 		explicit Texture(::IconLoader<IdType>& pIconLoader)
@@ -413,68 +414,7 @@ void IconLoader<IdType>::Texture::Load() {
 }
 
 template <typename IdType>
-void IconLoader<IdType>::Texture::LoadFromResource() {
-	HRSRC imageResHandle = FindResource(mIconLoader.mDll, MAKEINTRESOURCE(LoadResourceId), L"PNG");
-	if (!imageResHandle) {
-		return;
-	}
-
-	// does not need to be freed
-	HGLOBAL imageResDataHandle = LoadResource(mIconLoader.mDll, imageResHandle);
-	if (!imageResDataHandle) {
-		return;
-	}
-
-	LPVOID imageFile = LockResource(imageResDataHandle);
-	if (!imageFile) {
-		return;
-	}
-
-	DWORD imageFileSize = SizeofResource(mIconLoader.mDll, imageResHandle);
-	if (!imageFileSize) {
-		return;
-	}
-
-	{
-		ULONG_PTR contextToken;
-		if (CoGetContextToken(&contextToken) == CO_E_NOTINITIALIZED) {
-			HRESULT coInitializeResult = CoInitialize(NULL);
-			if (FAILED(coInitializeResult)) {
-				return;
-			}
-		}
-	}
-
-	CComPtr<IWICImagingFactory> m_pIWICFactory;
-	// IWICImagingFactory* m_pIWICFactory = NULL;
-	HRESULT createInstance = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pIWICFactory));
-	if (FAILED(createInstance)) {
-		return;
-	}
-
-	CComPtr<IWICStream> pIWICStream;
-	HRESULT streamRes = m_pIWICFactory->CreateStream(&pIWICStream);
-	if (FAILED(streamRes)) {
-		return;
-	}
-
-	HRESULT initializeFromMemoryRes = pIWICStream->InitializeFromMemory(reinterpret_cast<BYTE*>(imageFile), imageFileSize);
-	if (FAILED(initializeFromMemoryRes)) {
-		return;
-	}
-
-	CComPtr<IWICBitmapDecoder> pIDecoder;
-	HRESULT decoderFromStreamRes = m_pIWICFactory->CreateDecoderFromStream(pIWICStream, NULL, WICDecodeMetadataCacheOnLoad, &pIDecoder);
-	if (FAILED(decoderFromStreamRes)) {
-		return;
-	}
-
-	CComPtr<IWICBitmapFrameDecode> pIDecodeFrame;
-	HRESULT getFrameRes = pIDecoder->GetFrame(0, &pIDecodeFrame);
-	if (FAILED(getFrameRes)) {
-		return;
-	}
-
+void IconLoader<IdType>::Texture::LoadFrame(const CComPtr<IWICBitmapFrameDecode>& pIDecodeFrame, const CComPtr<IWICImagingFactory>& pIWICFactory) {
 	HRESULT getSizeRes = pIDecodeFrame->GetSize( &Width, &Height );
 	if (FAILED(getSizeRes)) {
 		return;
@@ -501,7 +441,7 @@ void IconLoader<IdType>::Texture::LoadFromResource() {
 	}
 
 	CComPtr<IWICComponentInfo> pIComponentInfo;
-	HRESULT componentInfoRes = m_pIWICFactory->CreateComponentInfo(targetFormat, &pIComponentInfo);
+	HRESULT componentInfoRes = pIWICFactory->CreateComponentInfo(targetFormat, &pIComponentInfo);
 	if (FAILED(componentInfoRes)) {
 		return;
 	}
@@ -544,7 +484,7 @@ void IconLoader<IdType>::Texture::LoadFromResource() {
 	} else {
 		// convert it
 		CComPtr<IWICFormatConverter> formatConverter;
-		HRESULT formatConverterRes = m_pIWICFactory->CreateFormatConverter(&formatConverter);
+		HRESULT formatConverterRes = pIWICFactory->CreateFormatConverter(&formatConverter);
 		if (FAILED(formatConverterRes)) {
 			return;
 		}
@@ -563,6 +503,72 @@ void IconLoader<IdType>::Texture::LoadFromResource() {
 	DxgiFormat = GetFormatDx11(targetFormat);
 
 	Status = Status::Loaded;
+}
+
+template <typename IdType>
+void IconLoader<IdType>::Texture::LoadFromResource() {
+	HRSRC imageResHandle = FindResource(mIconLoader.mDll, MAKEINTRESOURCE(LoadResourceId), L"PNG");
+	if (!imageResHandle) {
+		return;
+	}
+
+	// does not need to be freed
+	HGLOBAL imageResDataHandle = LoadResource(mIconLoader.mDll, imageResHandle);
+	if (!imageResDataHandle) {
+		return;
+	}
+
+	LPVOID imageFile = LockResource(imageResDataHandle);
+	if (!imageFile) {
+		return;
+	}
+
+	DWORD imageFileSize = SizeofResource(mIconLoader.mDll, imageResHandle);
+	if (!imageFileSize) {
+		return;
+	}
+
+	{
+		ULONG_PTR contextToken;
+		if (CoGetContextToken(&contextToken) == CO_E_NOTINITIALIZED) {
+			HRESULT coInitializeResult = CoInitialize(NULL);
+			if (FAILED(coInitializeResult)) {
+				return;
+			}
+		}
+	}
+
+	CComPtr<IWICImagingFactory> pIWICFactory;
+	// IWICImagingFactory* m_pIWICFactory = NULL;
+	HRESULT createInstance = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory));
+	if (FAILED(createInstance)) {
+		return;
+	}
+
+	CComPtr<IWICStream> pIWICStream;
+	HRESULT streamRes = pIWICFactory->CreateStream(&pIWICStream);
+	if (FAILED(streamRes)) {
+		return;
+	}
+
+	HRESULT initializeFromMemoryRes = pIWICStream->InitializeFromMemory(reinterpret_cast<BYTE*>(imageFile), imageFileSize);
+	if (FAILED(initializeFromMemoryRes)) {
+		return;
+	}
+
+	CComPtr<IWICBitmapDecoder> pIDecoder;
+	HRESULT decoderFromStreamRes = pIWICFactory->CreateDecoderFromStream(pIWICStream, NULL, WICDecodeMetadataCacheOnLoad, &pIDecoder);
+	if (FAILED(decoderFromStreamRes)) {
+		return;
+	}
+
+	CComPtr<IWICBitmapFrameDecode> pIDecodeFrame;
+	HRESULT getFrameRes = pIDecoder->GetFrame(0, &pIDecodeFrame);
+	if (FAILED(getFrameRes)) {
+		return;
+	}
+
+	LoadFrame(pIDecodeFrame, pIWICFactory);
 }
 
 template<typename IdType>
