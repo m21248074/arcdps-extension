@@ -10,12 +10,21 @@
 #include <thread>
 #include <wincodec.h>
 #include <atlbase.h>
+#include <filesystem>
 #include <ranges>
 #include <utility>
 
 /**
  * Call `Setup()` in `mod_init()`. This is needed, so this class knows about the dll and the directx device!
  * Call `Shutdown()` in `mod_release()`. This is needed, so gw2 does not crash while closing.
+ *
+ * Always have an enum or any other list of numbers as unique ID.
+ * Load textures:
+ * - GetTexture(pResourceId):
+ *     Load Texture from a resource within this DLL
+ * - GetTexture(pFilePath):
+ *	   Load Texture from file. There is a direct conversion from string to filesystem::path.
+ *	   If such a file is not found, you will always get a nullptr as result (no file reload performed)
  */
 template<typename IdType>
 class IconLoader : public Singleton<IconLoader<IdType>> {
@@ -28,30 +37,34 @@ public:
 
 	void Setup(HMODULE new_dll, IDirect3DDevice9* d3d9Device, ID3D11Device* new_d3d11device);
 	void* GetTexture(IdType pId, UINT pResourceId);
+	void* GetTexture(IdType pId, const std::filesystem::path& pFilePath);
 
 private:
 	class Texture {
 	public:
+		/**
+		 *          /  PendingResource  \
+		 * Pending                         Loaded  -  Finished
+		 *          \  PendingFile      /
+		 *
+		 *	Fallout: Error
+		 */
 		enum class Status {
 			Pending,
 			PendingResource,
+			PendingFile,
 			Loaded,
 			Finished,
+			Error,
 		};
 
 		UINT Width = 0;
 		UINT Height = 0;
 		Status Status = Status::Pending;
-		UINT LoadResourceId = 0;
-		DXGI_FORMAT DxgiFormat = DXGI_FORMAT_UNKNOWN;
 
-		DXGI_FORMAT GetFormatDx11(WICPixelFormatGUID pPixelFormat);
-		_D3DFORMAT GetFormatDx9();
-		void LoadIntoDirectXDevice();
 		void* GetTexture(UINT pResourceId);
+		void* GetTexture(const std::filesystem::path& pFilePath);
 		void Load();
-		void LoadFrame(const CComPtr<IWICBitmapFrameDecode>& pIDecodeFrame, const CComPtr<IWICImagingFactory>& pIWICFactory);
-		void LoadFromResource();
 
 		explicit Texture(::IconLoader<IdType>& pIconLoader)
 			: mIconLoader(pIconLoader) {}
@@ -61,8 +74,17 @@ private:
 		IDirect3DTexture9* mD9Texture = nullptr;
 		ID3D11ShaderResourceView* mD11Texture = nullptr;
 		::IconLoader<IdType>& mIconLoader;
+		UINT mLoadResourceId = 0;
+		std::filesystem::path mLoadFilePath;
+		DXGI_FORMAT mDxgiFormat = DXGI_FORMAT_UNKNOWN;
 
 		void* GetTexture() const;
+		void LoadFrame(const CComPtr<IWICBitmapFrameDecode>& pIDecodeFrame, const CComPtr<IWICImagingFactory>& pIWICFactory);
+		DXGI_FORMAT GetFormatDx11(WICPixelFormatGUID pPixelFormat);
+		_D3DFORMAT GetFormatDx9();
+		void LoadIntoDirectXDevice();
+		void LoadFromFile();
+		void LoadFromResource();
 	};
 
 	void LoadThreadFunc(std::stop_token stop_token);
@@ -105,6 +127,21 @@ void* IconLoader<IdType>::GetTexture(IdType pId, UINT pResourceId) {
 	}
 
 	return texture->second.GetTexture(pResourceId);
+}
+
+template <typename IdType>
+void* IconLoader<IdType>::GetTexture(IdType pId, const std::filesystem::path& pFilePath) {
+	if (!mD3d9Device && !mD3d11Device) {
+		return nullptr;
+	}
+
+	const auto& texture = mTextures.find(pId);
+	if (texture == mTextures.end()) {
+		const auto& tryEmplace = mTextures.try_emplace(pId, *this);
+		return tryEmplace.first->second.GetTexture(pFilePath);
+	}
+
+	return texture->second.GetTexture(pFilePath);
 }
 
 /*
@@ -284,7 +321,7 @@ static const std::map<DXGI_FORMAT, _D3DFORMAT> DX9_FORMAT = {
 
 template <typename IdType>
 _D3DFORMAT IconLoader<IdType>::Texture::GetFormatDx9() {
-	const auto& pair = DX9_FORMAT.find(DxgiFormat);
+	const auto& pair = DX9_FORMAT.find(mDxgiFormat);
 	if (pair != DX9_FORMAT.end()) {
 		return pair->second;
 	}
@@ -301,7 +338,7 @@ void IconLoader<IdType>::Texture::LoadIntoDirectXDevice() {
 		desc.Height = Height;
 		desc.MipLevels = 1;
 		desc.ArraySize = 1;
-		desc.Format = DxgiFormat;
+		desc.Format = mDxgiFormat;
 		desc.SampleDesc.Count = 1;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -323,7 +360,7 @@ void IconLoader<IdType>::Texture::LoadIntoDirectXDevice() {
 		// Create texture view
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		ZeroMemory(&srvDesc, sizeof(srvDesc));
-		srvDesc.Format = DxgiFormat;
+		srvDesc.Format = mDxgiFormat;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = desc.MipLevels;
 		srvDesc.Texture2D.MostDetailedMip = 0;
@@ -394,8 +431,33 @@ void* IconLoader<IdType>::Texture::GetTexture(UINT pResourceId) {
 	}
 
 	if (Status == Status::Pending) {
-		LoadResourceId = pResourceId;
+		mLoadResourceId = pResourceId;
 		Status = Status::PendingResource;
+	}
+
+	if (mIconLoader.mThreadMutex.try_lock()) {
+		mIconLoader.mThreadCondition.notify_one();
+		mIconLoader.mThreadMutex.unlock();
+	}
+
+	return nullptr;
+}
+
+template <typename IdType>
+void* IconLoader<IdType>::Texture::GetTexture(const std::filesystem::path& pFilePath) {
+	if (Status == Status::Finished) {
+		return GetTexture();
+	}
+
+	if (Status == Status::Loaded) {
+		LoadIntoDirectXDevice();
+
+		return GetTexture();
+	}
+
+	if (Status == Status::Pending) {
+		mLoadFilePath = pFilePath;
+		Status = Status::PendingFile;
 	}
 
 	if (mIconLoader.mThreadMutex.try_lock()) {
@@ -410,7 +472,50 @@ template <typename IdType>
 void IconLoader<IdType>::Texture::Load() {
 	if (Status == Status::PendingResource) {
 		LoadFromResource();
+		return;
 	}
+	if (Status == Status::PendingFile) {
+		LoadFromFile();
+	}
+}
+
+template <typename IdType>
+void IconLoader<IdType>::Texture::LoadFromFile() {
+	if (!exists(mLoadFilePath)) {
+		Status = Status::Error;
+		return;
+	}
+
+	{
+		ULONG_PTR contextToken;
+		if (CoGetContextToken(&contextToken) == CO_E_NOTINITIALIZED) {
+			HRESULT coInitializeResult = CoInitialize(NULL);
+			if (FAILED(coInitializeResult)) {
+				return;
+			}
+		}
+	}
+
+	CComPtr<IWICImagingFactory> pIWICFactory;
+	// IWICImagingFactory* m_pIWICFactory = NULL;
+	HRESULT createInstance = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pIWICFactory));
+	if (FAILED(createInstance)) {
+		return;
+	}
+
+	CComPtr<IWICBitmapDecoder> wicDecoder;
+	HRESULT fromFilenameRes = pIWICFactory->CreateDecoderFromFilename(mLoadFilePath.c_str(), NULL, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &wicDecoder);
+	if (FAILED(fromFilenameRes)) {
+		return;
+	}
+
+	CComPtr<IWICBitmapFrameDecode> pIDecodeFrame;
+	HRESULT getFrameRes = wicDecoder->GetFrame(0, &pIDecodeFrame);
+	if (FAILED(getFrameRes)) {
+		return;
+	}
+
+	LoadFrame(pIDecodeFrame, pIWICFactory);
 }
 
 template <typename IdType>
@@ -500,14 +605,14 @@ void IconLoader<IdType>::Texture::LoadFrame(const CComPtr<IWICBitmapFrameDecode>
 		}
 	}
 
-	DxgiFormat = GetFormatDx11(targetFormat);
+	mDxgiFormat = GetFormatDx11(targetFormat);
 
 	Status = Status::Loaded;
 }
 
 template <typename IdType>
 void IconLoader<IdType>::Texture::LoadFromResource() {
-	HRSRC imageResHandle = FindResource(mIconLoader.mDll, MAKEINTRESOURCE(LoadResourceId), L"PNG");
+	HRSRC imageResHandle = FindResource(mIconLoader.mDll, MAKEINTRESOURCE(mLoadResourceId), L"PNG");
 	if (!imageResHandle) {
 		return;
 	}
