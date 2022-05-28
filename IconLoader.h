@@ -21,7 +21,6 @@
 
 /**
  * Call `Setup()` in `mod_init()`. This is needed, so this class knows about the dll and the directx device!
- * Call `Shutdown()` in `mod_release()`. This is needed, so gw2 does not crash while closing.
  *
  * Always have an enum or any other list of numbers as unique ID.
  * Load textures:
