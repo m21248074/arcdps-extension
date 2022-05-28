@@ -13,6 +13,11 @@
 #include <filesystem>
 #include <ranges>
 #include <utility>
+#include <variant>
+
+#ifndef ARCDPS_EXTENSION_NO_CPR
+#include <cpr/cpr.h>
+#endif
 
 /**
  * Call `Setup()` in `mod_init()`. This is needed, so this class knows about the dll and the directx device!
@@ -23,8 +28,14 @@
  * - GetTexture(pResourceId):
  *     Load Texture from a resource within this DLL
  * - GetTexture(pFilePath):
- *	   Load Texture from file. There is a direct conversion from string to filesystem::path.
+ *	   Load Texture from file.
+ *	   There is a direct conversion from string to filesystem::path.
  *	   If such a file is not found, you will always get a nullptr as result (no file reload performed)
+ * - GetTexture(pUrl):
+ *     Load Texture from url.
+ *     It will be saved in AppData/Local/Temp/GW2-arcdps-extension and loaded from there.
+ *	   If the file already exists, it will just be loaded.
+ *	   Only available if cpr is loaded (can be disabled with `ARCDPS_EXTENSION_NO_CPR`)
  */
 template<typename IdType>
 class IconLoader : public Singleton<IconLoader<IdType>> {
@@ -38,6 +49,10 @@ public:
 	void Setup(HMODULE new_dll, IDirect3DDevice9* d3d9Device, ID3D11Device* new_d3d11device);
 	void* GetTexture(IdType pId, UINT pResourceId);
 	void* GetTexture(IdType pId, const std::filesystem::path& pFilePath);
+
+#ifndef ARCDPS_EXTENSION_NO_CPR
+	void* GetTexture(IdType pId, const cpr::Url& pUrl);
+#endif
 
 private:
 	class Texture {
@@ -53,6 +68,7 @@ private:
 			Pending,
 			PendingResource,
 			PendingFile,
+			PendingCpr,
 			Loaded,
 			Finished,
 			Error,
@@ -64,6 +80,10 @@ private:
 
 		void* GetTexture(UINT pResourceId);
 		void* GetTexture(const std::filesystem::path& pFilePath);
+	#ifndef ARCDPS_EXTENSION_NO_CPR
+		void* GetTexture(const cpr::Url& pUrl);
+		void LoadFromCpr();
+#endif
 		void Load();
 
 		explicit Texture(::IconLoader<IdType>& pIconLoader)
@@ -74,8 +94,11 @@ private:
 		IDirect3DTexture9* mD9Texture = nullptr;
 		ID3D11ShaderResourceView* mD11Texture = nullptr;
 		::IconLoader<IdType>& mIconLoader;
-		UINT mLoadResourceId = 0;
-		std::filesystem::path mLoadFilePath;
+	#ifndef ARCDPS_EXTENSION_NO_CPR
+		std::variant<UINT, std::filesystem::path, cpr::Url> mLoadTarget;
+	#else
+		std::variant<UINT, std::filesystem::path> mLoadTarget;
+	#endif
 		DXGI_FORMAT mDxgiFormat = DXGI_FORMAT_UNKNOWN;
 
 		void* GetTexture() const;
@@ -431,7 +454,7 @@ void* IconLoader<IdType>::Texture::GetTexture(UINT pResourceId) {
 	}
 
 	if (Status == Status::Pending) {
-		mLoadResourceId = pResourceId;
+		mLoadTarget = pResourceId;
 		Status = Status::PendingResource;
 	}
 
@@ -456,7 +479,7 @@ void* IconLoader<IdType>::Texture::GetTexture(const std::filesystem::path& pFile
 	}
 
 	if (Status == Status::Pending) {
-		mLoadFilePath = pFilePath;
+		mLoadTarget = pFilePath;
 		Status = Status::PendingFile;
 	}
 
@@ -476,12 +499,19 @@ void IconLoader<IdType>::Texture::Load() {
 	}
 	if (Status == Status::PendingFile) {
 		LoadFromFile();
+		return;
 	}
+#ifndef ARCDPS_EXTENSION_NO_CPR
+	if (Status == Status::PendingCpr) {
+		LoadFromCpr();
+	}
+#endif
 }
 
 template <typename IdType>
 void IconLoader<IdType>::Texture::LoadFromFile() {
-	if (!exists(mLoadFilePath)) {
+	const auto& path = std::get<std::filesystem::path>(mLoadTarget);
+	if (!exists(path)) {
 		Status = Status::Error;
 		return;
 	}
@@ -504,7 +534,7 @@ void IconLoader<IdType>::Texture::LoadFromFile() {
 	}
 
 	CComPtr<IWICBitmapDecoder> wicDecoder;
-	HRESULT fromFilenameRes = pIWICFactory->CreateDecoderFromFilename(mLoadFilePath.c_str(), NULL, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &wicDecoder);
+	HRESULT fromFilenameRes = pIWICFactory->CreateDecoderFromFilename(path.c_str(), NULL, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &wicDecoder);
 	if (FAILED(fromFilenameRes)) {
 		return;
 	}
@@ -612,7 +642,7 @@ void IconLoader<IdType>::Texture::LoadFrame(const CComPtr<IWICBitmapFrameDecode>
 
 template <typename IdType>
 void IconLoader<IdType>::Texture::LoadFromResource() {
-	HRSRC imageResHandle = FindResource(mIconLoader.mDll, MAKEINTRESOURCE(mLoadResourceId), L"PNG");
+	HRSRC imageResHandle = FindResource(mIconLoader.mDll, MAKEINTRESOURCE(std::get<UINT>(mLoadTarget)), L"PNG");
 	if (!imageResHandle) {
 		return;
 	}
@@ -688,3 +718,96 @@ void IconLoader<IdType>::LoadThreadFunc(std::stop_token stop_token) {
 		}
 	}
 }
+
+#ifndef ARCDPS_EXTENSION_NO_CPR
+
+template <typename IdType>
+void* IconLoader<IdType>::GetTexture(IdType pId, const cpr::Url& pUrl) {
+	if (!mD3d9Device && !mD3d11Device) {
+		return nullptr;
+	}
+
+	const auto& texture = mTextures.find(pId);
+	if (texture == mTextures.end()) {
+		const auto& tryEmplace = mTextures.try_emplace(pId, *this);
+		return tryEmplace.first->second.GetTexture(pUrl);
+	}
+
+	return texture->second.GetTexture(pUrl);
+}
+
+template <typename IdType>
+void* IconLoader<IdType>::Texture::GetTexture(const cpr::Url& pUrl) {
+	if (Status == Status::Finished) {
+		return GetTexture();
+	}
+
+	if (Status == Status::Loaded) {
+		LoadIntoDirectXDevice();
+
+		return GetTexture();
+	}
+
+	if (Status == Status::Pending) {
+		mLoadTarget = pUrl;
+		Status = Status::PendingCpr;
+	}
+
+	if (mIconLoader.mThreadMutex.try_lock()) {
+		mIconLoader.mThreadCondition.notify_one();
+		mIconLoader.mThreadMutex.unlock();
+	}
+
+	return nullptr;
+}
+
+template <typename IdType>
+void IconLoader<IdType>::Texture::LoadFromCpr() {
+	auto& url = std::get<cpr::Url>(mLoadTarget);
+	std::string urlString = url.str();
+
+	size_t size = urlString.find("//");
+	urlString = urlString.replace(0, size + 2, "");
+	std::replace( urlString.begin(), urlString.end(), '/', '\\');
+
+	auto filePath = std::filesystem::temp_directory_path();
+	filePath.append("GW2-arcdps-extension");
+
+	// create needed subdirs
+	filePath.append(urlString);
+
+	if (exists(filePath)) {
+		mLoadTarget = filePath;
+		LoadFromFile();
+		return;
+	}
+
+	auto dirPath = filePath;
+	dirPath.remove_filename();
+
+	std::error_code err;
+	std::filesystem::create_directories(dirPath, err);
+	if (err) {
+		Status = Status::Error;
+		return;
+	}
+
+	std::ofstream output(filePath, std::ios::binary);
+
+	cpr::Response response = cpr::Download(output, url);
+	if (response.status_code != 200) {
+		Status = Status::Error;
+		return;
+	}
+
+	output.close();
+	if (output.fail()) {
+		Status = Status::Error;
+		return;
+	}
+
+	mLoadTarget = filePath;
+	LoadFromFile();
+}
+
+#endif
