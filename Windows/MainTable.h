@@ -1027,7 +1027,7 @@ void MainTable<MaxColumnCount>::LoadSettingsCustom() {
 			column->DisplayOrder = column_settings.DisplayOrder;
 		else
 			column->DisplayOrder = (TableColumnIdx)idx;
-		display_order_mask.set(column->DisplayOrder);
+		if (column->DisplayOrder >= 0) display_order_mask.set(column->DisplayOrder);
 		column->IsEnabled = column->IsEnabledNextFrame = column_settings.IsEnabled;
 		column->SortOrder = column_settings.SortOrder;
 		column->SortDirection = column_settings.SortDirection;
