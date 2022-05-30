@@ -78,6 +78,9 @@
     <ClCompile Include="windows\KeyBindComponent.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="IconLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arcdps_structs.h">

@@ -66,6 +66,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="arcdps_structs.cpp" />
+    <ClCompile Include="IconLoader.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
     <ClCompile Include="KeyBindHandler.cpp" />
     <ClCompile Include="KeyInput.cpp" />
