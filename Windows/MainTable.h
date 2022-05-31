@@ -55,6 +55,25 @@ struct MainTableColumn {
 	std::function<void*()> Texture;
 	std::string Category; // The category for this Column in context menu. `0` is top-level. Only one sublevel is currently supported, e.g. `1.1`.
 	bool DefaultVisibility = true;
+	std::function<std::string()> Popup;
+
+	MainTableColumn(ImU32 pUserId, const std::function<std::string()>& pName, const std::function<void*()>& pTexture,
+	                std::string pCategory, bool pDefaultVisibility = true)
+		: UserId(pUserId),
+		  Name(pName),
+		  Texture(pTexture),
+		  Category(std::move(pCategory)),
+		  DefaultVisibility(pDefaultVisibility),
+		  Popup(pName) {}
+
+	MainTableColumn(ImU32 pUserId, const std::function<std::string()>& pName, const std::function<void*()>& pTexture,
+	                std::string pCategory, const std::function<std::string()>& pPopup, bool pDefaultVisibility = true)
+		: UserId(pUserId),
+		  Name(pName),
+		  Texture(pTexture),
+		  Category(std::move(pCategory)),
+		  DefaultVisibility(pDefaultVisibility),
+		  Popup(pPopup) {}
 };
 
 enum MainTableFlags_ {
@@ -227,7 +246,7 @@ protected:
 	// See "COLUMN SIZING POLICIES" comments at the top of this file
 	// If (init_width_or_weight <= 0.0f) it is ignored
 	void SetupColumn(const char* label, ImGuiTableColumnFlags flags, float init_width_or_weight, ImGuiID user_id);
-	void ColumnHeader(const char* label, bool show_label, ImTextureID texture, Alignment alignment);
+	void ColumnHeader(const char* label, bool show_label, ImTextureID texture, Alignment alignment, const char* popupText);
 
 	/**
 	 * Print text aligned to the current column.
@@ -699,7 +718,7 @@ void MainTable<MaxColumnCount>::Draw() {
 
 		for (const auto& column : mColumns) {
 			if (NextColumn()) {
-				ColumnHeader(column.Name().c_str(), false, column.Texture(), getHeaderAlignment());
+				ColumnHeader(column.Name().c_str(), false, column.Texture(), getHeaderAlignment(), column.Popup().c_str());
 			}
 		}
 
@@ -3220,6 +3239,10 @@ void MainTable<MaxColumnCount>:: MenuItemColumnVisibility(int TableColumnIdx) {
 		menu_item_active = false;
 	if (ImGui::MenuItem(columnName, NULL, column.IsEnabled, menu_item_active && !mSpecificColumnsActive))
 		column.IsEnabledNextFrame = !column.IsEnabled;
+
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(mColumns.at(TableColumnIdx).Popup().c_str());
+	}
 }
 
 template <size_t MaxColumnCount>
@@ -3347,7 +3370,7 @@ void MainTable<MaxColumnCount>::SetupColumn(const char* label, ImGuiTableColumnF
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label, ImTextureID texture,
-	Alignment alignment) {
+                                             Alignment alignment, const char* popupText) {
 	// TODO change eventually (to line height or something)
 	const float image_size = 16.f;
 
@@ -3530,7 +3553,7 @@ void MainTable<MaxColumnCount>::ColumnHeader(const char* label, bool show_label,
 	// if (text_clipped && hovered && g.HoveredIdNotActiveTimer > g.TooltipSlowDelay)
 	// ImGui::SetTooltip("%.*s", (int)(label_end - label), label);
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("%s", label);
+		ImGui::SetTooltip("%s", popupText);
 	}
 
 	// We don't use BeginPopupContextItem() because we want the popup to stay up even after the column is hidden

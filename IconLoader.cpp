@@ -569,13 +569,13 @@ void IconLoader::LoadThreadFunc(std::stop_token stop_token) {
 	while (true) {
 		mThreadCondition.wait(mThreadMutex, stop_token, [this]{ return !mLoadIds.empty(); });
 
-		if (stop_token.stop_requested()) return;
+		if (stop_token.stop_requested()) break;
 
 		mTexturesMutex.lock();
 
 		size_t id = mLoadIds.front();
 		mLoadIds.pop_front();
-		// copy the texture object, so we can run thing asnyc and don't care when the vector changes.
+		// copy the texture object, so we can run things asnyc and don't care when the vector changes.
 		Texture texture = mTextures[id];
 
 		mTexturesMutex.unlock();
@@ -588,6 +588,9 @@ void IconLoader::LoadThreadFunc(std::stop_token stop_token) {
 
 		mTexturesMutex.unlock();
 	}
+
+	// unlock the thread mutex, when the thread is stopped
+	mThreadMutex.unlock();
 }
 
 #ifndef ARCDPS_EXTENSION_NO_CPR

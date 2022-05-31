@@ -4,11 +4,13 @@
 
 #include "../../arcdps_structs.h"
 
+using std::string_literals::operator ""s;
+
 static const std::vector<MainTableColumn> tableColumns = {
-	{0, []{return "Column1";}, []{ return nullptr; }, "0"},
-	{1, []{return "Column2";}, []{ return nullptr; }, "0"},
-	{2, []{return "Column3";}, []{ return nullptr; }, "1"},
-	{3, []{return "Column4";}, []{ return nullptr; }, "1.1"},
+	{0, []{return "Column1"s;}, []{ return nullptr; }, "0"},
+	{1, []{return "Column2"s;}, []{ return nullptr; }, "0"},
+	{2, []{return "Column3"s;}, []{ return nullptr; }, "1"},
+	{3, []{return "Column4"s;}, []{ return nullptr; }, "1.1"},
 };
 
 /**
