@@ -170,7 +170,7 @@ void MainWindow::DrawStyleSettingsSubMenu() {
 	ImGui::Checkbox(Localization::STranslate(ET_Scrollbar).c_str(), &GetShowScrollbar());
 
 	// padding
-	ImGui::Text(Localization::STranslate(ET_Padding).c_str());
+	ImGui::TextUnformatted(Localization::STranslate(ET_Padding).c_str());
 	ImGui::SameLine();
 	auto& padding = getPadding();
 	mPaddingActive = padding.has_value();
