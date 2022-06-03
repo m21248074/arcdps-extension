@@ -198,7 +198,7 @@ namespace ImGuiEx
 		}
 
 		std::string keyStr = to_string(keyContainerCopy, pLanguage, pHkl);
-		ImVec2 textSize = ImGui::CalcTextSize(keyStr.c_str());
+		ImVec2 textSize = ImGui::CalcTextSize(reinterpret_cast<const char*>(keyStr.c_str()));
 		keyStr.append("##");
 		keyStr.append(pLabel);
 
