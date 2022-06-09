@@ -815,7 +815,12 @@ void MainTable<MaxColumnCount>::DrawStyleSubMenu() {
 	ImGui::Checkbox(Localization::STranslate(ET_AlternatingRowBg).c_str(), &getShowAlternatingBackground());
 	ImGui::Checkbox(Localization::STranslate(ET_HighlightHoveredRow).c_str(), &getHighlightHoveredRows());
 	ImGui::Checkbox(Localization::STranslate(ET_SettingsShowHeaderText).c_str(), &getShowHeaderAsText());
-	ImGui::InputInt(Localization::STranslate(ET_MaxDisplayed).c_str(), &getMaxDisplayed());
+	int& maxDisplayed = getMaxDisplayed();
+	if (ImGui::InputInt(Localization::STranslate(ET_MaxDisplayed).c_str(), &maxDisplayed)) {
+		if (maxDisplayed < 0) {
+			maxDisplayed = 0;
+		}
+	}
 	ImGuiEx::EnumCombo(Localization::STranslate(ET_HeaderAlignment).c_str(), getHeaderAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
 	ImGuiEx::EnumCombo(Localization::STranslate(ET_ColumnAlignment).c_str(), getAlignment(), {Alignment::Left, Alignment::Center, Alignment::Right});
 }

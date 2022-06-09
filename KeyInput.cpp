@@ -1,6 +1,7 @@
 #include "KeyInput.h"
 
 #include "../imgui/imgui.h"
+#include "../imgui/imgui_internal.h"
 
 #ifndef ARCDPS_EXTENSION_NO_LANG_H
 #include "Localization.h"
@@ -197,7 +198,7 @@ namespace ImGuiEx
 		}
 
 		std::string keyStr = to_string(keyContainerCopy, pLanguage, pHkl);
-		ImVec2 textSize = ImGui::CalcTextSize(keyStr.c_str());
+		ImVec2 textSize = ImGui::CalcTextSize(reinterpret_cast<const char*>(keyStr.c_str()));
 		keyStr.append("##");
 		keyStr.append(pLabel);
 
@@ -213,34 +214,36 @@ namespace ImGuiEx
 
 		// Always center this window when appearing
 		ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
-		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowPos(center, 0/*ImGuiCond_Appearing*/, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowSize(ImVec2(550.f, 250.f), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSizeConstraints(ImVec2(350.f, FLT_MIN), ImVec2(FLT_MAX, FLT_MAX));
+		if (ImGui::BeginPopupModal(popupName.c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGuiStyle& style = ImGui::GetStyle();
 
-		ImGui::SetNextWindowSize(ImVec2(250.f, 50.f));
-		if (ImGui::BeginPopupModal(popupName.c_str(), NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
 			std::string keyCodeText = to_string(keyCodeInputKeyState, pLanguage, pHkl, true);
-
-			// center text
-			float windowX = ImGui::GetWindowSize().x;
-
-			ImGui::SameLine();
-			// const float indentation = (windowX - ImGui::CalcTextSize(keyCodeText.c_str()).x) * 0.5f;
-			// ImGui::SameLine(indentation);
-			// ImGui::PushTextWrapPos(ImGui::GetWindowSize().x - indentation);
 			ImGui::TextUnformatted(keyCodeText.c_str());
-			// ImGui::PopTextWrapPos();
+			ImGui::SameLine();
 
-			static float buttonSize = 100.f;
-			const float pos = buttonSize + ImGui::GetStyle().ItemSpacing.x;
-			ImGui::SameLine(ImGui::GetWindowWidth() - pos);
-			if (ImGui::Button(to_string_unbind(pLanguage).c_str())) {
+			const auto& stringUnbind = to_string_unbind(pLanguage);
+			float buttonWidth = ImGui::CalcTextSize(stringUnbind.c_str()).x + style.FramePadding.x * 2;
+			// ImGui::SameLine(ImGui::GetWindowWidth() - pos);
+			float cursorPosX = ImGui::GetCursorPosX();
+			float windowMaxX = ImGui::GetWindowContentRegionMax().x;
+			float posX = windowMaxX - buttonWidth;
+			if (posX < cursorPosX) posX = cursorPosX;
+			ImGui::SetCursorPosX(posX);
+			if (ImGui::Button(stringUnbind.c_str())) {
 				keyCodeInputKeyState.Code = 0;
 				keyCodeInputKeyState.DeviceType = KeyBinds::DeviceType::Unset;
 				keyCodeInputKeyState.Modifier = 0;
 			}
-			buttonSize = ImGui::GetItemRectSize().x;
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+			float cursorMaxPos = window->Pos.x + cursorPosX + buttonWidth;
 
-			float buttonSizeX = (windowX - ImGui::GetStyle().FramePadding.x*2 - ImGui::GetStyle().ItemSpacing.x - ImGui::GetStyle().WindowPadding.x*2) / 2;
-			if (ImGui::Button(APPLY_TEXT, ImVec2(buttonSizeX, 0))) {
+			// ItemSpacing.x / 2, no idea why i have to /2 it ...
+			float buttonSizeX = (ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x) / 2 - style.ItemSpacing.x / 2;
+			const char* applyText = APPLY_TEXT;
+			if (ImGui::Button(applyText, ImVec2(buttonSizeX, 0))) {
 				pKeyContainer.DeviceType = keyCodeInputKeyState.DeviceType;
 				pKeyContainer.Code = keyCodeInputKeyState.Code;
 				pKeyContainer.Modifier = pFlags & KeyCodeInputFlags_FixedModifier ? 0 : keyCodeInputKeyState.Modifier;
@@ -250,10 +253,19 @@ namespace ImGuiEx
 			}
 			ImGui::SetItemDefaultFocus();
 			ImGui::SameLine();
-			if (ImGui::Button(CANCEL_TEXT, ImVec2(buttonSizeX, 0))) {
+			const char* cancelText = CANCEL_TEXT;
+			if (ImGui::Button(cancelText, ImVec2(buttonSizeX, 0))) {
 				CloseKeyCodePopupState();
 				ImGui::CloseCurrentPopup();
 			}
+
+			float buttonMaxX = window->Pos.x + ImGui::CalcTextSize(applyText).x + ImGui::CalcTextSize(cancelText).x + style.FramePadding.x * 4 + style.ItemSpacing.x / 2;
+			if (cursorMaxPos < buttonMaxX) {
+				cursorMaxPos = buttonMaxX;
+			}
+
+			window->DC.CursorMaxPos.x = cursorMaxPos;
+
 			ImGui::EndPopup();
 		}
 

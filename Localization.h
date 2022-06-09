@@ -43,10 +43,24 @@ public:
 		return Localization::instance().Translate(pId);
 	}
 
-    void Load(gwlanguage pLang, const std::ranges::common_range auto& pRange) {
+    void AddTranslation(gwlanguage pLang, const char* pText) {
 	    auto& translation = mTranslations.at(pLang);
+        translation.emplace_back(pText);
+    }
+
+    void AddTranslation(gwlanguage pLang, const char8_t* pText) {
+	    auto& translation = mTranslations.at(pLang);
+        translation.emplace_back(reinterpret_cast<const char*>(pText));
+    }
+
+    void AddTranslation(gwlanguage pLang, const std::string& pText) {
+	    auto& translation = mTranslations.at(pLang);
+        translation.emplace_back(pText);
+    }
+
+    void Load(gwlanguage pLang, const std::ranges::common_range auto& pRange) {
 	    for (const auto& value : pRange) {
-	        translation.emplace_back(value);
+	        AddTranslation(pLang, value);
 	    }
     }
 
