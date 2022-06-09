@@ -24,9 +24,6 @@ enum cbtresult {
 	CBTR_BLIND, // physical hit missed
 	CBTR_KILLINGBLOW, // hit was killing hit
 	CBTR_DOWNED, // hit was downing hit
-
-	// always last element
-	CBTR_FINAL_ENTRY
 };
 
 /* combat activation */
@@ -37,9 +34,6 @@ enum cbtactivation {
 	ACTV_CANCEL_FIRE, // cancel with reaching channel time
 	ACTV_CANCEL_CANCEL, // cancel without reaching channel time
 	ACTV_RESET, // animation completed fully
-
-	// always last element
-	ACTV_FINAL_ENTRY
 };
 
 /* combat state change */
@@ -88,20 +82,14 @@ enum cbtstatechange : uint8_t {
 	CBTS_APIDELAYED, // cbtevent with statechange byte set to this
 	CBTS_INSTANCESTART, // src_agent is roughly the log-relative ms that the server started the instance
 	CBTS_UNKNOWN, // unknown or invalid, ignore
-
-	// always last element
-	CBTS_FINAL_ENTRY
 };
 
 /* combat buff remove type */
-enum cbtbuffremove {
+enum cbtbuffremove : uint8_t {
 	CBTB_NONE, // not used - not this kind of event
 	CBTB_ALL, // last/all stacks removed (sent by server)
 	CBTB_SINGLE, // single stack removed (sent by server). will happen for each stack on cleanse
 	CBTB_MANUAL, // single stack removed (auto by arc on ooc or all stack, ignore for strip/cleanse calc, use for in/out volume)
-
-	// always last element
-	CBTB_FINAL_ENTRY
 };
 
 /* custom skill ids */
@@ -132,9 +120,6 @@ enum Prof : uint32_t {
 	PROF_MESMER = 7,
 	PROF_NECRO = 8,
 	PROF_RENEGADE = 9,
-
-	// always last element
-	PROF_FINAL_ENTRY
 };
 
 enum ColorsCore {
@@ -149,9 +134,6 @@ enum ColorsCore {
 	CCOL_MGREY,
 	CCOL_DGREY,
 	CCOL_NUM,
-
-	// always last element
-	CCOL_FINAL_ENTRY
 };
 
 typedef struct cbtevent {
@@ -170,7 +152,7 @@ typedef struct cbtevent {
 	uint8_t buff;
 	uint8_t result;
 	uint8_t is_activation;
-	uint8_t is_buffremove;
+	cbtbuffremove is_buffremove;
 	uint8_t is_ninety;
 	uint8_t is_fifty;
 	uint8_t is_moving;
