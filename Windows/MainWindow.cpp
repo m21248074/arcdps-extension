@@ -5,6 +5,8 @@
 #include "../Localization.h"
 #include "../ExtensionTranslations.h"
 
+#include <magic_enum.hpp>
+
 MainWindow::~MainWindow() {
 	mComponents.clear();
 }
@@ -202,7 +204,7 @@ void MainWindow::DrawStyleSettingsSubMenu() {
 	ImGui::TextUnformatted(Localization::STranslate(ET_SizingPolicy).c_str());
 	ImGui::SameLine();
 	auto& sizingPolicy = getSizingPolicy();
-	ImGuiEx::EnumCombo("##sizingPolicyEnumCombo", sizingPolicy, SizingPolicy::FINAL_ENTRY);
+	ImGuiEx::EnumCombo("##sizingPolicyEnumCombo", sizingPolicy, magic_enum::enum_values<SizingPolicy>());
 
 	ImGui::Indent();
 	DrawSizingPolicySubSettings(sizingPolicy);

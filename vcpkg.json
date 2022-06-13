@@ -5,6 +5,7 @@
   "dependencies": [
 	"magic-enum",
 	"nlohmann-json",
-	"cpr"
+	"cpr",
+	"imgui"
   ]
 }

@@ -6,11 +6,16 @@
 
 #include "MainWindow.h"
 
-#include "../../imgui/imgui.h"
 #include "../Widgets.h"
 #include "../ImGui_Math.h"
 #include "../Localization.h"
 #include "../ExtensionTranslations.h"
+
+#if __has_include(<imgui/imgui.h>)
+#include <imgui/imgui.h>
+#else
+#include "../../imgui/imgui.h"
+#endif
 
 #include <bitset>
 #include <functional>

@@ -46,9 +46,11 @@
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgAdditionalInstallOptions>--overlay-ports=$(ProjectDir)vcpkg-overlay-ports</VcpkgAdditionalInstallOptions>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgAdditionalInstallOptions>--overlay-ports=$(ProjectDir)vcpkg-overlay-ports</VcpkgAdditionalInstallOptions>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -116,9 +118,6 @@
     <ClInclude Include="windows\PositioningComponent.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\imgui\imgui.vcxproj">
-      <Project>{34ec5a9c-750c-4e6e-bc1a-3090ad360b7e}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\unofficial_extras\unofficial_extras.vcxproj">
       <Project>{dab9bae4-7c01-4d28-90fe-b49387e9fb24}</Project>
     </ProjectReference>

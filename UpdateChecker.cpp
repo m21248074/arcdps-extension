@@ -4,7 +4,11 @@
 #include "Localization.h"
 #include "Widgets.h"
 
+#if __has_include(<imgui/imgui.h>)
+#include <imgui/imgui.h>
+#else
 #include "../imgui/imgui.h"
+#endif
 
 void UpdateChecker::Draw(const std::unique_ptr<UpdateState>& pUpdateState, const std::string& pPluginName, const std::string& pRepoReleaseLink) {
 	if (!pUpdateState) {
