@@ -81,6 +81,10 @@ enum cbtstatechange : uint8_t {
 	CBTS_EXTENSION, // cbtevent with statechange byte set to this
 	CBTS_APIDELAYED, // cbtevent with statechange byte set to this
 	CBTS_INSTANCESTART, // src_agent is roughly the log-relative ms that the server started the instance
+	CBTS_TICKRATE, // every 500ms, src_agent = 25 - tickrate (when tickrate < 21)
+	CBTS_LAST90BEFOREDOWN, // src_agent is enemy agent that went down, dst_agent is time in ms since last 90% (for downs contribution)
+	CBTS_EFFECT, // src_agent is owner. dst_agent if at agent, else &value = float[3] xyz, &iff = float[2] xy orient, &pad61 = float[1] z orient, skillid = effectid. if is_flanking: duration = trackingid. &is_shields = uint16 duration. if effectid = 0, end &is_shields = trackingid (not in realtime api)
+	CBTS_IDTOGUID, // &src_agent = 16byte persistent content guid, overstack_value is of contentlocal enum, skillid is content id  (not in realtime api)
 	CBTS_UNKNOWN, // unknown or invalid, ignore
 };
 
@@ -106,6 +110,11 @@ enum gwlanguage {
 	GWL_GEM = 3,
 	GWL_SPA = 4,
 	GWL_CN = 5,
+};
+
+/* content local enum */
+enum n_contentlocal {
+	CONTENTLOCAL_EFFECT
 };
 
 /* Profession used by agent */
