@@ -164,5 +164,8 @@
     <ClInclude Include="windows\PositioningComponent.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleRingBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
