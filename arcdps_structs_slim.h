@@ -14,26 +14,30 @@ enum iff {
 
 /* combat result (physical) */
 enum cbtresult {
-	CBTR_NORMAL, // good physical hit
-	CBTR_CRIT, // physical hit was crit
-	CBTR_GLANCE, // physical hit was glance
-	CBTR_BLOCK, // physical hit was blocked eg. mesmer shield 4
-	CBTR_EVADE, // physical hit was evaded, eg. dodge or mesmer sword 2
-	CBTR_INTERRUPT, // physical hit interrupted something
-	CBTR_ABSORB, // physical hit was "invlun" or absorbed eg. guardian elite
-	CBTR_BLIND, // physical hit missed
-	CBTR_KILLINGBLOW, // hit was killing hit
-	CBTR_DOWNED, // hit was downing hit
+	CBTR_NORMAL, // strike was neither crit or glance
+	CBTR_CRIT, // strike was crit
+	CBTR_GLANCE, // strike was glance
+	CBTR_BLOCK, // strike was blocked eg. mesmer shield 4
+	CBTR_EVADE, // strike was evaded, eg. dodge or mesmer sword 2
+	CBTR_INTERRUPT, // strike interrupted something
+	CBTR_ABSORB, // strike was "invluned" or absorbed eg. guardian elite
+	CBTR_BLIND, // strike missed
+	CBTR_KILLINGBLOW, // not a damage strike, target was killed by skill by
+	CBTR_DOWNED, // not a damage strike, target was downed by skill by
+	CBTR_BREAKBAR, // not a damage strike, target had value of breakbar damage dealt
+	CBTR_ACTIVATION, // not a damage strike, on-activation event (src hit dst if damaging buff)
+	CBTR_UNKNOWN
 };
 
 /* combat activation */
 enum cbtactivation {
 	ACTV_NONE, // not used - not this kind of event
-	ACTV_NORMAL, // activation without quickness
-	ACTV_QUICKNESS, // activation with quickness
-	ACTV_CANCEL_FIRE, // cancel with reaching channel time
-	ACTV_CANCEL_CANCEL, // cancel without reaching channel time
+	ACTV_START, // started skill/animation activation
+	ACTV_QUICKNESS_UNUSED, // unused as of nov 5 2019
+	ACTV_CANCEL_FIRE, // stopped skill activation with reaching tooltip time
+	ACTV_CANCEL_CANCEL, // stopped skill activation without reaching tooltip time
 	ACTV_RESET, // animation completed fully
+	ACTV_UNKNOWN
 };
 
 /* combat state change */
@@ -94,6 +98,56 @@ enum cbtbuffremove : uint8_t {
 	CBTB_ALL, // last/all stacks removed (sent by server)
 	CBTB_SINGLE, // single stack removed (sent by server). will happen for each stack on cleanse
 	CBTB_MANUAL, // single stack removed (auto by arc on ooc or all stack, ignore for strip/cleanse calc, use for in/out volume)
+	CBTB_UNKNOWN,
+};
+
+/* combat buff cycle type */
+enum cbtbuffcycle {
+	CBTC_CYCLE, // damage happened on tick timer
+	CBTC_NOTCYCLE, // damage happened outside tick timer (resistable)
+	CBTC_NOTCYCLENORESIST, // BEFORE MAY 2021: the others were lumped here, now retired
+	CBTC_NOTCYCLEDMGTOTARGETONHIT, // damage happened to target on hitting target
+	CBTC_NOTCYCLEDMGTOSOURCEONHIT, // damage happened to source on htiting target
+	CBTC_NOTCYCLEDMGTOTARGETONSTACKREMOVE, // damage happened to target on source losing a stack
+	CBTC_UNKNOWN
+};
+
+/* buff formula attributes */
+enum e_attribute {
+	ATTR_NONE,
+	ATTR_POWER,
+	ATTR_PRECISION,
+	ATTR_TOUGHNESS,
+	ATTR_VITALITY,
+	ATTR_FEROCITY,
+	ATTR_HEALING,
+	ATTR_CONDITION,
+	ATTR_CONCENTRATION,
+	ATTR_EXPERTISE,
+	ATTR_CUST_ARMOR,
+	ATTR_CUST_AGONY,
+	ATTR_CUST_STATINC,
+	ATTR_CUST_PHYSINC,
+	ATTR_CUST_CONDINC,
+	ATTR_CUST_PHYSREC,
+	ATTR_CUST_CONDREC,
+	ATTR_CUST_ATTACKSPEED,
+	ATTR_CUST_SIPHONINC,
+	ATTR_CUST_SIPHONREC,
+	ATTR_UNKNOWN = 65535
+};
+
+/* buffinfo category */
+enum e_buffcategory {
+	EFFECT_CAT_BOON = 0,
+	EFFECT_CAT_ANY = 1,
+	EFFECT_CAT_CONDITION = 2,
+	EFFECT_CAT_FOOD = 4,
+	EFFECT_CAT_UPGRADE = 6,
+	EFFECT_CAT_BOOST = 8,
+	EFFECT_CAT_TRAIT = 11,
+	EFFECT_CAT_ENHANCEMENT = 13,
+	EFFECT_CAT_STANCE = 16
 };
 
 /* custom skill ids */
@@ -114,7 +168,8 @@ enum gwlanguage {
 
 /* content local enum */
 enum n_contentlocal {
-	CONTENTLOCAL_EFFECT
+	CONTENTLOCAL_EFFECT,
+	CONTENTLOCAL_MARKER,
 };
 
 /* Profession used by agent */
