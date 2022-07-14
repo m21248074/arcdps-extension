@@ -914,6 +914,13 @@ namespace ImGuiEx {
 		        ImGui::RenderArrow(window->DrawList, ImVec2(text_pos.x - text_offset_x + padding.x, text_pos.y + g.FontSize * 0.15f), text_col, is_open ? ImGuiDir_Down : ImGuiDir_Right, 0.70f);
 	        if (g.LogEnabled)
 		        ImGui::LogRenderedText(&text_pos, ">");
+
+			if (icon) {
+				float size = ImGui::GetFontSize();
+				ImGui::Image(icon, ImVec2(size, size));
+				ImGui::SameLine();
+			}
+
 	        ImGui::RenderText(text_pos, label, label_end, false);
 	    }
 
