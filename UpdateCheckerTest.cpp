@@ -751,3 +751,14 @@ INSTANTIATE_TEST_SUITE_P(
 	PreRelease,
 	UpdateCheckerTestFixture,
 	::testing::Values(std::make_pair(true, false), std::make_pair(true, true)));
+
+#ifndef ARCDPS_EXTENSION_NO_CPR
+#include <cpr/cpr.h>
+// CPR has a very bad track record, apparently we need to test it as well
+TEST(HTTPS_Client, SmokeTest)
+{
+	cpr::Response response = cpr::Get(cpr::Url{"https://google.com"});
+	EXPECT_EQ(response.status_code, 200);
+	EXPECT_EQ(response.status_line, "HTTP/1.1 200 OK");
+}
+#endif
