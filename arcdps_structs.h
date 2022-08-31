@@ -26,7 +26,7 @@ typedef struct arcdps_exports {
 	WindowCallbackSignature wnd_filter; /* wndproc callback like above, input filered using modifiers */
 	OptionsWindowsCallbackSignature options_windows; /* called once per 'window' option checkbox, with null at the end, non-zero return disables drawing that option, fn(char* windowname) */
 } arcdps_exports;
-static_assert(sizeof(arcdps_exports) == 88, "");
+static_assert(sizeof(arcdps_exports) == 88);
 
 typedef void* (*MallocSignature)(size_t);
 typedef void (*FreeSignature)(void*);

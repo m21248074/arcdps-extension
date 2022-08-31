@@ -69,7 +69,9 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CombatEventHandler.cpp" />
     <ClCompile Include="arcdps_structs.cpp" />
+    <ClCompile Include="EventSequencer.cpp" />
     <ClCompile Include="IconLoader.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
     <ClCompile Include="KeyBindHandler.cpp" />
@@ -89,8 +91,10 @@
     <ClCompile Include="windows\PositioningComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CombatEventHandler.h" />
     <ClInclude Include="arcdps_structs.h" />
     <ClInclude Include="arcdps_structs_slim.h" />
+    <ClInclude Include="EventSequencer.h" />
     <ClInclude Include="ExtensionTranslations.h" />
     <ClInclude Include="IconLoader.h" />
     <ClInclude Include="ImGui_Math.h" />
@@ -122,6 +126,9 @@
     <ProjectReference Include="..\unofficial_extras\unofficial_extras.vcxproj">
       <Project>{dab9bae4-7c01-4d28-90fe-b49387e9fb24}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="SimpleRingBuffer.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

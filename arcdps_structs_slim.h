@@ -30,7 +30,7 @@ enum cbtresult {
 };
 
 /* combat activation */
-enum cbtactivation {
+enum cbtactivation : uint8_t {
 	ACTV_NONE, // not used - not this kind of event
 	ACTV_START, // started skill/animation activation
 	ACTV_QUICKNESS_UNUSED, // unused as of nov 5 2019
@@ -186,6 +186,15 @@ enum Prof : uint32_t {
 	PROF_RENEGADE = 9,
 };
 
+enum class WeaponSet {
+    WaterFirst = 0,
+    WaterSecond = 1,
+    Bundles = 2, // This includes all bundles, kits and more
+    Transform = 3, // All transformations, e.g. Druid Avatar
+    LandFirst = 4,
+    LandSecond = 5,
+};
+
 enum ColorsCore {
 	CCOL_TRANSPARENT,
 	CCOL_WHITE,
@@ -215,7 +224,7 @@ typedef struct cbtevent {
 	uint8_t iff;
 	uint8_t buff;
 	uint8_t result;
-	uint8_t is_activation;
+	cbtactivation is_activation;
 	cbtbuffremove is_buffremove;
 	uint8_t is_ninety;
 	uint8_t is_fifty;

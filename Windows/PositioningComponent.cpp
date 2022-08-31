@@ -160,7 +160,9 @@ void PositioningComponent::Reposition() {
 
 PositioningComponent::~PositioningComponent() {
 	auto& components = PositioningComponentImGuiHook::POSITIONING_COMPONENTS;
-	components.erase(std::ranges::remove(components, this).begin(), components.end());
+	if (!components.empty()) {
+		components.erase(std::ranges::remove(components, this).begin(), components.end());
+	}
 }
 
 void PositioningComponentImGuiHook::InstallHooks(ImGuiContext* imGuiContext) {
