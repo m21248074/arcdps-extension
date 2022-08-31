@@ -3,140 +3,406 @@
 #include <cstddef>
 #include <malloc.h>
 #include <iterator>
+#include <concepts>
+#include <cassert>
+#include <ostream>
 
 /**
- * Problems with this implementation:
- * - begin() always return capacityBegin and not least written element
- * - end() always returns the latest element in the list. When capacity is filled, it is always capacityEnd.
- *
- * @tparam T
- * @tparam Capacity
+ * @tparam T The type that this buffer holds.
  */
-template<typename T, size_t Capacity>
+template <typename T, typename Allocator = std::allocator<T>>
 class RingBuffer {
 public:
-    RingBuffer() {
-        mCapacityBegin = (T*)calloc(Capacity, sizeof(T));
-        mCapacityEnd = mCapacityBegin + Capacity;
-        mCurrent = mCapacityBegin;
-        mSizeEnd = mCapacityBegin;
-    }
+	explicit RingBuffer(size_t pInitialCapacity) {
+		mCapacityBegin = mAlloc.allocate(pInitialCapacity);
+		// mCapacityBegin = static_cast<T*>(calloc(pInitialCapacity, sizeof(T)));
+		mCapacityEnd = mCapacityBegin + pInitialCapacity;
+		mCurrent = mCapacityBegin;
+		mSizeEnd = mCapacityBegin;
+	}
 
-    virtual ~RingBuffer() {
-        for (auto it = begin(); it != end(); ++it) {
-            (*it).~T();
-        }
+	virtual ~RingBuffer() {
+		if (mCapacityBegin) {
+			Clear();
+			mAlloc.deallocate(mCapacityBegin, mCapacityEnd - mCapacityBegin);
+		}
+	}
 
-        free(mCapacityBegin);
-    }
+	RingBuffer(const RingBuffer& pOther) {
+		size_t size = pOther.Size();
+		mCapacityBegin = mAlloc.allocate(size);
+		mCapacityEnd = mCapacityBegin + size;
+		mCurrent = mCapacityBegin;
+		mSizeEnd = mCapacityBegin;
 
-    void PushBack(T&& pElement);
-    void PushBack(const T& pElement);
+		for (const auto& other : pOther) {
+			PushBack(other);
+		}
+	}
 
-    template <typename ...Args>
-    void EmplaceBack(const Args& ...args);
+	RingBuffer(RingBuffer&& pOther) noexcept
+		: mCurrent(pOther.mCurrent),
+		  mSizeEnd(pOther.mSizeEnd),
+		  mCapacityBegin(pOther.mCapacityBegin),
+		  mCapacityEnd(pOther.mCapacityEnd),
+		  mAlloc(std::move(pOther.mAlloc)) {
+		pOther.mCapacityBegin = nullptr;
+	}
 
-    template <bool Const>
-    struct RingBufferIterator {
-        using iterator_category = std::forward_iterator_tag;
-        using difference_type   = std::ptrdiff_t;
-        using value_type        = T;
-        using pointer           = T*;
-        using reference         = T&;
+	RingBuffer& operator=(const RingBuffer& pOther) {
+		if (this == &pOther)
+			return *this;
+		size_t size = pOther.Size();
+		mCapacityBegin = mAlloc.allocate(size);
+		mCapacityEnd = mCapacityBegin + size;
+		mCurrent = mCapacityBegin;
+		mSizeEnd = mCapacityBegin;
 
-        RingBufferIterator(pointer pPtr) : mPtr(pPtr) {}
-        RingBufferIterator(const RingBufferIterator& pIterator) = default;
+		for (const auto& other : pOther) {
+			PushBack(other);
+		}
+		return *this;
+	}
 
-        RingBufferIterator& operator=(const RingBufferIterator& rawIterator) = default;
-        RingBufferIterator& operator=(pointer ptr){
-            mPtr = ptr;
-            return *this;
-        }
+	RingBuffer& operator=(RingBuffer&& pOther) noexcept {
+		if (this == &pOther)
+			return *this;
+		mCurrent = pOther.mCurrent;
+		mSizeEnd = pOther.mSizeEnd;
+		mCapacityBegin = pOther.mCapacityBegin;
+		mCapacityEnd = pOther.mCapacityEnd;
+		mAlloc = std::move(pOther.mAlloc);
+		pOther.mCapacityBegin = nullptr;
+		return *this;
+	}
 
-        reference operator*() requires(!Const) { return *mPtr; }
-        const reference operator*() const requires(Const) { return *mPtr; }
-        pointer operator->() requires(!Const) { return mPtr; }
+	void PushBack(T&& pElement);
+	void PushBack(const T& pElement);
 
-        // Prefix increment
-        RingBufferIterator& operator++() {
-            ++mPtr;
-            return *this;
-        }
-        RingBufferIterator& operator--() {
-            --mPtr;
-            return *this;
-        }
+	template <typename ...Args>
+	void EmplaceBack(const Args& ...args);
 
-        // Postfix increment
-        RingBufferIterator operator++(int) {
-            RingBufferIterator tmp = *this;
-            ++mPtr;
-            return tmp;
-        }
-        RingBufferIterator operator--(int) {
-            RingBufferIterator tmp = *this;
-            --mPtr;
-            return tmp;
-        }
+	T& Back();
+	const T& Back() const;
 
-        bool operator==(const RingBufferIterator& rhs) const {
-            return mPtr == rhs.mPtr;
-        }
+	void Clear();
+	size_t Size() const;
+	void Resize(size_t pNewCapacity);
 
-    private:
-        pointer mPtr;
-    };
+	const T& operator[](size_t pNum) const;
+	T& operator[](size_t pNum);
 
-    using ConstIterator = RingBufferIterator<true>;
-    using Iterator = RingBufferIterator<false>;
+	class RingBufferIterator {
+	public:
+		using difference_type = std::ptrdiff_t;
+		using value_type = T;
+		using pointer = T*;
+		using reference = T&;
+		using iterator_category = std::random_access_iterator_tag;
+		using iterator_concept = std::random_access_iterator_tag;
 
-    Iterator begin() { return Iterator(mCapacityBegin); }
-    Iterator end() { return Iterator(mSizeEnd); }
-    ConstIterator begin() const { return ConstIterator(mCapacityBegin); }
-    ConstIterator end() const { return ConstIterator(mSizeEnd); }
-    ConstIterator cbegin() const { return ConstIterator(mCapacityBegin); }
-    ConstIterator cend() const { return ConstIterator(mSizeEnd); }
+		RingBufferIterator() = default;
+
+		RingBufferIterator(pointer pPtr, bool pBegin, bool pEnd, const RingBuffer<T, Allocator>* pParent)
+			: mPtr(pPtr),
+			  mBegin(pBegin),
+			  mEnd(pEnd),
+			  mParent(pParent) {}
+
+		// COPY & MOVE
+		RingBufferIterator(const RingBufferIterator& pOther) = default;
+		RingBufferIterator(RingBufferIterator&& pOther) noexcept = default;
+		RingBufferIterator& operator=(const RingBufferIterator& pOther) = default;
+		RingBufferIterator& operator=(RingBufferIterator&& pOther) noexcept = default;
+
+		// comparators
+		bool operator==(const RingBufferIterator&) const = default;
+
+		// Relation comparison relys on uintptr_t "underflow". It basically means, that the comparison breaks, when the size is bigger than `size_t / 2`.
+		std::strong_ordering operator<=>(const RingBufferIterator& pOther) const {
+			uintptr_t thisDiff = (uintptr_t)mPtr - (uintptr_t)(mParent->mCurrent);
+			uintptr_t otherDiff = (uintptr_t)pOther.mPtr - (uintptr_t)(mParent->mCurrent);
+			if ((mEnd && !pOther.mEnd) || (pOther.mBegin && !mBegin)) {
+				return std::strong_ordering::greater;
+			}
+			if ((mBegin && pOther.mBegin) || (pOther.mEnd && !mEnd)) {
+				return std::strong_ordering::less;
+			}
+			return thisDiff <=> otherDiff;
+		}
+
+		// dereferencable
+		reference operator*() const { return *mPtr; }
+
+		// helper
+		pointer operator->() const { return mPtr; }
+
+		// Prefix increment
+		RingBufferIterator& operator++() {
+			assert(mEnd == false && "Called ++ on an end iterator");
+			mBegin = false;
+			mPtr = mParent->advance(mPtr);
+			if (mParent->mCurrent == mPtr) mEnd = true;
+			return *this;
+		}
+
+		RingBufferIterator& operator--() {
+			assert(mBegin == false && "Called -- on an begin iterator");
+			mEnd = false;
+			mPtr = mParent->retreat(mPtr);
+			if (mParent->mCurrent == mPtr) mBegin = true;
+			return *this;
+		}
+
+		// Postfix increment
+		RingBufferIterator operator++(int) {
+			RingBufferIterator tmp = *this;
+			this->operator++();
+			return tmp;
+		}
+
+		RingBufferIterator operator--(int) {
+			RingBufferIterator tmp = *this;
+			this->operator--();
+			return tmp;
+		}
+
+		// calculation operators
+		// with itself
+		difference_type operator-(const RingBufferIterator& pOther) const {
+			std::ptrdiff_t thisDiff = mPtr - mParent->mCurrent;
+			std::ptrdiff_t otherDiff = pOther.mPtr - mParent->mCurrent;
+			std::ptrdiff_t fullDiff = mParent->mSizeEnd - mParent->mCapacityBegin;
+			if (thisDiff < 0 || (mEnd && thisDiff == 0)) {
+				thisDiff += fullDiff;
+			}
+			if (otherDiff < 0 || (pOther.mEnd && thisDiff == 0)) {
+				otherDiff += fullDiff;
+			}
+			return thisDiff - otherDiff;
+		}
+
+		// with numbers
+		RingBufferIterator& operator+=(const difference_type pNum) {
+			assert(*this - mParent->begin() + pNum <= mParent->end() - mParent->begin() && "tried to move iterator after end!");
+
+			mBegin = false;
+			mPtr += pNum;
+			if (mPtr >= mParent->mSizeEnd) {
+				mPtr = mPtr - mParent->mSizeEnd + mParent->mCapacityBegin;
+			}
+			if (mParent->mCurrent == mPtr) mEnd = true;
+			return *this;
+		}
+
+		RingBufferIterator operator+(const difference_type pNum) const {
+			RingBufferIterator it = *this;
+			it += pNum;
+			return it;
+		}
+
+		friend RingBufferIterator operator+(const difference_type pLhs, const RingBufferIterator& pRhs) {
+			RingBufferIterator it = pRhs;
+			it += pLhs;
+			return it;
+		}
+
+		RingBufferIterator& operator-=(const difference_type pNum) {
+			assert(*this - mParent->begin() - pNum >= 0 && "tried to move iterator before begin!");
+
+			mEnd = false;
+			mPtr -= pNum;
+			if (mPtr < mParent->mCapacityBegin) {
+				mPtr = (T*)((uintptr_t)mPtr + (uintptr_t)mParent->mSizeEnd - (uintptr_t)mParent->mCapacityBegin);
+			}
+			if (mParent->mCurrent == mPtr) mBegin = true;
+			return *this;
+		}
+
+		RingBufferIterator operator-(const difference_type pNum) const {
+			RingBufferIterator it = *this;
+			it -= pNum;
+			return it;
+		}
+
+		// for some reason the const function has to return a non-const reference...
+		// The standard says so, so we have to conform it: `{  j[n]  } -> std::same_as<std::iter_reference_t<I>>;` with `const I j`.
+		// https://en.cppreference.com/w/cpp/iterator/random_access_iterator
+		reference operator[](const difference_type pNum) const {
+			return *(mParent->begin() + pNum);
+		}
+
+		/*
+		 * Only use for debugging!
+		 */
+		friend std::ostream& operator<<(std::ostream& pOs, const RingBufferIterator& pObj) {
+			return pOs
+				<< "mPtr: " << pObj.mPtr
+				<< " mBegin: " << pObj.mBegin
+				<< " mEnd: " << pObj.mEnd
+				<< " mParent: " << pObj.mParent;
+		}
+
+	private:
+		pointer mPtr = nullptr;
+		bool mBegin = false;
+		bool mEnd = false;
+		const RingBuffer<T>* mParent = nullptr;
+	};
+
+
+	static_assert(std::random_access_iterator<RingBufferIterator>);
+
+	// pointer pPtr, bool pBegin, bool pEnd, RingBuffer* pParent
+	RingBufferIterator begin() { return RingBufferIterator(mCurrent, true, mSizeEnd == mCapacityBegin, this); }
+	RingBufferIterator end() { return RingBufferIterator(mCurrent, mSizeEnd == mCapacityBegin, true, this); }
+	const RingBufferIterator begin() const { return RingBufferIterator(mCurrent, true, mSizeEnd == mCapacityBegin, this); }
+	const RingBufferIterator end() const { return RingBufferIterator(mCurrent, mSizeEnd == mCapacityBegin, true, this); }
+	const RingBufferIterator cbegin() const { return RingBufferIterator(mCurrent, true, mSizeEnd == mCapacityBegin, this); }
+	const RingBufferIterator cend() const { return RingBufferIterator(mCurrent, mSizeEnd == mCapacityBegin, true, this); }
+	RingBufferIterator rbegin() { return std::make_reverse_iterator(end()); }
+	RingBufferIterator rend() { return std::make_reverse_iterator(begin()); }
+	const RingBufferIterator rbegin() const { return std::make_reverse_iterator(end()); }
+	const RingBufferIterator rend() const { return std::make_reverse_iterator(begin()); }
+	const RingBufferIterator crbegin() const { return std::make_reverse_iterator(end()); }
+	const RingBufferIterator crend() const { return std::make_reverse_iterator(begin()); }
 
 private:
-    T* mCurrent;
-    T* mSizeEnd;
-    T* mCapacityBegin;
-    T* mCapacityEnd;
+	T* mCurrent;
+	T* mSizeEnd;
+	T* mCapacityBegin;
+	T* mCapacityEnd;
+	Allocator mAlloc;
 
-    T* pushOne();
+	T* pushOne();
+	[[nodiscard]] T* advance(T* pElem) const;
+	[[nodiscard]] T* retreat(T* pElem) const;
 };
 
-template<typename T, size_t Size>
-void RingBuffer<T, Size>::PushBack(T&& pElement) {
-    T* elem = pushOne();
-    new (elem) T(pElement);
+// test if the range is also valid
+static_assert(std::ranges::random_access_range<RingBuffer<uint64_t>>);
+static_assert(std::ranges::random_access_range<const RingBuffer<uint64_t>>);
+
+template <typename T, typename Allocator>
+void RingBuffer<T, Allocator>::PushBack(T&& pElement) {
+	T* elem = pushOne();
+	new(elem) T(pElement);
 }
 
-template<typename T, size_t Size>
-void RingBuffer<T, Size>::PushBack(const T& pElement) {
-    T* elem = pushOne();
-    new (elem) T(pElement);
+template <typename T, typename Allocator>
+void RingBuffer<T, Allocator>::PushBack(const T& pElement) {
+	T* elem = pushOne();
+	new(elem) T(pElement);
 }
 
-template<typename T, size_t Capacity>
-T* RingBuffer<T, Capacity>::pushOne() {
-    // If capacity not given, push end once and get old end
-    if (mSizeEnd < mCapacityEnd) {
-        T* oldEnd = mSizeEnd;
-        ++mSizeEnd;
-        mCurrent = oldEnd;
-        return oldEnd;
-    } else {
-        if (++mCurrent == mCapacityEnd) mCurrent = mCapacityBegin;
-        // call destructor of removed element
-        mCurrent->~T();
-        return mCurrent;
-    }
+template <typename T, typename Allocator>
+T* RingBuffer<T, Allocator>::pushOne() {
+	// If first element
+	if (mSizeEnd == mCapacityBegin) {
+		++mSizeEnd;
+		return mCapacityBegin;
+	}
+
+	if (mSizeEnd != mCapacityEnd) {
+		T* current = mSizeEnd;
+		++mSizeEnd;
+		return current;
+	}
+
+	// advance begin and end
+	T* current = mCurrent;
+	mCurrent = advance(mCurrent);
+
+	current->~T();
+	return current;
 }
 
-template<typename T, size_t Capacity>
-template<typename... Args>
-void RingBuffer<T, Capacity>::EmplaceBack(const Args& ... args) {
-    T* elem = pushOne();
-    new (elem) T(args...);
+template <typename T, typename Allocator>
+T* RingBuffer<T, Allocator>::advance(T* pElem) const {
+	auto val = pElem + 1;
+	if (val >= mSizeEnd) return mCapacityBegin;
+	return val;
+}
+
+template <typename T, typename Allocator>
+T* RingBuffer<T, Allocator>::retreat(T* pElem) const {
+	auto val = pElem;
+	if (val <= mCapacityBegin) val = mSizeEnd;
+	--val;
+	return val;
+}
+
+template <typename T, typename Allocator>
+template <typename... Args>
+void RingBuffer<T, Allocator>::EmplaceBack(const Args& ... args) {
+	T* elem = pushOne();
+	new(elem) T(args...);
+}
+
+template <typename T, typename Allocator>
+T& RingBuffer<T, Allocator>::Back() {
+	return *retreat(mCurrent);
+}
+
+template <typename T, typename Allocator>
+const T& RingBuffer<T, Allocator>::Back() const {
+	return *retreat(mCurrent);
+}
+
+template <typename T, typename Allocator>
+void RingBuffer<T, Allocator>::Clear() {
+	for (auto it = begin(); it != end(); ++it) {
+		(*it).~T();
+	}
+
+	mCurrent = mSizeEnd = mCapacityBegin;
+}
+
+template <typename T, typename Allocator>
+size_t RingBuffer<T, Allocator>::Size() const {
+	return mSizeEnd - mCapacityBegin;
+}
+
+template <typename T, typename Allocator>
+void RingBuffer<T, Allocator>::Resize(size_t pNewCapacity) {
+	// backup old data
+	T* current = mCurrent;
+	T* sizeEnd = mSizeEnd;
+	T* capacityBegin = mCapacityBegin;
+	T* capacityEnd = mCapacityEnd;
+
+	// allocate new memory
+	mCapacityBegin = mAlloc.allocate(pNewCapacity);
+	// mCapacityBegin = static_cast<T*>(calloc(pInitialCapacity, sizeof(T)));
+	mCapacityEnd = mCapacityBegin + pNewCapacity;
+	mCurrent = mCapacityBegin;
+	mSizeEnd = mCapacityBegin;
+
+	// iterate over old elements and move them
+	// Also deconstruct them
+	// if there are old elements
+	T* val = current;
+	while (sizeEnd != capacityBegin) {
+		PushBack(std::move(*val));
+		val->~T();
+
+		val = val + 1;
+		if (val >= sizeEnd) val = capacityBegin;
+		if (val == current) break;
+	}
+
+	// deallocate old ram
+	mAlloc.deallocate(capacityBegin, capacityEnd - capacityBegin);
+}
+
+template <typename T, typename Allocator>
+const T& RingBuffer<T, Allocator>::operator[](size_t pNum) const {
+	const auto var = begin() + pNum;
+	return *var;
+}
+
+template <typename T, typename Allocator>
+T& RingBuffer<T, Allocator>::operator[](size_t pNum) {
+	auto var = begin() + pNum;
+	return *var;
 }
