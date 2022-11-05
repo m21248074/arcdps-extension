@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <vector>
 #include <Windows.h>
 
 // Expected usage is as follows:
