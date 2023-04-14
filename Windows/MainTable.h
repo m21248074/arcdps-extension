@@ -21,6 +21,8 @@
 #include <functional>
 #include <string>
 #include <map>
+#include <vector>
+#include <algorithm>
 
 // Disable conversion warnings in this file
 #pragma warning( push )
@@ -108,6 +110,15 @@ concept SmallerThanMaxColumnAmount = requires {
  * - Call `Draw()` in `DrawContent()`
  * - Call `DrawColumnSetupMenu()` in `DrawContextMenu()` if you want to hide your columns.
  * - Use `MigrateSettings` when you made changes to the table, that need the settings to be migrated. NEVER migrate within the Settings object itself, cause that would be too early.
+ *
+ * Hoe do settings work:<br>
+ * Settings are still similar to how ImGui has designed them to be.
+ * The biggest difference is that columns are now saved based on the UserID instead of the index.
+ * The uniqueness of that ID has to be handled by the caller.
+ * When Migrating settings, delete what you removed, when adding new elements, only migrate the (still indexbased) DisplayOrder.
+ * When removing elements, only migrate the DisplayOrder as well.
+ * That is not all, there are some weird byproducts with the TableFlags and the SavedFlags.<br>
+ * !!! TEST THE SETTINGS MIGRATION REALLY WELL, IT IS SOMETIMES UNPREDICTABLE !!!
  */
 template <size_t MaxColumnCount = 64>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
@@ -145,6 +156,22 @@ public:
 	    ImU8                    SortDirection : 2 = ImGuiSortDirection_None;
 	    ImU8                    IsEnabled : 1 = 1; // "Visible" in ini file
 	    ImU8                    IsStretch : 1 = 0;
+
+		std::strong_ordering operator<=>(const TableColumnSettings& pOther) const {
+			return UserID <=> pOther.UserID;
+		}
+
+		std::strong_ordering operator<=>(const ImGuiID& pOther) const {
+			return UserID <=> pOther;
+		}
+
+		bool operator==(const TableColumnSettings& pOther) const {
+			return UserID == pOther.UserID;
+		}
+
+		bool operator==(const ImGuiID& pOther) const {
+			return UserID == pOther;
+		}
 	};
 	struct TableSettings {
 		ImU32                            Version = 0;   // Is set to true if the ImGui Ini was migrated.
@@ -488,9 +515,7 @@ private:
 
 	// Restore initial state of table (with or without saved settings)
 	void ResetSettings();
-	void LoadSettingsImGuiIni();
 	void LoadSettingsCustom();
-	void SaveSettingsImGuiIni();
 	void SaveSettingsCustom();
 	void MigrateIniSettings();
 
@@ -951,72 +976,6 @@ void MainTable<MaxColumnCount>::ResetSettings() {
 
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
-void MainTable<MaxColumnCount>::LoadSettingsImGuiIni() {
-	ImGuiContext& g = *GImGui;
-	mTable.IsSettingsRequestLoad = false;
-	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
-		return;
-
-	// Bind settings
-	ImGuiTableSettings* settings;
-	if (mTable.SettingsOffset == -1)
-	{
-		settings = ImGui::TableSettingsFindByID(mTable.ID);
-		if (settings == NULL)
-			return;
-		if (settings->ColumnsCount != mTable.ColumnsCount) // Allow settings if columns count changed. We could otherwise decide to return...
-			mTable.IsSettingsDirty = true;
-		mTable.SettingsOffset = g.SettingsTables.offset_from_ptr(settings);
-	}
-	else
-	{
-		settings = GetBoundSettings();
-	}
-
-	mTable.SettingsLoadedFlags = settings->SaveFlags;
-	mTable.RefScale = settings->RefScale;
-
-	// Serialize ImGuiTableSettings/ImGuiTableColumnSettings into ImGuiTable/ImGuiTableColumn
-	ImGuiTableColumnSettings* column_settings = settings->GetColumnSettings();
-	ImU64 display_order_mask = 0;
-	for (int data_n = 0; data_n < settings->ColumnsCount; data_n++, column_settings++)
-	{
-		int column_n = column_settings->Index;
-		if (column_n < 0 || column_n >= mTable.ColumnsCount)
-			continue;
-
-		TableColumn* column = &mTable.Columns[column_n];
-		if (settings->SaveFlags & ImGuiTableFlags_Resizable)
-		{
-			if (column_settings->IsStretch)
-				column->StretchWeight = column_settings->WidthOrWeight;
-			else
-				column->WidthRequest = column_settings->WidthOrWeight;
-			column->AutoFitQueue = 0x00;
-		}
-		if (settings->SaveFlags & ImGuiTableFlags_Reorderable)
-			column->DisplayOrder = column_settings->DisplayOrder;
-		else
-			column->DisplayOrder = (TableColumnIdx)column_n;
-		display_order_mask |= (ImU64)1 << column->DisplayOrder;
-		column->IsEnabled = column->IsEnabledNextFrame = column_settings->IsEnabled;
-		column->SortOrder = column_settings->SortOrder;
-		column->SortDirection = column_settings->SortDirection;
-	}
-
-	// Validate and fix invalid display order data
-	const ImU64 expected_display_order_mask = (settings->ColumnsCount == 64) ? ~0 : ((ImU64)1 << settings->ColumnsCount) - 1;
-	if (display_order_mask != expected_display_order_mask)
-		for (int column_n = 0; column_n < mTable.ColumnsCount; column_n++)
-			mTable.Columns[column_n].DisplayOrder = (TableColumnIdx)column_n;
-
-	// Rebuild index
-	for (int column_n = 0; column_n < mTable.ColumnsCount; column_n++)
-		mTable.DisplayOrderToIndex[mTable.Columns[column_n].DisplayOrder] = (TableColumnIdx)column_n;
-}
-
-template <size_t MaxColumnCount>
-requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::LoadSettingsCustom() {
 	mTable.IsSettingsRequestLoad = false;
 	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings)
@@ -1037,29 +996,33 @@ void MainTable<MaxColumnCount>::LoadSettingsCustom() {
 
 	// Serialize ImGuiTableSettings/ImGuiTableColumnSettings into ImGuiTable/ImGuiTableColumn
 	ColumnBitMask display_order_mask;
-	for (int idx = 0; idx < settings.Columns.size(); ++idx) {
-		const auto& column_settings = settings.Columns[idx];
-
-		if (idx < 0 || idx >= mTable.ColumnsCount)
-			continue;
-
+	for (int idx = 0; idx < mTable.Columns.size(); ++idx) {
 		TableColumn* column = &mTable.Columns[idx];
+
+		// Preset userID, we need it for loading the settings
+		column->UserID = mColumns[idx].UserId;
+
+		const auto& column_settings = std::find(settings.Columns.begin(), settings.Columns.end(), column->UserID);
+		if (column_settings == settings.Columns.end()) {
+			continue;
+		}
+
 		if (settings.SaveFlags & ImGuiTableFlags_Resizable)
 		{
-			if (column_settings.IsStretch)
-				column->StretchWeight = column_settings.WidthOrWeight;
+			if (column_settings->IsStretch)
+				column->StretchWeight = column_settings->WidthOrWeight;
 			else
-				column->WidthRequest = column_settings.WidthOrWeight;
+				column->WidthRequest = column_settings->WidthOrWeight;
 			column->AutoFitQueue = 0x00;
 		}
 		if (settings.SaveFlags & ImGuiTableFlags_Reorderable)
-			column->DisplayOrder = column_settings.DisplayOrder;
+			column->DisplayOrder = column_settings->DisplayOrder;
 		else
 			column->DisplayOrder = (TableColumnIdx)idx;
 		if (column->DisplayOrder >= 0) display_order_mask.set(column->DisplayOrder);
-		column->IsEnabled = column->IsEnabledNextFrame = column_settings.IsEnabled;
-		column->SortOrder = column_settings.SortOrder;
-		column->SortDirection = column_settings.SortDirection;
+		column->IsEnabled = column->IsEnabledNextFrame = column_settings->IsEnabled;
+		column->SortOrder = column_settings->SortOrder;
+		column->SortDirection = column_settings->SortDirection;
 	}
 
 	// Validate and fix invalid display order data
@@ -2059,62 +2022,6 @@ float MainTable<MaxColumnCount>::GetColumnWidthAuto(TableColumn* column) {
 
 template <size_t MaxColumnCount>
 requires SmallerThanMaxColumnAmount<MaxColumnCount>
-void MainTable<MaxColumnCount>::SaveSettingsImGuiIni() {
-	mTable.IsSettingsDirty = false;
-	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings || (getCustomColumnsActive() && mSpecificColumnsActive))
-		return;
-
-	// Bind or create settings data
-	ImGuiContext& g = *GImGui;
-	ImGuiTableSettings* settings = GetBoundSettings();
-	if (settings == NULL)
-	{
-		settings = ImGui::TableSettingsCreate(mTable.ID, mTable.ColumnsCount);
-		mTable.SettingsOffset = g.SettingsTables.offset_from_ptr(settings);
-	}
-	settings->ColumnsCount = (TableColumnIdx)mTable.ColumnsCount;
-
-	// Serialize ImGuiTable/ImGuiTableColumn into ImGuiTableSettings/ImGuiTableColumnSettings
-	IM_ASSERT(settings->ID == mTable.ID);
-	IM_ASSERT(settings->ColumnsCount == mTable.ColumnsCount && settings->ColumnsCountMax >= settings->ColumnsCount);
-	TableColumn* column = mTable.Columns.Data;
-	ImGuiTableColumnSettings* column_settings = settings->GetColumnSettings();
-
-	bool save_ref_scale = false;
-	settings->SaveFlags = ImGuiTableFlags_None;
-	for (int n = 0; n < mTable.ColumnsCount; n++, column++, column_settings++)
-	{
-		const float width_or_weight = (column->Flags & ImGuiTableColumnFlags_WidthStretch) ? column->StretchWeight : column->WidthRequest;
-		column_settings->WidthOrWeight = width_or_weight;
-		column_settings->Index = (TableColumnIdx)n;
-		column_settings->DisplayOrder = column->DisplayOrder;
-		column_settings->SortOrder = column->SortOrder;
-		column_settings->SortDirection = column->SortDirection;
-		column_settings->IsEnabled = column->IsEnabled;
-		column_settings->IsStretch = (column->Flags & ImGuiTableColumnFlags_WidthStretch) ? 1 : 0;
-		if ((column->Flags & ImGuiTableColumnFlags_WidthStretch) == 0)
-			save_ref_scale = true;
-
-		// We skip saving some data in the .ini file when they are unnecessary to restore our state.
-		// Note that fixed width where initial width was derived from auto-fit will always be saved as InitStretchWeightOrWidth will be 0.0f.
-		// FIXME-TABLE: We don't have logic to easily compare SortOrder to DefaultSortOrder yet so it's always saved when present.
-		if (width_or_weight != column->InitStretchWeightOrWidth)
-			settings->SaveFlags |= ImGuiTableFlags_Resizable;
-		if (column->DisplayOrder != n)
-			settings->SaveFlags |= ImGuiTableFlags_Reorderable;
-		if (column->SortOrder != -1)
-			settings->SaveFlags |= ImGuiTableFlags_Sortable;
-		if (column->IsEnabled != ((column->Flags & ImGuiTableColumnFlags_DefaultHide) == 0))
-			settings->SaveFlags |= ImGuiTableFlags_Hideable;
-	}
-	settings->SaveFlags &= mTable.Flags;
-	settings->RefScale = save_ref_scale ? mTable.RefScale : 0.0f;
-
-	ImGui::MarkIniSettingsDirty();
-}
-
-template <size_t MaxColumnCount>
-requires SmallerThanMaxColumnAmount<MaxColumnCount>
 void MainTable<MaxColumnCount>::SaveSettingsCustom() {
 	mTable.IsSettingsDirty = false;
 	if (mTable.Flags & ImGuiTableFlags_NoSavedSettings || (getCustomColumnsActive() && mSpecificColumnsActive))
@@ -2138,6 +2045,7 @@ void MainTable<MaxColumnCount>::SaveSettingsCustom() {
 		TableColumnSettings& column_settings = settings.Columns.emplace_back();
 		const float width_or_weight = (column->Flags & ImGuiTableColumnFlags_WidthStretch) ? column->StretchWeight : column->WidthRequest;
 		column_settings.WidthOrWeight = width_or_weight;
+		column_settings.UserID = column->UserID;
 		// column_settings.Index = (TableColumnIdx)n;
 		column_settings.DisplayOrder = column->DisplayOrder;
 		column_settings.SortOrder = column->SortOrder;

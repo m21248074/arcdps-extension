@@ -79,10 +79,8 @@ public:
 	virtual Version ParseVersion(std::string_view versionString);
 	bool PerformDownload(const std::string& pUrl, const std::string& pDestinationPath);
 
-#ifndef ARCDPS_EXTENSION_NO_CPR
 	// Can throw http errors
 	std::optional<std::tuple<Version, std::string>> GetLatestRelease(std::string&& pRepo, bool pAllowPreRelease);
 	virtual bool HttpDownload(const std::string& pUrl, std::ofstream& pOutputStream);
 	virtual std::optional<std::string> HttpGet(const std::string& pUrl);
-#endif
 };
