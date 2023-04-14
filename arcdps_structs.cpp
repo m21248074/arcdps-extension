@@ -91,7 +91,7 @@ arc_export_func_u64 ARC_EXPORT_E7 = arcExportDefaults;
 e3_func_ptr ARC_LOG_FILE = e3Defaults;
 e3_func_ptr ARC_LOG = e3Defaults;
 
-bool is_player(ag* new_player)
+bool is_player(const ag* new_player)
 {
 	return new_player
 		&& new_player->elite != 0xffffffff

@@ -4,7 +4,7 @@
 #include <string>
 #include <Windows.h>
 
-bool is_player(ag* new_player);
+bool is_player(const ag* new_player);
 
 typedef uintptr_t (*WindowCallbackSignature)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 typedef uintptr_t (*CombatCallbackSignature)(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision);

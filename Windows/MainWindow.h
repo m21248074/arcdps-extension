@@ -17,6 +17,7 @@
 #endif
 
 #include <functional>
+#include <memory>
 
 enum MainWindowFlags_ : int {
 	MainWindowFlags_None = 0,

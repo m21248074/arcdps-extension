@@ -103,6 +103,7 @@
     <ClInclude Include="KeyInput.h" />
     <ClInclude Include="Localization.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="MobIDs.h" />
     <ClInclude Include="MumbleLink.h" />
     <ClInclude Include="nlohmannJsonExtension.h" />
     <ClInclude Include="rapidfuzz_amalgamated.hpp" />

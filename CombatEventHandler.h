@@ -14,10 +14,20 @@ public:
 
     void Event(cbtevent* pEvent, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId, uint64_t pRevision = 1);
 
+    bool EventsPending();
+
+    /**
+     * Reset everything here aka. calls Reset on the sequencer.
+     * This has no live api uses. Only use in tests!
+     */
+    void Reset() {
+	    mSequencer.Reset();
+    }
+
 protected:
     /**
      * Agent is added to the tracking
-    * @param pAccountName AccountName of the adedd agent
+     * @param pAccountName AccountName of the adedd agent
      * @param pCharacterName CharacterName of the added agent
      * @param pId The ID of the added agent
      * @param pInstanceId Current Map instance ID, used to detect if players are on the same instance.
@@ -57,7 +67,7 @@ protected:
      * @param pAgentId The ID of the agent
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void EnterCombat(double pTime, uintptr_t pAgentId, uint8_t pSubgroup, const ag& pAgent) {
+    virtual void EnterCombat(uint64_t pTime, uintptr_t pAgentId, uint8_t pSubgroup, const ag& pAgent) {
 	    Log("EnterCombat");
     }
 
@@ -67,7 +77,7 @@ protected:
      * @param pAgentId The ID of the agent
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void ExitCombat(double pTime, uintptr_t pAgentId, const ag& pAgent) {
+    virtual void ExitCombat(uint64_t pTime, uintptr_t pAgentId, const ag& pAgent) {
 	    Log("ExitCombat");
     }
 
@@ -77,7 +87,7 @@ protected:
      * @param pAgentId The ID of the agent
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void ChangeUp(double pTime, uintptr_t pAgentId, const ag& pAgent) {
+    virtual void ChangeUp(uint64_t pTime, uintptr_t pAgentId, const ag& pAgent) {
 	    Log("ChangeUp");
     }
 
@@ -87,7 +97,7 @@ protected:
      * @param pAgentId The ID of the agent
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void ChangeDead(double pTime, uintptr_t pAgentId, const ag& pAgent) {
+    virtual void ChangeDead(uint64_t pTime, uintptr_t pAgentId, const ag& pAgent) {
 	    Log("ChangeDead");
     }
 
@@ -97,7 +107,7 @@ protected:
      * @param pAgentId The ID of the agent
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void ChangeDown(double pTime, uintptr_t pAgentId, const ag& pAgent) {
+    virtual void ChangeDown(uint64_t pTime, uintptr_t pAgentId, const ag& pAgent) {
 	    Log("ChangeDown");
     }
 
@@ -105,9 +115,9 @@ protected:
      * @param pTime Time of the event (Windows timegettime function aka. time since startup)
      * @param pServerTime Current unix timestamp on the server (UTC)
      * @param pLocalTime Current unix timestamp of local user time
-     * @param pSpeciesId Species ID of the boss that this Log is for.
+     * @param pSpeciesId Species ID of the boss that this Log is for (normally 1).
      */
-    virtual void LogStart(double pTime, uint32_t pServerTime, uint32_t pLocalTime, uintptr_t pSpeciesId) {
+    virtual void LogStart(uint64_t pTime, uint32_t pServerTime, uint32_t pLocalTime, uintptr_t pSpeciesId) {
 	    Log("LogStart");
     }
 
@@ -117,8 +127,18 @@ protected:
      * @param pLocalTime Current unix timestamp of local user time
      * @param pSpeciesId Species ID of the boss that this Log is for.
      */
-    virtual void LogEnd(double pTime, uint32_t pServerTime, uint32_t pLocalTime, uintptr_t pSpeciesId) {
+    virtual void LogEnd(uint64_t pTime, uint32_t pServerTime, uint32_t pLocalTime, uintptr_t pSpeciesId) {
 	    Log("LogEnd");
+    }
+
+	/**
+	 * @param pTime Time of the event (Windows timegettime function aka. time since startup)
+     * @param pServerTime Current unix timestamp on the server (UTC)
+     * @param pLocalTime Current unix timestamp of local user time
+     * @param pSpeciesId Species ID of the boss that this Log is for.
+	 */
+	virtual void LogNpcUpdate(uint64_t pTime, uint32_t pServerTime, uint32_t pLocalTime, uintptr_t pSpeciesId) {
+	    Log("LogNpcUpdate");
     }
 
     /**
@@ -127,7 +147,7 @@ protected:
      * @param pWeaponSet The weaponSet which was swapped to
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void WeaponSwap(double pTime, uintptr_t pAgentId, WeaponSet pWeaponSet, const ag& pAgent) {
+    virtual void WeaponSwap(uint64_t pTime, uintptr_t pAgentId, WeaponSet pWeaponSet, const ag& pAgent) {
 	    Log("WeaponSwap");
     }
 
@@ -138,7 +158,7 @@ protected:
      * @param pRewardId The Id of the reward you get (not always unique, but mostly)
      * @param pRewardType The Type of the reward
      */
-    virtual void Reward(double pTime, uintptr_t pSelfId, uintptr_t pRewardId, int32_t pRewardType) {
+    virtual void Reward(uint64_t pTime, uintptr_t pSelfId, uintptr_t pRewardId, int32_t pRewardType) {
 	    Log("Reward");
     }
 
@@ -148,7 +168,7 @@ protected:
      * @param pNewTeam The new team the agent is now part if
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void TeamChange(double pTime, uintptr_t pAgentId, uintptr_t pNewTeam, const ag& pAgent) {
+    virtual void TeamChange(uint64_t pTime, uintptr_t pAgentId, uintptr_t pNewTeam, const ag& pAgent) {
 	    Log("TeamChange");
     }
 
@@ -158,7 +178,7 @@ protected:
      * @param pStackId The StackId that is marked as active
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void StackActive(double pTime, uintptr_t pAgentId, uintptr_t pStackId, const ag& pAgent) {
+    virtual void StackActive(uint64_t pTime, uintptr_t pAgentId, uintptr_t pStackId, const ag& pAgent) {
 	    Log("StackActive");
     }
 
@@ -170,7 +190,7 @@ protected:
      * @param pStackId The StackId that is changed and marked inactive
      * @param pAgent The actual agent if it is needed with additional information (charactername)
      */
-    virtual void StackReset(double pTime, uintptr_t pAgentId, uintptr_t pDuration, uint32_t pStackId, const ag& pAgent) {
+    virtual void StackReset(uint64_t pTime, uintptr_t pAgentId, uintptr_t pDuration, uint32_t pStackId, const ag& pAgent) {
 	    Log(std::format("StackReset|agentName {}|duration {}|stackId {}", pAgent.name, pDuration, pStackId));
     }
 
@@ -178,7 +198,7 @@ protected:
      * Reset all stats (this is there when the arcdps api resets all it's stats. e.g. after the Xera pre)
      * @param pTime Time of the event (Windows timegettime function aka. time since startup)
      */
-    virtual void StatReset(double pTime) {
+    virtual void StatReset(uint64_t pTime) {
 	    Log("StatReset");
     }
 
@@ -186,7 +206,7 @@ protected:
      * Extension is used when extensions send events over arcdps (the only addon i know that does this is the healing stats addon).
      * If you want to parse anything of that life, you have to pare it yourself.
      */
-    virtual void Extension(double pTime, cbtevent* pEvent, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId) {
+    virtual void Extension(uint64_t pTime, cbtevent* pEvent, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId) {
 	    Log("Extension");
     }
 
@@ -196,7 +216,7 @@ protected:
      * This has to be parsed by yourself, cause i don't know how this works exactly.
      * If you want to use this you can also parse the events previously and send them over the correct channels.
      */
-    virtual void Delayed(double pTime, cbtevent* pEvent, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId) {
+    virtual void Delayed(uint64_t pTime, cbtevent* pEvent, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId) {
 	    Log("Delayed");
     }
 
@@ -205,7 +225,7 @@ protected:
      * @param pTime Time of the event (Windows timegettime function aka time since startup)
      * @param pStartTime roughly the log-relative ms that the server started the instance
      */
-    virtual void InstanceStart(double pTime, uintptr_t pStartTime) {
+    virtual void InstanceStart(uint64_t pTime, uintptr_t pStartTime) {
 	    Log("InstanceStart");
     }
 
@@ -214,7 +234,7 @@ protected:
      * @param pTime Time of the event (Windows timegettime function aka time since startup)
      * @param pData = 25 - tickrate (when tickrate < 21)
      */
-    virtual void Tickrate(double pTime, uintptr_t pData) {
+    virtual void Tickrate(uint64_t pTime, uintptr_t pData) {
 	    Log("Tickrate");
     }
 
@@ -223,7 +243,7 @@ protected:
      * @param pEnemyAgent enemy agent that went down
      * @param pSinceTime time in ms since last 90% (for downs contribution)
      */
-    virtual void Last90BeforeDown(double pTime, uintptr_t pEnemyAgent, uintptr_t pSinceTime) {
+    virtual void Last90BeforeDown(uint64_t pTime, uintptr_t pEnemyAgent, uintptr_t pSinceTime) {
 	    Log("Last90BeforeDown");
     }
 
@@ -232,7 +252,7 @@ protected:
      * For more information see the arcdps documentation.
      * If you need deduction, change these files and create a PR.
      */
-    virtual void Activation(double pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
+    virtual void Activation(uint64_t pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
 	    Log("Activation");
     }
 
@@ -242,7 +262,7 @@ protected:
      * For more information see the arcdps documentation.
      * If you need deduction, change these files and create a PR.
      */
-    virtual void BuffRemove(double pTime, const cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
+    virtual void BuffRemove(uint64_t pTime, const cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId, uint32_t pStackId) {
 	    Log("BuffRemove");
     }
 
@@ -252,7 +272,7 @@ protected:
      * For more information see the arcdps documentation.
      * If you need deduction, change these files and create a PR.
      */
-    virtual void BuffDamage(double pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
+    virtual void BuffDamage(uint64_t pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
 	    Log("BuffDamage");
     }
 
@@ -262,7 +282,7 @@ protected:
      * For more information see the arcdps documentation.
      * If you need deduction, change these files and create a PR.
      */
-    virtual void BuffApply(double pTime, const cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId, uint32_t pStackId) {
+    virtual void BuffApply(uint64_t pTime, const cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId, uint32_t pStackId) {
 	    Log("BuffApply");
     }
 
@@ -272,18 +292,24 @@ protected:
      * For more information see the arcdps documentation.
      * If you need deduction, change these files and create a PR.
      */
-    virtual void Strike(double pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
+    virtual void Strike(uint64_t pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
 	    Log("Strike");
     }
 
-    virtual void BuffInitial(double pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId) {
+    virtual void BuffInitial(uint64_t pTime, cbtevent* pEvent, const ag& pSrc, const ag& pDst, const char* pSkillname, uint64_t pId, uint32_t pStackId) {
 	    Log("BuffInitial");
     }
 
     virtual void Log(const std::string& pText) {}
 
+	/**
+	 * The time of the currently executed Event. Reset every executed event.
+	 */
+	uint64_t mLastEventTime = 0;
+
 private:
     EventSequencer mSequencer;
 
     void EventInternal(cbtevent* pEvent, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId);
+    void BuffEvent(cbtevent* pEvent, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId);
 };

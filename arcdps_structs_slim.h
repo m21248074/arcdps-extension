@@ -89,6 +89,7 @@ enum cbtstatechange : uint8_t {
 	CBTS_LAST90BEFOREDOWN, // src_agent is enemy agent that went down, dst_agent is time in ms since last 90% (for downs contribution)
 	CBTS_EFFECT, // src_agent is owner. dst_agent if at agent, else &value = float[3] xyz, &iff = float[2] xy orient, &pad61 = float[1] z orient, skillid = effectid. if is_flanking: duration = trackingid. &is_shields = uint16 duration. if effectid = 0, end &is_shields = trackingid (not in realtime api)
 	CBTS_IDTOGUID, // &src_agent = 16byte persistent content guid, overstack_value is of contentlocal enum, skillid is content id  (not in realtime api)
+	CBTS_LOGNPCUPDATE, //log npc update. value = server unix timestamp **uint32**. buff_dmg = local unix timestamp. src_agent = species id
 	CBTS_UNKNOWN, // unknown or invalid, ignore
 };
 

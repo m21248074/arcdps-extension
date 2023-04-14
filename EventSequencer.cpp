@@ -1,219 +1,79 @@
 #include "EventSequencer.h"
 
-#include <cassert>
+#include <algorithm>
 
-EventSequencer::EventSequencer(const CallbackSignature& pCallback)
-	: mCallback(pCallback) {
-	for (uint32_t i = 0; i < MAX_QUEUED_EVENTS; i++) {
-		mQueuedEvents[i].id = 0;
-	}
+void EventSequencer::ProcessEvent(cbtevent* pEv, ag* pSrc, ag* pDst, const char* pSkillname, uint64_t pId, uint64_t pRevision) {
+    std::lock_guard guard(mElementsMutex);
+    if (pId == 0) {
+	    if (mElements.empty()) {
+            mCallback(pEv, pSrc, pDst, pSkillname, pId, pRevision);
+	    	// mPriorityElements.emplace(pEv, pSrc, pDst, pSkillname, mNextId, pRevision);
+	    	return;
+	    }
+	    
+	    // insert it in the prio queue
+	    mElements.emplace(pEv, pSrc, pDst, pSkillname, mLastId, pRevision);
+    } else {
+        mLastId = pId;
+	    mElements.emplace(pEv, pSrc, pDst, pSkillname, pId, pRevision);
+    }
 }
 
-uintptr_t EventSequencer::ProcessEvent(cbtevent* pEvent, ag* pSourceAgent, ag* pDestinationAgent, const char* pSkillname, uint64_t pId, uint64_t pRevision) {
-	if (pId == 0) { // id 0 can occur multiple times and is unordered
-		mCallback(pEvent, pSourceAgent, pDestinationAgent, pSkillname, pId, pRevision);
-		return 0;
-	}
-
-	uint64_t current = mHighestId.load(std::memory_order_acquire);
-	while (true) {
-		if (current == pId) {
-			//assert(false);
-
-			mCallback(pEvent, pSourceAgent, pDestinationAgent, pSkillname, pId, pRevision);
-			return 0;
-		}
-
-		if (current == UINT64_MAX) {
-			bool result = mHighestId.compare_exchange_weak(current, pId - 1, std::memory_order_acq_rel);
-			DBG_UNREFERENCED_LOCAL_VARIABLE(result);
-
-			current = mHighestId.load(std::memory_order_acquire);
-			continue;
-		} else if (current > (pId - 1)) // Race condition after registering first event
-		{
-			mCallback(pEvent, pSourceAgent, pDestinationAgent, pSkillname, pId, pRevision);
-			return 0;
-		} else if (current == (pId - 1)) { // Fast path (most common)
-			mCallback(pEvent, pSourceAgent, pDestinationAgent, pSkillname, pId, pRevision);
-
-			if (mHighestId.compare_exchange_strong(current, pId, std::memory_order_acq_rel) == false) {
-				assert(false);
-			}
-
-			TryFlushEvents();
-
-			return 0;
-		} else {
-			std::shared_lock lock(mLock);
-
-			// change if current changed since waiting for lock could potentially take quite long
-			uint64_t current2 = mHighestId.load(std::memory_order_acquire);
-			if (current != current2) {
-				current = current2;
-				continue;
-			}
-
-			// Add first so that another racing thread is sure to read mQueuedLocalEventCount != 0 after changing
-			// the value (or it is not able to change the value).
-			uint32_t index = mQueuedEventCount.fetch_add(1, std::memory_order_acq_rel);
-			if (index >= MAX_QUEUED_EVENTS) {
-				// Subtracting here has the same issue as described below in Race2
-
-				assert(false);
-
-				mCallback(pEvent, pSourceAgent, pDestinationAgent, pSkillname, pId, pRevision);
-				return 0;
-			}
-
-			current2 = mHighestId.load(std::memory_order_acquire);
-			if (current != current2) {
-				// We can't decrement because of the race condition
-				// Thread2: fetch_add (0)
-				// Thread3: fetch_add (1)
-				// Thread3: read mHighestId
-				// Thread1: change mHighestId
-				// Thread2: read mHighestId
-				//
-				// If we were to decrement at that point, then index 1 would be given out twice
-				// So instead, we just add the event as completely empty.
-				mQueuedEvents[index].id = 0;
-
-				current = current2;
-				continue;
-			}
-
-			if (pEvent != nullptr) {
-				*static_cast<cbtevent*>(&mQueuedEvents[index].ev) = *pEvent;
-				mQueuedEvents[index].ev.present = true;
-			} else {
-				mQueuedEvents[index].ev.present = false;
-			}
-
-			if (pSourceAgent != nullptr) {
-				mQueuedEvents[index].source_ag.id = pSourceAgent->id;
-				mQueuedEvents[index].source_ag.prof = pSourceAgent->prof;
-				mQueuedEvents[index].source_ag.elite = pSourceAgent->elite;
-				mQueuedEvents[index].source_ag.self = pSourceAgent->self;
-				mQueuedEvents[index].source_ag.team = pSourceAgent->team;
-
-				if (pSourceAgent->name != nullptr) {
-					mQueuedEvents[index].source_ag.name_storage = pSourceAgent->name;
-					mQueuedEvents[index].source_ag.name = mQueuedEvents[index].source_ag.name_storage.c_str();
-				} else {
-					mQueuedEvents[index].source_ag.name = nullptr;
-				}
-
-				mQueuedEvents[index].source_ag.present = true;
-			} else {
-				mQueuedEvents[index].source_ag.present = false;
-			}
-
-			if (pDestinationAgent != nullptr) {
-				mQueuedEvents[index].destination_ag.id = pDestinationAgent->id;
-				mQueuedEvents[index].destination_ag.prof = pDestinationAgent->prof;
-				mQueuedEvents[index].destination_ag.elite = pDestinationAgent->elite;
-				mQueuedEvents[index].destination_ag.self = pDestinationAgent->self;
-				mQueuedEvents[index].destination_ag.team = pDestinationAgent->team;
-
-				if (pDestinationAgent->name != nullptr) {
-					mQueuedEvents[index].destination_ag.name_storage = pDestinationAgent->name;
-					mQueuedEvents[index].destination_ag.name = mQueuedEvents[index].destination_ag.name_storage.c_str();
-				} else {
-					mQueuedEvents[index].destination_ag.name = nullptr;
-				}
-
-				mQueuedEvents[index].destination_ag.present = true;
-			} else {
-				mQueuedEvents[index].destination_ag.present = false;
-			}
-
-			mQueuedEvents[index].skillname = pSkillname;
-			mQueuedEvents[index].id = pId;
-			mQueuedEvents[index].revision = pRevision;
-
-			return 0;
-		}
-	}
+bool EventSequencer::EventsPending() const {
+	return !mElements.empty() || mThreadRunning;
 }
 
-bool EventSequencer::QueueIsEmpty() {
-	bool isEmpty = (mQueuedEventCount.load(std::memory_order_acquire) == 0);
-
-	return isEmpty;
+void EventSequencer::Reset() {
+    std::unique_lock guard(mElementsMutex);
+	mElements.clear();
+    mNextId = 2;
+    mLastId = 2;
 }
 
-void EventSequencer::TryFlushEvents() {
-	if (mQueuedEventCount.load(std::memory_order_acquire) == 0) {
-		return;
-	}
+EventSequencer::EventSequencer(const CallbackSignature& pCallback) : mCallback(pCallback) {
+    using namespace std::chrono_literals;
+    mThread = std::jthread([this](std::stop_token stoken) {
+        while(!stoken.stop_requested()) {
+            while(!stoken.stop_requested() && !mElements.empty()) {
+                Runner();
+            }
 
-	std::unique_lock lock(mLock);
+            if (stoken.stop_requested()) return;
 
-	uint32_t eventCount = mQueuedEventCount.load(std::memory_order_acquire);
-	if (eventCount > MAX_QUEUED_EVENTS) {
-		// This is possible because of Race1 above
-		eventCount = MAX_QUEUED_EVENTS;
-	}
+            std::this_thread::sleep_for(100ms);
+        }
+    });
+    mThread.detach();
+}
 
-	bool removed = false;
-	size_t nonZeroEvents = 0;
-	do {
-		removed = false;
-		nonZeroEvents = 0;
+EventSequencer::~EventSequencer() {
+    if (mThread.joinable()) {
+        mThread.request_stop();
+        mThread.join();
+    }
+}
 
-		for (uint32_t i = 0; i < eventCount; i++) {
-			if (mQueuedEvents[i].id == 0) {
-				continue;
-			}
+void EventSequencer::EventInternal(Event& pElem) {
+    cbtevent* event = nullptr;
+    if (pElem.Ev.Present) {
+	    event = &pElem.Ev;
+    }
 
-			uint64_t current = mHighestId.load(std::memory_order_acquire);
-			if (current != (mQueuedEvents[i].id - 1)) {
-				nonZeroEvents++;
-				continue;
-			}
+    ag* source = nullptr;
+    if (pElem.Source.Present) {
+	    source = &pElem.Source;
+        if (source->name) {
+	        source->name = pElem.Source.NameStorage.c_str();
+        }
+    }
 
-			ag source;
-			ag destination;
+    ag* dest = nullptr;
+    if (pElem.Destination.Present) {
+	    dest = &pElem.Destination;
+        if (dest->name) {
+	        dest->name = pElem.Destination.NameStorage.c_str();
+        }
+    }
 
-			ag* source_arg = nullptr;
-			ag* destination_arg = nullptr;
-			cbtevent* ev_arg = nullptr;
-			if (mQueuedEvents[i].source_ag.present == true) {
-				source_arg = &source;
-				source = *static_cast<ag*>(&mQueuedEvents[i].source_ag);
-			}
-
-			if (mQueuedEvents[i].destination_ag.present == true) {
-				destination_arg = &destination;
-				destination = *static_cast<ag*>(&mQueuedEvents[i].destination_ag);
-			}
-
-			if (mQueuedEvents[i].ev.present == true) {
-				ev_arg = &mQueuedEvents[i].ev;
-			}
-
-			mCallback(ev_arg, source_arg, destination_arg, mQueuedEvents[i].skillname, mQueuedEvents[i].id, mQueuedEvents[i].revision);
-
-			if (mHighestId.compare_exchange_strong(current, mQueuedEvents[i].id, std::memory_order_acq_rel) == false) {
-				assert(false);
-			}
-
-			removed = true;
-			mQueuedEvents[i].id = 0;
-		}
-	} while (removed == true);
-
-	if (nonZeroEvents == 0) {
-		for (uint32_t i = 0; i < MAX_QUEUED_EVENTS; i++) {
-			assert(mQueuedEvents[i].id == 0);
-		}
-
-		uint32_t oldSize = mQueuedEventCount.exchange(0, std::memory_order_acq_rel);
-
-		// No need to worry about races here, this is the only place it's written to and that's done under lock
-		if (mHighestQueueSize.load(std::memory_order_relaxed) < oldSize) {
-			mHighestQueueSize.store(oldSize, std::memory_order_relaxed);
-		}
-	}
+    mCallback(event, source, dest, pElem.Skillname, pElem.Id, pElem.Revision);
 }
