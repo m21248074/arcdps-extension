@@ -10,6 +10,7 @@ ArcdpsExtension::Localization::Localization() {
 	Load(GWL_SPA, EXTENSION_TRANSLATION_SPANISH);
 	Load(GWL_FRE, EXTENSION_TRANSLATION_FRENCH);
 	Load(GWL_CN, EXTENSION_TRANSLATION_CHINESE);
+	Load(GWL_TW, EXTENSION_TRANSLATION_TCHINESE);
 }
 
 std::string_view ArcdpsExtension::Localization::Translate(size_t pId) const {
@@ -39,6 +40,8 @@ std::string_view to_string(ArcdpsExtension::LanguageSetting pLang) {
 			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::Spanish, ArcdpsExtension::ET_LanguageName);
 		case ArcdpsExtension::LanguageSetting::Chinese:
 			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::Chinese, ArcdpsExtension::ET_LanguageName);
+		case ArcdpsExtension::LanguageSetting::TChinese:
+			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::TChinese, ArcdpsExtension::ET_LanguageName);
 		default:
 			return "Error, if you see this, please report it to the developer";
 	}

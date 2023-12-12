@@ -115,6 +115,7 @@ namespace ArcdpsExtension {
 		German = 3,
 		Spanish = 4,
 		Chinese = 5,
+		TChinese = 6,
 	};
 } // namespace ArcdpsExtension
 
