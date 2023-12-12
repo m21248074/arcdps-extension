@@ -9,6 +9,7 @@ Localization::Localization() {
     Load(GWL_GEM, EXTENSION_TRANSLATION_GERMAN);
     Load(GWL_SPA, EXTENSION_TRANSLATION_SPANISH);
     Load(GWL_FRE, EXTENSION_TRANSLATION_FRENCH);
+	Load(GWL_CN, EXTENSION_TRANSLATION_CHINESE);
 }
 
 const std::string &Localization::Translate(size_t pId) const {

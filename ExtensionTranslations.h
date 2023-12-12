@@ -257,6 +257,57 @@ constexpr auto EXTENSION_TRANSLATION_SPANISH = std::to_array({
 	u8"Mostrar la cabecera con texto en lugar de imágenes", // ET_SettingsShowHeaderText
  });
 
+constexpr auto EXTENSION_TRANSLATION_CHINESE = std::to_array({
+	u8"靠左",	            // ET_Left,
+	u8"靠右",	        //     ET_Right,
+	u8"置中",	        //     ET_Center,
+	u8"標準",	        //     ET_Unaligned,
+	u8"手動",	        //     ET_PositionManual,
+	u8"螢幕相對位置",	//     ET_PositionScreenRelative,
+	u8"視窗相對位置",	// 	ET_PositionWindowRelative,
+	u8"未知",	        //     ET_Unknown,
+	u8"左上",	        //     ET_CornerPositionTopLeft,
+	u8"右上",        //     ET_CornerPositionTopRight,
+	u8"左下",	    //     ET_CornerPositionBottomLeft,
+	u8"右下",	    //     ET_CornerPositionBottomRight,
+	u8"根據內容自動調整視窗大小",	//     ET_SizingPolicySizeToContent,
+	u8"調整內容到視窗的大小",	//     ET_SizingPolicySizeContentToWindow,
+	u8"手動調整視窗大小",	//     ET_SizingPolicyManualWindowSize,
+	u8"按鍵綁定",	        //     ET_KeyInputPopupName,
+	u8"確定",	        //     ET_ApplyButton,
+	u8"取消",	        //     ET_CancelButton,
+	u8"{} 有新的更新可用。",	//     ET_UpdateDesc,
+	u8"當前版本",	//     ET_UpdateCurrentVersion,
+	u8"新版本",	    //     ET_UpdateNewVersion,
+	u8"打開下載頁面",	//     ET_UpdateOpenPage,
+	u8"自動更新",	//     ET_UpdateAutoButton,
+	u8"自動更新正在進行中s",	//     ET_UpdateInProgress,
+	u8"自動更新已完成，重新啟動遊戲即可啟動。",	//     ET_UpdateRestartPending,
+	u8"自動更新失敗，請手動更新。",	//     ET_UpdateError,
+	u8"樣式", // ET_Style
+	u8"標題列", // ET_TitleBar
+	u8"背景", // ET_Background
+	u8"滾動條", // ET_Scrollbar
+	u8"邊距", // ET_Padding
+	u8"大小調整策略", // ET_SizingPolicy
+	u8"顯示在選項中的文字", // ET_AppearAsInOption
+	u8"標題列文字", // ET_TitleBarText
+	u8"快捷鍵", // ET_Shortcut
+	u8"位置", // ET_Position
+	u8"從錨點面板角落", // ET_FromAnchorPanelCorner
+	u8"到此面板角落", // ET_ThisPanelCorner
+	u8"錨點視窗", // ET_AnchorWindow
+	u8"欄位設置", // ET_ColumnSetup
+	u8"根據地圖顯示欄位", // ET_ShowBasedOnMap
+	u8"交替表列背景", // ET_AlternatingRowBg
+	u8"突出顯示被懸停的表行", // ET_HighlightHoveredRow
+	u8"最大顯示數量", // ET_MaxDisplayed
+	u8"表頭對齊", // ET_HeaderAlignment
+	u8"表列對齊", // ET_ColumnAlignment
+	u8"語言", // ET_Language
+	u8"標題以文字替代圖標顯示", // ET_SettingsShowHeaderText
+});
+
 #if __has_include("magic_enum.hpp")
 #include <magic_enum.hpp>
 static_assert(EXTENSION_TRANSLATION_ENGLISH.size() == magic_enum::enum_count<ExtensionTranslation>());
@@ -264,3 +315,4 @@ static_assert(EXTENSION_TRANSLATION_ENGLISH.size() == magic_enum::enum_count<Ext
 static_assert(EXTENSION_TRANSLATION_ENGLISH.size() == EXTENSION_TRANSLATION_GERMAN.size());
 static_assert(EXTENSION_TRANSLATION_ENGLISH.size() == EXTENSION_TRANSLATION_FRENCH.size());
 static_assert(EXTENSION_TRANSLATION_ENGLISH.size() == EXTENSION_TRANSLATION_SPANISH.size());
+static_assert(EXTENSION_TRANSLATION_ENGLISH.size() == EXTENSION_TRANSLATION_CHINESE.size());
