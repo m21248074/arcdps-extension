@@ -1,13 +1,16 @@
 cmake_minimum_required(VERSION 3.25)
 
-include(FetchContent)
-FetchContent_Declare(my-vcpkg-triplets
-		GIT_REPOSITORY "https://github.com/Zinn-o-Matics/my-vcpkg-triplets.git"
-		GIT_TAG "master"
-)
-FetchContent_MakeAvailable(my-vcpkg-triplets)
+# only download additional triplets, if we dont run via vcpkg.
+if (NOT FETCHCONTENT_FULLY_DISCONNECTED)
+	include(FetchContent)
+	FetchContent_Declare(my-vcpkg-triplets
+			GIT_REPOSITORY "https://github.com/Zinn-o-Matics/my-vcpkg-triplets.git"
+			GIT_TAG "master"
+	)
+	FetchContent_MakeAvailable(my-vcpkg-triplets)
 
-list(APPEND VCPKG_OVERLAY_TRIPLETS "${my-vcpkg-triplets_SOURCE_DIR}")
+	list(APPEND VCPKG_OVERLAY_TRIPLETS "${my-vcpkg-triplets_SOURCE_DIR}")
+endif ()
 
 project(ArcdpsExtension CXX)
 
