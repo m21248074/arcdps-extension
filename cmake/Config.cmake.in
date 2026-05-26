@@ -1,5 +1,23 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+find_dependency(magic_enum CONFIG)
+find_dependency(nlohmann_json CONFIG)
+
+if (@ARCDPS_EXTENSION_IMGUI@)
+  find_dependency(imgui CONFIG)
+  find_dependency(rapidfuzz CONFIG)
+endif ()
+
+if (@ARCDPS_EXTENSION_UNOFFICIAL_EXTRAS@)
+  find_dependency(ArcdpsUnofficialExtras CONFIG)
+endif ()
+
+if (@ARCDPS_EXTENSION_CURL@)
+  find_dependency(CURL)
+endif ()
+
 include ( "${CMAKE_CURRENT_LIST_DIR}/ArcdpsExtensionTargets.cmake" )
 
 # override Include Directories.
