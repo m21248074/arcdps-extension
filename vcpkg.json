@@ -3,43 +3,43 @@
   "name": "arcdps-extension",
   "version": "2.2.0",
   "dependencies": [
+    "gtest",
     "magic-enum",
-    "nlohmann-json",
-    "gtest"
+    "nlohmann-json"
   ],
   "default-features": [
+    "curl",
     "imgui",
-    "unofficial-extras",
-    "curl"
+    "unofficial-extras"
   ],
   "features": {
-      "imgui": {
-        "description": "make imgui tools available",
-        "dependencies": [
-          "imgui",
-          "rapidfuzz-cpp"
-        ]
-      },
-      "unofficial-extras": {
-        "description": "make tools available, that depend on arcdps-unofficial-extras",
-        "dependencies": [
-          "arcdps-unofficial-extras"
-        ]
-      },
-      "curl":{
-        "description": "make tools available, that depend on curl",
-        "dependencies": [
-          {
-            "name": "curl",
-            "default-features": false,
-            "features": [
-              "non-http",
-              "openssl"
-            ]
-          }
-        ]
-      }
+    "curl": {
+      "description": "make tools available, that depend on curl",
+      "dependencies": [
+        {
+          "name": "curl",
+          "default-features": false,
+          "features": [
+            "non-http",
+            "openssl"
+          ]
+        }
+      ]
     },
+    "imgui": {
+      "description": "make imgui tools available",
+      "dependencies": [
+        "imgui",
+        "rapidfuzz-cpp"
+      ]
+    },
+    "unofficial-extras": {
+      "description": "make tools available, that depend on arcdps-unofficial-extras",
+      "dependencies": [
+        "arcdps-unofficial-extras"
+      ]
+    }
+  },
   "overrides": [
     {
       "name": "imgui",
