@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['heldheadercolumn_0',['HeldHeaderColumn',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a1b443c58a726ffd7a6b0e64aa9480e23',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupcolumnsoffset_1',['HostBackupColumnsOffset',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a51b63a27a44f5a6e2ee07094a34031f5',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupcurrlinesize_2',['HostBackupCurrLineSize',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a07b0d2a18b7b55f152fe7776bd40d80d',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupcursormaxpos_3',['HostBackupCursorMaxPos',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a6c76c866fea7c8470a813a543b96810d',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupinnercliprect_4',['HostBackupInnerClipRect',['../structArcdpsExtension_1_1MainTable_1_1Table.html#afa10be85140604cf49063907f10b51de',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupitemwidth_5',['HostBackupItemWidth',['../structArcdpsExtension_1_1MainTable_1_1Table.html#acbcca2b1d9f4c30d48c3e7a01a023016',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupitemwidthstacksize_6',['HostBackupItemWidthStackSize',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a2730d26dbb04c417b33a12b96abbcbff',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupparentworkrect_7',['HostBackupParentWorkRect',['../structArcdpsExtension_1_1MainTable_1_1Table.html#aa5438abaf714cdad389c4912a99cc3e1',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupprevlinesize_8',['HostBackupPrevLineSize',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a9a44b8d67924d2a28dba18ebd8d20f60',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostbackupworkrect_9',['HostBackupWorkRect',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a7bb14caa7f3604af96d25c748e4867ed',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostcliprect_10',['HostClipRect',['../structArcdpsExtension_1_1MainTable_1_1Table.html#ac13208a37aa15b496b43f90c8c053ef5',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostindentx_11',['HostIndentX',['../structArcdpsExtension_1_1MainTable_1_1Table.html#adc472b9e2fe38a968e5f58ae88f344f6',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hostskipitems_12',['HostSkipItems',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a542d056852c2f43234ca92b387e0b227',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hoveredcolumnbody_13',['HoveredColumnBody',['../structArcdpsExtension_1_1MainTable_1_1Table.html#aafdf11f631cc167aaad1734f0f8b64c9',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hoveredcolumnborder_14',['HoveredColumnBorder',['../structArcdpsExtension_1_1MainTable_1_1Table.html#a984a6d7f2fe35d97fcb4fe5e35ad43f1',1,'ArcdpsExtension::MainTable::Table']]],
+  ['hoveredtext_15',['HoveredText',['../structArcdpsExtension_1_1Row.html#abd25ea69f13cb9f8be081549e5caaf06',1,'ArcdpsExtension::Row']]]
+];

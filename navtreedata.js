@@ -1,0 +1,112 @@
+/*
+ @licstart  The following is the entire license notice for the JavaScript code in this file.
+
+ The MIT License (MIT)
+
+ Copyright (C) 1997-2020 by Dimitri van Heesch
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ and associated documentation files (the "Software"), to deal in the Software without restriction,
+ including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all copies or
+ substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+ @licend  The above is the entire license notice for the JavaScript code in this file
+*/
+var NAVTREE =
+[
+  [ "ArcdpsExtension", "index.html", [
+    [ "ImGUI upgrade", "md_ImGUI_01upgrade.html", null ],
+    [ "Arcdps Extension", "md_Readme.html", [
+      [ "Usage", "md_Readme.html#autotoc_md1", [
+        [ "add to your project", "md_Readme.html#autotoc_md2", [
+          [ "vcpkg", "md_Readme.html#autotoc_md3", null ],
+          [ "git submodule", "md_Readme.html#autotoc_md4", null ]
+        ] ],
+        [ "Use-cases", "md_Readme.html#autotoc_md5", [
+          [ "Update your plugin", "md_Readme.html#autotoc_md6", null ],
+          [ "Loading Icons into DX11", "md_Readme.html#autotoc_md7", null ],
+          [ "Download Network resources", "md_Readme.html#autotoc_md8", null ],
+          [ "arcpds event handling", "md_Readme.html#autotoc_md9", null ],
+          [ "Translations", "md_Readme.html#autotoc_md10", null ],
+          [ "Handling Keybinds", "md_Readme.html#autotoc_md11", null ]
+        ] ]
+      ] ],
+      [ "Dependencies", "md_Readme.html#autotoc_md12", [
+        [ "Unofficial Extras", "md_Readme.html#autotoc_md13", null ],
+        [ "ImGui", "md_Readme.html#autotoc_md14", null ],
+        [ "magic-enum", "md_Readme.html#autotoc_md15", null ],
+        [ "nlohmann-json", "md_Readme.html#autotoc_md16", null ],
+        [ "CURL", "md_Readme.html#autotoc_md17", null ],
+        [ "googletest", "md_Readme.html#autotoc_md18", null ]
+      ] ]
+    ] ],
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
+      [ "Namespace Members", "namespacemembers.html", [
+        [ "All", "namespacemembers.html", null ],
+        [ "Functions", "namespacemembers_func.html", null ],
+        [ "Variables", "namespacemembers_vars.html", null ],
+        [ "Typedefs", "namespacemembers_type.html", null ],
+        [ "Enumerations", "namespacemembers_enum.html", null ],
+        [ "Enumerator", "namespacemembers_eval.html", null ]
+      ] ]
+    ] ],
+    [ "Concepts", "concepts.html", "concepts" ],
+    [ "Classes", "annotated.html", [
+      [ "Class List", "annotated.html", "annotated_dup" ],
+      [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
+      [ "Class Members", "functions.html", [
+        [ "All", "functions.html", "functions_dup" ],
+        [ "Functions", "functions_func.html", "functions_func" ],
+        [ "Variables", "functions_vars.html", "functions_vars" ],
+        [ "Typedefs", "functions_type.html", null ],
+        [ "Enumerations", "functions_enum.html", null ],
+        [ "Enumerator", "functions_eval.html", null ],
+        [ "Related Symbols", "functions_rela.html", null ]
+      ] ]
+    ] ],
+    [ "Files", "files.html", [
+      [ "File List", "files.html", "files_dup" ],
+      [ "File Members", "globals.html", [
+        [ "All", "globals.html", "globals_dup" ],
+        [ "Functions", "globals_func.html", null ],
+        [ "Variables", "globals_vars.html", null ],
+        [ "Typedefs", "globals_type.html", null ],
+        [ "Enumerations", "globals_enum.html", null ],
+        [ "Enumerator", "globals_eval.html", "globals_eval" ],
+        [ "Macros", "globals_defs.html", "globals_defs" ]
+      ] ]
+    ] ]
+  ] ]
+];
+
+var NAVTREEINDEX =
+[
+"ArcdpsExtension_8cpp.html",
+"MobIDs_8h.html#aa4183a394aa4e7600297584922235450afb6880843397811b4b42322f74b9249e",
+"MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63adcfc304a9b1aead8e2a0f75aeec551cf",
+"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dea899462eba75fef2e25bcce0cd67b5fdd",
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ad9b92ea1a5a3f83f47872b8f710d6455",
+"classArcdpsExtension_1_1DemoWindow.html#abe1aa344f8407ba4796f301870fbdd04",
+"classArcdpsExtension_1_1MainWindow.html#a13670402d94f8d60ad6c773aeef388c7",
+"classArcdpsExtension_1_1Singleton.html",
+"map_8h.html#a206dc71993ae4c8a283255d74be54fcc",
+"map_8h.html#ab650f8d60a4e8560b264db6e25dfdb84",
+"namespaceImGuiEx.html#a7666779ab01547995c98994ffd1a430b",
+"structArcdpsExtension_1_1MainTable_1_1Table.html#ab2584a5e28f445ddef3339b09ce39ed3",
+"structIdentity.html#ab9da9026c22300f5ff9dedaa903012fb"
+];
+
+var SYNCONMSG = 'click to disable panel synchronisation';
+var SYNCOFFMSG = 'click to enable panel synchronisation';
