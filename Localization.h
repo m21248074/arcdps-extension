@@ -101,7 +101,7 @@ namespace ArcdpsExtension {
 		}
 
 	private:
-		std::array<std::vector<std::string>, 6> mTranslations;
+		std::array<std::vector<std::string>, 7> mTranslations;
 		gwlanguage mCurrentLanguage = GWL_ENG;
 		std::vector<std::string>* mCurrentTranslation;
 	};
