@@ -9,46 +9,46 @@ using namespace ArcdpsExtension;
 TEST(LocalizationTests, BaseTranslations) {
 	Localization localization;
 
-	localization.ChangeLanguage(GWL_ENG);
+	localization.ChangeLanguage(Lang::English);
 	ASSERT_EQ(localization.Translate(ET_Left), "Left");
-	localization.ChangeLanguage(GWL_GEM);
+	localization.ChangeLanguage(Lang::German);
 	ASSERT_EQ(localization.Translate(ET_Left), "Links");
-	localization.ChangeLanguage(GWL_FRE);
+	localization.ChangeLanguage(Lang::French);
 	ASSERT_EQ(localization.Translate(ET_Left), "Gauche");
-	localization.ChangeLanguage(GWL_SPA);
+	localization.ChangeLanguage(Lang::Spanish);
 	ASSERT_EQ(localization.Translate(ET_Left), "Izquierda");
-	localization.ChangeLanguage(GWL_CN);
+	localization.ChangeLanguage(Lang::Chinese);
 	ASSERT_EQ(localization.Translate(ET_Left), "居左");
 }
 
 TEST(LocalizationTests, BaseTranslationsLang) {
 	Localization localization;
 
-	ASSERT_EQ(localization.Translate(LanguageSetting::English, ET_Left), "Left");
-	ASSERT_EQ(localization.Translate(LanguageSetting::German, ET_Left), "Links");
-	ASSERT_EQ(localization.Translate(LanguageSetting::French, ET_Left), "Gauche");
-	ASSERT_EQ(localization.Translate(LanguageSetting::Spanish, ET_Left), "Izquierda");
-	ASSERT_EQ(localization.Translate(LanguageSetting::Chinese, ET_Left), "居左");
+	ASSERT_EQ(localization.Translate(Lang::English, ET_Left), "Left");
+	ASSERT_EQ(localization.Translate(Lang::German, ET_Left), "Links");
+	ASSERT_EQ(localization.Translate(Lang::French, ET_Left), "Gauche");
+	ASSERT_EQ(localization.Translate(Lang::Spanish, ET_Left), "Izquierda");
+	ASSERT_EQ(localization.Translate(Lang::Chinese, ET_Left), "居左");
 }
 
 TEST(LocalizationTests, BaseTranslationsSpecialChars) {
 	Localization localization;
 
-	localization.ChangeLanguage(GWL_GEM);
+	localization.ChangeLanguage(Lang::German);
 	ASSERT_EQ(localization.Translate(ET_SizingPolicyManualWindowSize), "Manuelle Fenstergröße");
-	localization.ChangeLanguage(GWL_FRE);
+	localization.ChangeLanguage(Lang::French);
 	ASSERT_EQ(localization.Translate(ET_UpdateRestartPending), "La mise à jour automatique est terminée, redémarrez votre jeu pour l'activer.");
-	localization.ChangeLanguage(GWL_SPA);
+	localization.ChangeLanguage(Lang::Spanish);
 	ASSERT_EQ(localization.Translate(ET_UpdateInProgress), "Actualización automática en curso");
-	localization.ChangeLanguage(GWL_CN);
+	localization.ChangeLanguage(Lang::Chinese);
 	ASSERT_EQ(localization.Translate(ET_SizingPolicySizeContentToWindow), "根据窗口大小调整内容大小");
 }
 
 TEST(LocalizationTests, OverrideTranslation) {
 	Localization localization;
 
-	localization.ChangeLanguage(GWL_ENG);
+	localization.ChangeLanguage(Lang::English);
 	ASSERT_EQ(localization.Translate(ET_Left), "Left");
-	localization.OverrideTranslation(GWL_ENG, ET_Left, "Rêchts");
+	localization.AddTranslation(Lang::English, ET_Left, "Rêchts");
 	ASSERT_EQ(localization.Translate(ET_Left), "Rêchts");
 }

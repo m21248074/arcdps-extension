@@ -3,34 +3,97 @@
 #include "arcdps_structs_slim.h"
 #include "Singleton.h"
 
+#include <algorithm>
 #include <array>
 #include <concepts>
 #include <cstddef>
+#include <magic_enum/magic_enum.hpp>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
 namespace ArcdpsExtension {
+	namespace Lang {
+		inline std::string English = "en";
+		inline std::string French = "fr";
+		inline std::string German = "de";
+		inline std::string Spanish = "es";
+		inline std::string Chinese = "zh-cn";
+	} // namespace Lang
+
+	namespace details {
+		template<typename T>
+		concept PairLike =
+				requires { std::tuple_size<std::remove_cvref_t<T>>::value; } // This cannot be tuple_size_v, it causes a hard error
+				&& std::tuple_size_v<std::remove_reference_t<T>> == 2;
+
+		template<typename T>
+		concept KeyValueRange =
+				std::ranges::range<T>
+				&& PairLike<std::ranges::range_value_t<T>>;
+
+		template<typename T, typename K, typename V>
+		concept KeyValueRangeOf =
+				KeyValueRange<T>
+				&& std::convertible_to<
+						std::tuple_element_t<0, std::remove_cvref_t<std::ranges::range_value_t<T>>>,
+						K>
+				&& std::convertible_to<
+						std::tuple_element_t<1, std::remove_cvref_t<std::ranges::range_value_t<T>>>,
+						V>;
+	} // namespace details
+
 	/**
 	 * How to use:<br>
 	 * Call `Load()` with your translations you want to add.
-	 * Things are added to the back of the list with all `Extension` based translations at the beginning.
-	 * So make sure, your IDs enum or whatever you use, starts with one higher than the last used one.
-	 * Also make sure you add all 5 translations and they are of the same size.
 	 * Call it within `mod_init` or as early as possible.
 	 *
 	 * Call `ChangeLanguage` when you want to change the language.
 	 * Call it once to setup the language the user has in `mod_init`
+	 *
+	 * Call `ChangeFallbackLanguage` when you want to change the fallback language.
+	 * It defaults to English.
+	 *
+	 * You can add or replace translations with `AddTranslation`.
+	 * If you have a big range of translations to add in bulk, use `Load`.
+	 *
+	 * Some functions have static alternative prefixes starting with `S...`.
+	 * That function calls instance() and then its counter-part.
 	 */
 	class Localization final : public Singleton<Localization> {
 	public:
 		Localization();
 
+		/**
+		 * Translate the id to the current default language.
+		 * If id is not found, it will return the fallback translation.
+		 *
+		 * @param pId the id of the translation (normally the enum you use)
+		 * @throws std::out_of_range if the id is not found in the fallback translation.
+		 * @return Null terminated string_view. Use .data() instead of .c_str() if you need a const char*
+		 */
 		[[nodiscard]] std::string_view Translate(size_t pId) const;
-		[[nodiscard]] std::string_view Translate(auto lang, size_t pId) const {
-			return mTranslations.at(static_cast<size_t>(lang)).at(pId);
+
+		/**
+		 * Translate the id to the given language.
+		 * If id is not found, it will return the fallback translation.
+		 *
+		 * @param lang the language key (e.g. "de", "zh-cn")
+		 * @param pId the id of the translation (normally the enum you use)
+		 * @throws std::out_of_range if the lang is not found in the list of languages, or if the id is not found in the fallback translation.
+		 * @return Null terminated string_view. Use .data() instead of .c_str() if you need a const char*
+		 */
+		[[nodiscard]] std::string_view Translate(const std::string& lang, size_t pId) const {
+			const auto& langMap = mTranslations.at(lang);
+			const auto& it = langMap.find(pId);
+			if (it == langMap.end()) {
+				return mFallbackTranslation->at(pId);
+			}
+			return it->second;
 		}
 
 		template<typename E>
@@ -40,7 +103,7 @@ namespace ArcdpsExtension {
 		}
 		template<typename E>
 		requires std::is_enum_v<E>
-		[[nodiscard]] std::string_view Translate(auto lang, E pId) const {
+		[[nodiscard]] std::string_view Translate(const std::string& lang, E pId) const {
 			return Translate(lang, std::to_underlying(pId));
 		}
 
@@ -51,71 +114,74 @@ namespace ArcdpsExtension {
 		}
 		template<typename Num>
 		requires std::is_integral_v<Num> && (!std::same_as<Num, size_t>)
-		[[nodiscard]] std::string_view Translate(auto lang, Num pId) const {
+		[[nodiscard]] std::string_view Translate(const std::string& lang, Num pId) const {
 			return Translate(lang, static_cast<size_t>(pId));
 		}
 
-		/**
-		 *
-		 * @return null terminated string_view. Use .data() instead of c_str() if you need a const char*
-		 */
+		[[nodiscard]] std::string_view Translate(const std::string& pLang) const;
+
 		template<typename... Args>
 		[[nodiscard]] static std::string_view STranslate(Args... args) {
 			return Localization::instance().Translate(std::forward<Args>(args)...);
 		}
 
-		void AddTranslation(gwlanguage pLang, const char8_t* pText) {
-			AddTranslation(pLang, reinterpret_cast<const char*>(pText));
-		}
-
-		template<typename... Args>
-		void AddTranslation(gwlanguage pLang, Args&&... args) {
-			auto& translation = mTranslations.at(pLang);
-			translation.emplace_back(std::forward<Args>(args)...);
-		}
-
-		void Load(gwlanguage pLang, const std::ranges::common_range auto& pRange) {
-			for (const auto& value : pRange) {
-				AddTranslation(pLang, value);
+		template<typename R>
+		requires details::KeyValueRangeOf<R, size_t, std::string>
+		void Load(const std::string& pLang, const R& pRange) {
+			for (auto&& [key, value] : pRange) {
+				AddTranslation(pLang, key, value);
 			}
 		}
 
-		void ChangeLanguage(gwlanguage pLang);
-		static void SChangeLanguage(gwlanguage pLang);
+		template<typename R>
+		requires details::KeyValueRangeOf<R, size_t, const char8_t*>
+		void Load(const std::string& pLang, const R& pRange) {
+			Load(pLang, pRange | std::views::transform([](const auto& p) { return std::pair(p.first, reinterpret_cast<const char*>(p.second)); }));
+		}
+
+		void ChangeLanguage(const std::string& pLang);
+		static void SChangeLanguage(const std::string& pLang);
+
+		void ChangeFallbackLanguage(const std::string& pLang);
+		static void SChangeFallbackLanguage(const std::string& pLang);
 
 		template<typename... Args>
-		void OverrideTranslation(gwlanguage pLanguage, size_t pTranslation, Args&&... args) {
-			mTranslations.at(pLanguage).at(pTranslation) = std::move(std::string(std::forward<Args...>(args...)));
+		void AddTranslation(const std::string& pLanguage, size_t pTranslation, Args&&... args) {
+			mTranslations[pLanguage][pTranslation] = std::move(std::string(std::forward<Args...>(args...)));
+			Languages.insert(pLanguage);
 		}
 
 		template<typename E, typename... Args>
 		requires std::is_enum_v<E>
-		void OverrideTranslation(gwlanguage pLanguage, E pTranslation, Args&&... args) {
-			OverrideTranslation(pLanguage, static_cast<std::underlying_type_t<E>>(pTranslation), std::forward<Args...>(args...));
+		void AddTranslation(const std::string& pLanguage, E pTranslation, Args&&... args) {
+			AddTranslation(pLanguage, static_cast<std::underlying_type_t<E>>(pTranslation), std::forward<Args...>(args...));
 		}
 
 		template<typename Num, typename... Args>
 		requires std::is_integral_v<Num> && (!std::same_as<Num, size_t>)
-		void OverrideTranslation(gwlanguage pLanguage, Num pTranslation, Args&&... args) {
-			OverrideTranslation(pLanguage, static_cast<size_t>(pTranslation), std::forward<Args...>(args...));
+		void AddTranslation(const std::string& pLanguage, Num pTranslation, Args&&... args) {
+			AddTranslation(pLanguage, static_cast<size_t>(pTranslation), std::forward<Args...>(args...));
 		}
 
-	private:
-		std::array<std::vector<std::string>, 6> mTranslations;
-		gwlanguage mCurrentLanguage = GWL_ENG;
-		std::vector<std::string>* mCurrentTranslation;
-	};
+		/**
+		 * Stores the set of all language keys currently in use.
+		 *
+		 * Languages are represented as strings, typically following standard language
+		 * codes (e.g., "en" for English, "de" for German, etc.). This set is automatically
+		 * updated when new translations are added via `AddTranslation`.
+		 *
+		 * Use this set to access the list of all available languages to e.g., implement language selection menus.
+		 */
+		static std::unordered_set<std::string> Languages;
 
-	// Same as arcdps' gwlanguage, but contains LikeGame option instead of KR.
-	// Use this in your settings object and handle LikeGame manually.
-	enum class LanguageSetting {
-		English = 0,
-		LikeGame = 1,
-		French = 2,
-		German = 3,
-		Spanish = 4,
-		Chinese = 5,
+	private:
+		using Translation = std::unordered_map<size_t, std::string>;
+		std::unordered_map<std::string, Translation> mTranslations;
+
+		Translation* mCurrentTranslation = nullptr;
+		Translation* mFallbackTranslation = nullptr;
 	};
 } // namespace ArcdpsExtension
 
-std::string_view to_string(ArcdpsExtension::LanguageSetting pLang);
+
+// std::string_view to_string(ArcdpsExtension::LanguageSetting pLang);

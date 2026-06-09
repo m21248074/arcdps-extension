@@ -59,269 +59,269 @@ namespace ArcdpsExtension {
 		ET_LikeInGame,
 	};
 
-	constexpr auto EXTENSION_TRANSLATION_ENGLISH = std::to_array({
-			"Left",                                                   // ET_Left,
-			"Right",                                                  // ET_Right,
-			"Centered",                                               // ET_Center,
-			"Standard",                                               // ET_Unaligned,
-			"Manual",                                                 // ET_PositionManual,
-			"Screen Relative",                                        // ET_PositionScreenRelative,
-			"Window Relative",                                        // ET_PositionWindowRelative,
-			"Unknown",                                                // ET_Unknown,
-			"Top-Left",                                               // ET_CornerPositionTopLeft,
-			"Top-Right",                                              // ET_CornerPositionTopRight,
-			"Bottom-Left",                                            // ET_CornerPositionBottomLeft,
-			"Bottom-Right",                                           // ET_CornerPositionBottomRight,
-			"Size to Content",                                        // ET_SizingPolicySizeToContent,
-			"Size Content to Window",                                 // ET_SizingPolicySizeContentToWindow,
-			"Manual Window Size",                                     // ET_SizingPolicyManualWindowSize,
-			"KeyBind",                                                // ET_KeyInputPopupName,
-			"Apply",                                                  // ET_ApplyButton,
-			"Cancel",                                                 // ET_CancelButton,
-			"A new update for the {} is available.",                  // ET_UpdateDesc,
-			"Current version",                                        // ET_UpdateCurrentVersion,
-			"New Version",                                            // ET_UpdateNewVersion,
-			"Open download page",                                     // ET_UpdateOpenPage,
-			"Update automatically",                                   // ET_UpdateAutoButton,
-			"Autoupdate in progress",                                 // ET_UpdateInProgress,
-			"Autoupdate finished, restart your game to activate it.", // ET_UpdateRestartPending,
-			"Autoupdate error, please update manually.",              // ET_UpdateError,
-			"Style",                                                  // ET_Style
-			"Title bar",                                              // ET_TitleBar
-			"Background",                                             // ET_Background
-			"Scrollbar",                                              // ET_Scrollbar
-			"Padding",                                                // ET_Padding
-			"Sizing Policy",                                          // ET_SizingPolicy
-			"Appear as in option",                                    // ET_AppearAsInOption
-			"Title bar",                                              // ET_TitleBarText
-			"Shortcut",                                               // ET_Shortcut
-			"Position",                                               // ET_Position
-			"From anchor panel corner",                               // ET_FromAnchorPanelCorner
-			"This panel corner",                                      // ET_ThisPanelCorner
-			"Anchor window",                                          // ET_AnchorWindow
-			"Column Setup",                                           // ET_ColumnSetup
-			"Use Custom Columns",                                     // ET_UseCustomColumns
-			"Alternating Row Background",                             // ET_AlternatingRowBg
-			"Highlight hovered row",                                  // ET_HighlightHoveredRow
-			"max displayed",                                          // ET_MaxDisplayed
-			"Header Alignment",                                       // ET_HeaderAlignment
-			"Column Alignment",                                       // ET_ColumnAlignment
-			"Language",                                               // ET_Language
-			"Show header with text instead of images",                // ET_SettingsShowHeaderText
-			"English",                                                // ET_LanguageName
-			"Same as game",                                           // ET_LikeInGame
+	constexpr auto EXTENSION_TRANSLATION_ENGLISH = std::to_array<std::pair<ExtensionTranslation, const char*>>({
+			{ET_Left,							"Left"												  },
+			{ET_Right,						   "Right"												 },
+			{ET_Center,						  "Centered"											  },
+			{ET_Unaligned,                       "Standard"											  },
+			{ET_PositionManual,                  "Manual"												},
+			{ET_PositionScreenRelative,          "Screen Relative"                                       },
+			{ET_PositionWindowRelative,          "Window Relative"                                       },
+			{ET_Unknown,						 "Unknown"											   },
+			{ET_CornerPositionTopLeft,           "Top-Left"                                              },
+			{ET_CornerPositionTopRight,          "Top-Right"                                             },
+			{ET_CornerPositionBottomLeft,        "Bottom-Left"                                           },
+			{ET_CornerPositionBottomRight,       "Bottom-Right"                                          },
+			{ET_SizingPolicySizeToContent,       "Size to Content"                                       },
+			{ET_SizingPolicySizeContentToWindow, "Size Content to Window"                                },
+			{ET_SizingPolicyManualWindowSize,    "Manual Window Size"                                    },
+			{ET_KeyInputPopupName,               "KeyBind"											   },
+			{ET_ApplyButton,                     "Apply"												 },
+			{ET_CancelButton,                    "Cancel"												},
+			{ET_UpdateDesc,                      "A new update for the {} is available."                 },
+			{ET_UpdateCurrentVersion,            "Current version"                                       },
+			{ET_UpdateNewVersion,                "New Version"                                           },
+			{ET_UpdateOpenPage,                  "Open download page"                                    },
+			{ET_UpdateAutoButton,                "Update automatically"                                  },
+			{ET_UpdateInProgress,                "Autoupdate in progress"                                },
+			{ET_UpdateRestartPending,            "Autoupdate finished, restart your game to activate it."},
+			{ET_UpdateError,                     "Autoupdate error, please update manually."             },
+			{ET_Style,						   "Style"												 },
+			{ET_TitleBar,                        "Title bar"											 },
+			{ET_Background,                      "Background"											},
+			{ET_Scrollbar,                       "Scrollbar"											 },
+			{ET_Padding,						 "Padding"											   },
+			{ET_SizingPolicy,                    "Sizing Policy"                                         },
+			{ET_AppearAsInOption,                "Appear as in option"                                   },
+			{ET_TitleBarText,                    "Title bar"											 },
+			{ET_Shortcut,                        "Shortcut"											  },
+			{ET_Position,                        "Position"											  },
+			{ET_FromAnchorPanelCorner,           "From anchor panel corner"                              },
+			{ET_ThisPanelCorner,                 "This panel corner"                                     },
+			{ET_AnchorWindow,                    "Anchor window"                                         },
+			{ET_ColumnSetup,                     "Column Setup"                                          },
+			{ET_UseCustomColumns,                "Use Custom Columns"                                    },
+			{ET_AlternatingRowBg,                "Alternating Row Background"                            },
+			{ET_HighlightHoveredRow,             "Highlight hovered row"                                 },
+			{ET_MaxDisplayed,                    "max displayed"                                         },
+			{ET_HeaderAlignment,                 "Header Alignment"                                      },
+			{ET_ColumnAlignment,                 "Column Alignment"                                      },
+			{ET_Language,                        "Language"											  },
+			{ET_SettingsShowHeaderText,          "Show header with text instead of images"               },
+			{ET_LanguageName,                    "English"											   },
+			{ET_LikeInGame,                      "Same as game"										  },
 	});
 
-	constexpr auto EXTENSION_TRANSLATION_GERMAN = std::to_array({
-			u8"Links",                                                        // ET_Left,
-			u8"Rechts",                                                       // ET_Right,
-			u8"Zentriert",                                                    // ET_Center,
-			u8"Standard",                                                     // ET_Unaligned,
-			u8"Manuell",                                                      // ET_PositionManual,
-			u8"Relativ zum Bildschirm",                                       // ET_PositionScreenRelative,
-			u8"Relativ zu einem anderen Fenster",                             // ET_PositionWindowRelative,
-			u8"Unbekannt",                                                    // ET_Unknown,
-			u8"Oben-Links",                                                   // ET_CornerPositionTopLeft,
-			u8"Oben-Rechts",                                                  // ET_CornerPositionTopRight,
-			u8"Unten-Links",                                                  // ET_CornerPositionBottomLeft,
-			u8"Unten-Rechts",                                                 // ET_CornerPositionBottomRight,
-			u8"Passe Fenster an Inhalt an",                                   // ET_SizingPolicySizeToContent,
-			u8"Passe Inhalt an Fenster an",                                   // ET_SizingPolicySizeContentToWindow,
-			u8"Manuelle Fenstergröße",                                        // ET_SizingPolicyManualWindowSize,
-			u8"Tastenbelegung",                                               // ET_KeyInputPopupName,
-			u8"Anwenden",                                                     // ET_ApplyButton,
-			u8"Abbrechen",                                                    // ET_CancelButton,
-			u8"Eine neue Version für das {} ist verfügbar.",                  // ET_UpdateDesc,
-			u8"Aktuelle Version",                                             // ET_UpdateCurrentVersion,
-			u8"Neue Version",                                                 // ET_UpdateNewVersion,
-			u8"Öffne Download Seite",                                         // ET_UpdateOpenPage,
-			u8"Automatisch Aktualisieren",                                    // ET_UpdateAutoButton,
-			u8"Aktualisierung im Gange",                                      // ET_UpdateInProgress,
-			u8"Aktualisierung beendet, starte das Spiel neu zum Aktivieren.", // ET_UpdateRestartPending,
-			u8"Aktualisierung fehlgeschlagen, bitte update manuell.",         // ET_UpdateError,
-			u8"Style",                                                        // ET_Style
-			u8"Titelleiste",                                                  // ET_TitleBar
-			u8"Hintergrund",                                                  // ET_Background
-			u8"Scrollleiste",                                                 // ET_Scrollbar
-			u8"Padding",                                                      // ET_Padding
-			u8"Größenregeln",                                                 // ET_SizingPolicy
-			u8"Optionstext",                                                  // ET_AppearAsInOption
-			u8"Titelleiste Text",                                             // ET_TitleBarText
-			u8"Tastenkürzel",                                                 // ET_Shortcut
-			u8"Position",                                                     // ET_Position
-			u8"Ecke des anzuheftenden Fensters",                              // ET_FromAnchorPanelCorner
-			u8"Ecke des aktuellen Fensters",                                  // ET_ThisPanelCorner
-			u8"Anzuheftendes Fenster",                                        // ET_AnchorWindow
-			u8"Spalteneinstellung",                                           // ET_ColumnSetup
-			u8"Benutzerdefinierte Spalten verwenden",                         // ET_UseCustomColumns
-			u8"Abwechselnder Zeilenhintergrund",                              // ET_AlternatingRowBg
-			u8"Markiere die aktuelle Zeile",                                  // ET_HighlightHoveredRow
-			u8"Maximale Anzahl an Zeilen",                                    // ET_MaxDisplayed
-			u8"Ausrichtung der Kopfzeile",                                    // ET_HeaderAlignment
-			u8"Ausrichtung des Inhalts",                                      // ET_ColumnAlignment
-			u8"Sprache",                                                      // ET_Language
-			u8"Zeige Text anstatt von Icons in der Kopfzeile",                // ET_SettingsShowHeaderText
-			u8"Deutsch",                                                      // ET_LanguageName
-			u8"Wie im Spiel",                                                 // ET_LikeInGame
+	constexpr auto EXTENSION_TRANSLATION_GERMAN = std::to_array<std::pair<ExtensionTranslation, const char8_t*>>({
+			{ET_Left,							u8"Links"													  },
+			{ET_Right,						   u8"Rechts"													 },
+			{ET_Center,						  u8"Zentriert"												  },
+			{ET_Unaligned,                       u8"Standard"												   },
+			{ET_PositionManual,                  u8"Manuell"													},
+			{ET_PositionScreenRelative,          u8"Relativ zum Bildschirm"                                     },
+			{ET_PositionWindowRelative,          u8"Relativ zu einem anderen Fenster"                           },
+			{ET_Unknown,						 u8"Unbekannt"												  },
+			{ET_CornerPositionTopLeft,           u8"Oben-Links"                                                 },
+			{ET_CornerPositionTopRight,          u8"Oben-Rechts"                                                },
+			{ET_CornerPositionBottomLeft,        u8"Unten-Links"                                                },
+			{ET_CornerPositionBottomRight,       u8"Unten-Rechts"                                               },
+			{ET_SizingPolicySizeToContent,       u8"Passe Fenster an Inhalt an"                                 },
+			{ET_SizingPolicySizeContentToWindow, u8"Passe Inhalt an Fenster an"                                 },
+			{ET_SizingPolicyManualWindowSize,    u8"Manuelle Fenstergröße"                                      },
+			{ET_KeyInputPopupName,               u8"Tastenbelegung"                                             },
+			{ET_ApplyButton,                     u8"Anwenden"												   },
+			{ET_CancelButton,                    u8"Abbrechen"												  },
+			{ET_UpdateDesc,                      u8"Eine neue Version für das {} ist verfügbar."                },
+			{ET_UpdateCurrentVersion,            u8"Aktuelle Version"                                           },
+			{ET_UpdateNewVersion,                u8"Neue Version"                                               },
+			{ET_UpdateOpenPage,                  u8"Öffne Download Seite"                                       },
+			{ET_UpdateAutoButton,                u8"Automatisch Aktualisieren"                                  },
+			{ET_UpdateInProgress,                u8"Aktualisierung im Gange"                                    },
+			{ET_UpdateRestartPending,            u8"Aktualisierung beendet starte das Spiel neu zum Aktivieren."},
+			{ET_UpdateError,                     u8"Aktualisierung fehlgeschlagen bitte update manuell."        },
+			{ET_Style,						   u8"Style"													  },
+			{ET_TitleBar,                        u8"Titelleiste"												},
+			{ET_Background,                      u8"Hintergrund"												},
+			{ET_Scrollbar,                       u8"Scrollleiste"											   },
+			{ET_Padding,						 u8"Padding"													},
+			{ET_SizingPolicy,                    u8"Größenregeln"											   },
+			{ET_AppearAsInOption,                u8"Optionstext"                                                },
+			{ET_TitleBarText,                    u8"Titelleiste Text"                                           },
+			{ET_Shortcut,                        u8"Tastenkürzel"											   },
+			{ET_Position,                        u8"Position"												   },
+			{ET_FromAnchorPanelCorner,           u8"Ecke des anzuheftenden Fensters"                            },
+			{ET_ThisPanelCorner,                 u8"Ecke des aktuellen Fensters"                                },
+			{ET_AnchorWindow,                    u8"Anzuheftendes Fenster"                                      },
+			{ET_ColumnSetup,                     u8"Spalteneinstellung"                                         },
+			{ET_UseCustomColumns,                u8"Benutzerdefinierte Spalten verwenden"                       },
+			{ET_AlternatingRowBg,                u8"Abwechselnder Zeilenhintergrund"                            },
+			{ET_HighlightHoveredRow,             u8"Markiere die aktuelle Zeile"                                },
+			{ET_MaxDisplayed,                    u8"Maximale Anzahl an Zeilen"                                  },
+			{ET_HeaderAlignment,                 u8"Ausrichtung der Kopfzeile"                                  },
+			{ET_ColumnAlignment,                 u8"Ausrichtung des Inhalts"                                    },
+			{ET_Language,                        u8"Sprache"													},
+			{ET_SettingsShowHeaderText,          u8"Zeige Text anstatt von Icons in der Kopfzeile"              },
+			{ET_LanguageName,                    u8"Deutsch"													},
+			{ET_LikeInGame,                      u8"Wie im Spiel"											   },
 	});
 
-	constexpr auto EXTENSION_TRANSLATION_FRENCH = std::to_array({
-			u8"Gauche",                                                                        // ET_Left,
-			u8"Droit",                                                                         // ET_Right,
-			u8"Centré",                                                                        // ET_Center,
-			u8"Standard",                                                                      // ET_Unaligned,
-			u8"Manuel",                                                                        // ET_PositionManual,
-			u8"Écran Relatif",                                                                 // ET_PositionScreenRelative,
-			u8"Fenêtre relative",                                                              // ET_PositionWindowRelative,
-			u8"Inconnu",                                                                       // ET_Unknown,
-			u8"Coin supérieur gauche",                                                         // ET_CornerPositionTopLeft,
-			u8"Coin supérieur droit",                                                          // ET_CornerPositionTopRight,
-			u8"Coin inférieur gauche",                                                         // ET_CornerPositionBottomLeft,
-			u8"Coin inférieur droit",                                                          // ET_CornerPositionBottomRight,
-			u8"Taille par rapport au contenu",                                                 // ET_SizingPolicySizeToContent,
-			u8"Taille du contenu par rapport à la fenêtre",                                    // ET_SizingPolicySizeContentToWindow,
-			u8"Taille de la fenêtre manuelle",                                                 // ET_SizingPolicyManualWindowSize,
-			u8"Lier les touches",                                                              // ET_KeyInputPopupName,
-			u8"Appliquer",                                                                     // ET_ApplyButton,
-			u8"Annuler",                                                                       // ET_CancelButton,
-			u8"Une nouvelle mise à jour pour le {} est disponible.",                           // ET_UpdateDesc,
-			u8"Version actuelle",                                                              // ET_UpdateCurrentVersion,
-			u8"Nouvelle version",                                                              // ET_UpdateNewVersion,
-			u8"Ouvrir la page de téléchargement",                                              // ET_UpdateOpenPage,
-			u8"Mise à jour automatique",                                                       // ET_UpdateAutoButton,
-			u8"Mise à jour automatique en cours",                                              // ET_UpdateInProgress,
-			u8"La mise à jour automatique est terminée, redémarrez votre jeu pour l'activer.", // ET_UpdateRestartPending,
-			u8"Erreur de mise à jour automatique, veuillez mettre à jour manuellement.",       // ET_UpdateError,
-			u8"Style",                                                                         // ET_Style
-			u8"Barre de titre",                                                                // ET_TitleBar
-			u8"Fond d'écran",                                                                  // ET_Background
-			u8"Barre de défilement",                                                           // ET_Scrollbar
-			u8"Padding",                                                                       // ET_Padding
-			u8"Règle de dimensionnement",                                                      // ET_SizingPolicy
-			u8"Apparaître comme dans l'option",                                                // ET_AppearAsInOption
-			u8"Barre de titre",                                                                // ET_TitleBarText
-			u8"Raccourci",                                                                     // ET_Shortcut
-			u8"Position",                                                                      // ET_Position
-			u8"Depuis le coin du panneau d'ancrage",                                           // ET_FromAnchorPanelCorner
-			u8"Ce coin de panneau",                                                            // ET_ThisPanelCorner
-			u8"Fenêtre d'ancrage",                                                             // ET_AnchorWindow
-			u8"Configuration des colonnes",                                                    // ET_ColumnSetup
-			u8"Utiliser des colonnes personnalisées",                                          // ET_UseCustomColumns
-			u8"Fond à rangs alternés",                                                         // ET_AlternatingRowBg
-			u8"Mettre en surbrillance la ligne survolée",                                      // ET_HighlightHoveredRow
-			u8"max affiché",                                                                   // ET_MaxDisplayed
-			u8"Alignement de l'en-tête",                                                       // ET_HeaderAlignment
-			u8"Alignement des colonnes",                                                       // ET_ColumnAlignment
-			u8"Langue",                                                                        // ET_Language
-			u8"Afficher l'en-tête avec du texte au lieu des images",                           // ET_SettingsShowHeaderText
-			u8"Français",                                                                      // ET_LanguageName
-			u8"Comme dans le jeu",                                                             // ET_LikeInGame
+	constexpr auto EXTENSION_TRANSLATION_FRENCH = std::to_array<std::pair<ExtensionTranslation, const char8_t*>>({
+			{ET_Left,							u8"Gauche"																	   },
+			{ET_Right,						   u8"Droit"																		},
+			{ET_Center,						  u8"Centré"																	   },
+			{ET_Unaligned,                       u8"Standard"																	 },
+			{ET_PositionManual,                  u8"Manuel"																	   },
+			{ET_PositionScreenRelative,          u8"Écran Relatif"																},
+			{ET_PositionWindowRelative,          u8"Fenêtre relative"															 },
+			{ET_Unknown,						 u8"Inconnu"																	  },
+			{ET_CornerPositionTopLeft,           u8"Coin supérieur gauche"                                                        },
+			{ET_CornerPositionTopRight,          u8"Coin supérieur droit"                                                         },
+			{ET_CornerPositionBottomLeft,        u8"Coin inférieur gauche"                                                        },
+			{ET_CornerPositionBottomRight,       u8"Coin inférieur droit"                                                         },
+			{ET_SizingPolicySizeToContent,       u8"Taille par rapport au contenu"                                                },
+			{ET_SizingPolicySizeContentToWindow, u8"Taille du contenu par rapport à la fenêtre"                                   },
+			{ET_SizingPolicyManualWindowSize,    u8"Taille de la fenêtre manuelle"                                                },
+			{ET_KeyInputPopupName,               u8"Lier les touches"															 },
+			{ET_ApplyButton,                     u8"Appliquer"																	},
+			{ET_CancelButton,                    u8"Annuler"																	  },
+			{ET_UpdateDesc,                      u8"Une nouvelle mise à jour pour le {} est disponible."                          },
+			{ET_UpdateCurrentVersion,            u8"Version actuelle"															 },
+			{ET_UpdateNewVersion,                u8"Nouvelle version"															 },
+			{ET_UpdateOpenPage,                  u8"Ouvrir la page de téléchargement"                                             },
+			{ET_UpdateAutoButton,                u8"Mise à jour automatique"                                                      },
+			{ET_UpdateInProgress,                u8"Mise à jour automatique en cours"                                             },
+			{ET_UpdateRestartPending,            u8"La mise à jour automatique est terminée, redémarrez votre jeu pour l'activer."},
+			{ET_UpdateError,                     u8"Erreur de mise à jour automatique, veuillez mettre à jour manuellement."      },
+			{ET_Style,						   u8"Style"																		},
+			{ET_TitleBar,                        u8"Barre de titre"															   },
+			{ET_Background,                      u8"Fond d'écran"																 },
+			{ET_Scrollbar,                       u8"Barre de défilement"														  },
+			{ET_Padding,						 u8"Padding"																	  },
+			{ET_SizingPolicy,                    u8"Règle de dimensionnement"                                                     },
+			{ET_AppearAsInOption,                u8"Apparaître comme dans l'option"                                               },
+			{ET_TitleBarText,                    u8"Barre de titre"															   },
+			{ET_Shortcut,                        u8"Raccourci"																	},
+			{ET_Position,                        u8"Position"																	 },
+			{ET_FromAnchorPanelCorner,           u8"Depuis le coin du panneau d'ancrage"                                          },
+			{ET_ThisPanelCorner,                 u8"Ce coin de panneau"														   },
+			{ET_AnchorWindow,                    u8"Fenêtre d'ancrage"															},
+			{ET_ColumnSetup,                     u8"Configuration des colonnes"                                                   },
+			{ET_UseCustomColumns,                u8"Utiliser des colonnes personnalisées"                                         },
+			{ET_AlternatingRowBg,                u8"Fond à rangs alternés"                                                        },
+			{ET_HighlightHoveredRow,             u8"Mettre en surbrillance la ligne survolée"                                     },
+			{ET_MaxDisplayed,                    u8"max affiché"																  },
+			{ET_HeaderAlignment,                 u8"Alignement de l'en-tête"                                                      },
+			{ET_ColumnAlignment,                 u8"Alignement des colonnes"                                                      },
+			{ET_Language,                        u8"Langue"																	   },
+			{ET_SettingsShowHeaderText,          u8"Afficher l'en-tête avec du texte au lieu des images"                          },
+			{ET_LanguageName,                    u8"Français"																	 },
+			{ET_LikeInGame,                      u8"Comme dans le jeu"															},
 	});
 
-	constexpr auto EXTENSION_TRANSLATION_SPANISH = std::to_array({
-			u8"Izquierda",                                                                    // ET_Left,
-			u8"Derecha",                                                                      // ET_Right,
-			u8"Centrado",                                                                     // ET_Center,
-			u8"Estándar",                                                                     // ET_Unaligned,
-			u8"Manual",                                                                       // ET_PositionManual,
-			u8"Relativo a la pantalla",                                                       // ET_PositionScreenRelative,
-			u8"Relativo a la ventana",                                                        // ET_PositionWindowRelative,
-			u8"Desconocido",                                                                  // ET_Unknown,
-			u8"Arriba a la izquierda",                                                        // ET_CornerPositionTopLeft,
-			u8"Arriba a la derecha",                                                          // ET_CornerPositionTopRight,
-			u8"Abajo a la izquierda",                                                         // ET_CornerPositionBottomLeft,
-			u8"Abajo a la derecha",                                                           // ET_CornerPositionBottomRight,
-			u8"Tamaño al contenido",                                                          // ET_SizingPolicySizeToContent,
-			u8"Tamaño del contenido a la ventana",                                            // ET_SizingPolicySizeContentToWindow,
-			u8"Tamaño de la ventana de Manuel",                                               // ET_SizingPolicyManualWindowSize,
-			u8"Encuadernación de teclas",                                                     // ET_KeyInputPopupName,
-			u8"Aplicar",                                                                      // ET_ApplyButton,
-			u8"Cancelar",                                                                     // ET_CancelButton,
-			u8"Está disponible una nueva actualización para el {}.",                          // ET_UpdateDesc,
-			u8"Versión actual",                                                               // ET_UpdateCurrentVersion,
-			u8"Nueva versión",                                                                // ET_UpdateNewVersion,
-			u8"Abrir la página de descarga",                                                  // ET_UpdateOpenPage,
-			u8"Actualizar automáticamente",                                                   // ET_UpdateAutoButton,
-			u8"Actualización automática en curso",                                            // ET_UpdateInProgress,
-			u8"La actualización automática ha finalizado, reinicia el juego para activarla.", // ET_UpdateRestartPending,
-			u8"Error de actualización automática, por favor, actualice manualmente.",         // ET_UpdateError,
-			u8"Estilo",                                                                       // ET_Style
-			u8"Barra de título",                                                              // ET_TitleBar
-			u8"Antecedentes",                                                                 // ET_Background
-			u8"Barra de desplazamiento",                                                      // ET_Scrollbar
-			u8"Padding",                                                                      // ET_Padding
-			u8"Política de tallas",                                                           // ET_SizingPolicy
-			u8"Aparecer como en la opción",                                                   // ET_AppearAsInOption
-			u8"Barra de título",                                                              // ET_TitleBarText
-			u8"Atajo",                                                                        // ET_Shortcut
-			u8"Posición",                                                                     // ET_Position
-			u8"Desde la esquina del panel de anclaje",                                        // ET_FromAnchorPanelCorner
-			u8"Esta esquina del panel",                                                       // ET_ThisPanelCorner
-			u8"Ventana de anclaje",                                                           // ET_AnchorWindow
-			u8"Configuración de la columna",                                                  // ET_ColumnSetup
-			u8"Usar columnas personalizadas",                                                 // ET_UseCustomColumns
-			u8"Fondo de filas alternas",                                                      // ET_AlternatingRowBg
-			u8"Resaltar la fila que se ha desplazado",                                        // ET_HighlightHoveredRow
-			u8"máximo mostrado",                                                              // ET_MaxDisplayed
-			u8"Alineación de la cabecera",                                                    // ET_HeaderAlignment
-			u8"Alineación de columnas",                                                       // ET_ColumnAlignment
-			u8"Idioma",                                                                       // ET_Language
-			u8"Mostrar la cabecera con texto en lugar de imágenes",                           // ET_SettingsShowHeaderText
-			u8"Español",                                                                      // ET_LanguageName
-			u8"Como en el juego",                                                             // ET_LikeInGame
+	constexpr auto EXTENSION_TRANSLATION_SPANISH = std::to_array<std::pair<ExtensionTranslation, const char8_t*>>({
+			{ET_Left,							u8"Izquierda"																   },
+			{ET_Right,						   u8"Derecha"																	 },
+			{ET_Center,						  u8"Centrado"																	},
+			{ET_Unaligned,                       u8"Estándar"																	},
+			{ET_PositionManual,                  u8"Manual"																	  },
+			{ET_PositionScreenRelative,          u8"Relativo a la pantalla"                                                      },
+			{ET_PositionWindowRelative,          u8"Relativo a la ventana"                                                       },
+			{ET_Unknown,						 u8"Desconocido"																 },
+			{ET_CornerPositionTopLeft,           u8"Arriba a la izquierda"                                                       },
+			{ET_CornerPositionTopRight,          u8"Arriba a la derecha"                                                         },
+			{ET_CornerPositionBottomLeft,        u8"Abajo a la izquierda"                                                        },
+			{ET_CornerPositionBottomRight,       u8"Abajo a la derecha"                                                          },
+			{ET_SizingPolicySizeToContent,       u8"Tamaño al contenido"                                                         },
+			{ET_SizingPolicySizeContentToWindow, u8"Tamaño del contenido a la ventana"                                           },
+			{ET_SizingPolicyManualWindowSize,    u8"Tamaño de la ventana de Manuel"                                              },
+			{ET_KeyInputPopupName,               u8"Encuadernación de teclas"                                                    },
+			{ET_ApplyButton,                     u8"Aplicar"																	 },
+			{ET_CancelButton,                    u8"Cancelar"																	},
+			{ET_UpdateDesc,                      u8"Está disponible una nueva actualización para el {}."                         },
+			{ET_UpdateCurrentVersion,            u8"Versión actual"															  },
+			{ET_UpdateNewVersion,                u8"Nueva versión"															   },
+			{ET_UpdateOpenPage,                  u8"Abrir la página de descarga"                                                 },
+			{ET_UpdateAutoButton,                u8"Actualizar automáticamente"                                                  },
+			{ET_UpdateInProgress,                u8"Actualización automática en curso"                                           },
+			{ET_UpdateRestartPending,            u8"La actualización automática ha finalizado, reinicia el juego para activarla."},
+			{ET_UpdateError,                     u8"Error de actualización automática, por favor, actualice manualmente."        },
+			{ET_Style,						   u8"Estilo"																	  },
+			{ET_TitleBar,                        u8"Barra de título"															 },
+			{ET_Background,                      u8"Antecedentes"																},
+			{ET_Scrollbar,                       u8"Barra de desplazamiento"                                                     },
+			{ET_Padding,						 u8"Padding"																	 },
+			{ET_SizingPolicy,                    u8"Política de tallas"														  },
+			{ET_AppearAsInOption,                u8"Aparecer como en la opción"                                                  },
+			{ET_TitleBarText,                    u8"Barra de título"															 },
+			{ET_Shortcut,                        u8"Atajo"																	   },
+			{ET_Position,                        u8"Posición"																	},
+			{ET_FromAnchorPanelCorner,           u8"Desde la esquina del panel de anclaje"                                       },
+			{ET_ThisPanelCorner,                 u8"Esta esquina del panel"                                                      },
+			{ET_AnchorWindow,                    u8"Ventana de anclaje"														  },
+			{ET_ColumnSetup,                     u8"Configuración de la columna"                                                 },
+			{ET_UseCustomColumns,                u8"Usar columnas personalizadas"                                                },
+			{ET_AlternatingRowBg,                u8"Fondo de filas alternas"                                                     },
+			{ET_HighlightHoveredRow,             u8"Resaltar la fila que se ha desplazado"                                       },
+			{ET_MaxDisplayed,                    u8"máximo mostrado"															 },
+			{ET_HeaderAlignment,                 u8"Alineación de la cabecera"                                                   },
+			{ET_ColumnAlignment,                 u8"Alineación de columnas"                                                      },
+			{ET_Language,                        u8"Idioma"																	  },
+			{ET_SettingsShowHeaderText,          u8"Mostrar la cabecera con texto en lugar de imágenes"                          },
+			{ET_LanguageName,                    u8"Español"																	 },
+			{ET_LikeInGame,                      u8"Como en el juego"															},
 	});
 
-	constexpr auto EXTENSION_TRANSLATION_CHINESE = std::to_array({
-			u8"居左",                     // ET_Left,
-			u8"居右",                     // ET_Right,
-			u8"居中",                     // ET_Center,
-			u8"不对齐",                   // ET_Unaligned,
-			u8"手动调整",                 // ET_PositionManual,
-			u8"屏幕相对位置",             // ET_PositionScreenRelative,
-			u8"窗口相对位置",             // ET_PositionWindowRelative,
-			u8"未知",                     // ET_Unknown,
-			u8"左上方",                   // ET_CornerPositionTopLeft,
-			u8"右上方",                   // ET_CornerPositionTopRight,
-			u8"左下方",                   // ET_CornerPositionBottomLeft,
-			u8"右下方",                   // ET_CornerPositionBottomRight,
-			u8"根据内容自动调整窗口大小", // ET_SizingPolicySizeToContent,
-			u8"根据窗口大小调整内容大小", // ET_SizingPolicySizeContentToWindow,
-			u8"手动调整窗口大小",         // ET_SizingPolicyManualWindowSize,
-			u8"快捷键",                   // ET_KeyInputPopupName,
-			u8"应用",                     // ET_ApplyButton,
-			u8"取消",                     // ET_CancelButton,
-			u8"Bufff监控有新的更新",      // ET_UpdateDesc,
-			u8"现版本",                   // ET_UpdateCurrentVersion,
-			u8"新版本",                   // ET_UpdateNewVersion,
-			u8"打开下载页面",             // ET_UpdateOpenPage,
-			u8"自动更新",                 // ET_UpdateAutoButton,
-			u8"正在进行自动更新",         // ET_UpdateInProgress,
-			u8"自动更新完成，请重开游戏", // ET_UpdateRestartPending,
-			u8"自动更新失败，请手动更新", // ET_UpdateError,
-			u8"外观设置",                 // ET_Style
-			u8"标题栏显示内容",           // ET_TitleBar
-			u8"显示背景",                 // ET_Background
-			u8"滚动条",                   // ET_Scrollbar
-			u8"填充",                     // ET_Padding
-			u8"大小设置",                 // ET_SizingPolicy
-			u8"出现在选项中",             // ET_AppearAsInOption
-			u8"标题栏显示内容",           // ET_TitleBarText
-			u8"快捷键",                   // ET_Shortcut
-			u8"位置",                     // ET_Position
-			u8"从窗口角落的",             // ET_FromAnchorPanelCorner
-			u8"到窗口角落的",             // ET_ThisPanelCorner
-			u8"基准窗口",                 // ET_AnchorWindow
-			u8"列设置",                   // ET_ColumnSetup
-			u8"使用自定义列设置",         // ET_UseCustomColumns
-			u8"交替行显示背景",           // ET_AlternatingRowBg
-			u8"高亮显示鼠标悬停的行",     // ET_HighlightHoveredRow
-			u8"最大显示数量",             // ET_MaxDisplayed
-			u8"标题对齐方式",             // ET_HeaderAlignment
-			u8"列对齐方式",               // ET_ColumnAlignment
-			u8"语言",                     // ET_Language
-			u8"文字显示替代图标显示",     // ET_SettingsShowHeaderText
-			u8"简体中文",                 // ET_LanguageName
-			u8"与游戏一致",               // ET_LikeInGame
+	constexpr auto EXTENSION_TRANSLATION_CHINESE = std::to_array<std::pair<ExtensionTranslation, const char8_t*>>({
+			{ET_Left,							u8"居左"                    },
+			{ET_Right,						   u8"居右"                    },
+			{ET_Center,						  u8"居中"                    },
+			{ET_Unaligned,                       u8"不对齐"                  },
+			{ET_PositionManual,                  u8"手动调整"                },
+			{ET_PositionScreenRelative,          u8"屏幕相对位置"            },
+			{ET_PositionWindowRelative,          u8"窗口相对位置"            },
+			{ET_Unknown,						 u8"未知"                    },
+			{ET_CornerPositionTopLeft,           u8"左上方"                  },
+			{ET_CornerPositionTopRight,          u8"右上方"                  },
+			{ET_CornerPositionBottomLeft,        u8"左下方"                  },
+			{ET_CornerPositionBottomRight,       u8"右下方"                  },
+			{ET_SizingPolicySizeToContent,       u8"根据内容自动调整窗口大小"},
+			{ET_SizingPolicySizeContentToWindow, u8"根据窗口大小调整内容大小"},
+			{ET_SizingPolicyManualWindowSize,    u8"手动调整窗口大小"        },
+			{ET_KeyInputPopupName,               u8"快捷键"                  },
+			{ET_ApplyButton,                     u8"应用"                    },
+			{ET_CancelButton,                    u8"取消"                    },
+			{ET_UpdateDesc,                      u8"Bufff监控有新的更新"     },
+			{ET_UpdateCurrentVersion,            u8"现版本"                  },
+			{ET_UpdateNewVersion,                u8"新版本"                  },
+			{ET_UpdateOpenPage,                  u8"打开下载页面"            },
+			{ET_UpdateAutoButton,                u8"自动更新"                },
+			{ET_UpdateInProgress,                u8"正在进行自动更新"        },
+			{ET_UpdateRestartPending,            u8"自动更新完成，请重开游戏"},
+			{ET_UpdateError,                     u8"自动更新失败，请手动更新"},
+			{ET_Style,						   u8"外观设置"                },
+			{ET_TitleBar,                        u8"标题栏显示内容"          },
+			{ET_Background,                      u8"显示背景"                },
+			{ET_Scrollbar,                       u8"滚动条"                  },
+			{ET_Padding,						 u8"填充"                    },
+			{ET_SizingPolicy,                    u8"大小设置"                },
+			{ET_AppearAsInOption,                u8"出现在选项中"            },
+			{ET_TitleBarText,                    u8"标题栏显示内容"          },
+			{ET_Shortcut,                        u8"快捷键"                  },
+			{ET_Position,                        u8"位置"                    },
+			{ET_FromAnchorPanelCorner,           u8"从窗口角落的"            },
+			{ET_ThisPanelCorner,                 u8"到窗口角落的"            },
+			{ET_AnchorWindow,                    u8"基准窗口"                },
+			{ET_ColumnSetup,                     u8"列设置"                  },
+			{ET_UseCustomColumns,                u8"使用自定义列设置"        },
+			{ET_AlternatingRowBg,                u8"交替行显示背景"          },
+			{ET_HighlightHoveredRow,             u8"高亮显示鼠标悬停的行"    },
+			{ET_MaxDisplayed,                    u8"最大显示数量"            },
+			{ET_HeaderAlignment,                 u8"标题对齐方式"            },
+			{ET_ColumnAlignment,                 u8"列对齐方式"              },
+			{ET_Language,                        u8"语言"                    },
+			{ET_SettingsShowHeaderText,          u8"文字显示替代图标显示"    },
+			{ET_LanguageName,                    u8"简体中文"                },
+			{ET_LikeInGame,                      u8"与游戏一致"              },
 	});
 } // namespace ArcdpsExtension
 
