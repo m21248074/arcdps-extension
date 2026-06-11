@@ -38,3 +38,38 @@ void ArcdpsExtension::Localization::ChangeFallbackLanguage(const std::string& pL
 void ArcdpsExtension::Localization::SChangeFallbackLanguage(const std::string& pLang) {
 	Localization::instance().ChangeFallbackLanguage(pLang);
 }
+
+const std::string& ArcdpsExtension::Localization::ToLangCode(gwlanguage lang) {
+	switch (lang) {
+		case GWL_ENG:
+			return Lang::English;
+		case GWL_FRE:
+			return Lang::French;
+		case GWL_GEM:
+			return Lang::German;
+		case GWL_SPA:
+			return Lang::Spanish;
+		case GWL_CN:
+			return Lang::Chinese;
+		default:
+			return Lang::English;
+	}
+}
+#ifdef ARCDPS_EXTENSION_UNOFFICIAL_EXTRAS
+const std::string& ArcdpsExtension::Localization::ToLangCode(Language lang) {
+	switch (lang) {
+		case Language::English:
+			return Lang::English;
+		case Language::French:
+			return Lang::French;
+		case Language::German:
+			return Lang::German;
+		case Language::Spanish:
+			return Lang::Spanish;
+		case Language::Chinese:
+			return Lang::Chinese;
+		default:
+			return Lang::English;
+	}
+}
+#endif

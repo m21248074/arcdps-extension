@@ -16,6 +16,11 @@
 #include <utility>
 #include <vector>
 
+
+#ifdef ARCDPS_EXTENSION_UNOFFICIAL_EXTRAS
+#include <ArcdpsUnofficialExtras/Definitions.h>
+#endif
+
 namespace ArcdpsExtension {
 	namespace Lang {
 		inline std::string English = "en";
@@ -51,6 +56,8 @@ namespace ArcdpsExtension {
 	 * How to use:<br>
 	 * Call `Load()` with your translations you want to add.
 	 * Call it within `mod_init` or as early as possible.
+	 *
+	 * <b>Make sure to properly setup and teardown the Singleton class.</b>
 	 *
 	 * Call `ChangeLanguage` when you want to change the language.
 	 * Call it once to setup the language the user has in `mod_init`
@@ -164,6 +171,31 @@ namespace ArcdpsExtension {
 		}
 
 		/**
+		 * Get the stored list of available language keys.
+		 *
+		 * Languages are represented as strings, typically following standard language
+		 * codes (e.g., "en" for English, "de" for German, etc.). This set is automatically
+		 * updated when new translations are added via `AddTranslation`.
+		 *
+		 * Use this set to access the list of all available languages to e.g., implement language selection menus.
+		 */
+		const std::unordered_set<std::string>& GetLanguages() {
+			return Languages;
+		}
+
+		static const std::string& ToLangCode(gwlanguage lang);
+#ifdef ARCDPS_EXTENSION_UNOFFICIAL_EXTRAS
+		static const std::string& ToLangCode(Language lang);
+#endif
+
+	private:
+		using Translation = std::unordered_map<size_t, std::string>;
+		std::unordered_map<std::string, Translation> mTranslations;
+
+		Translation* mCurrentTranslation = nullptr;
+		Translation* mFallbackTranslation = nullptr;
+
+		/**
 		 * Stores the set of all language keys currently in use.
 		 *
 		 * Languages are represented as strings, typically following standard language
@@ -172,16 +204,6 @@ namespace ArcdpsExtension {
 		 *
 		 * Use this set to access the list of all available languages to e.g., implement language selection menus.
 		 */
-		static std::unordered_set<std::string> Languages;
-
-	private:
-		using Translation = std::unordered_map<size_t, std::string>;
-		std::unordered_map<std::string, Translation> mTranslations;
-
-		Translation* mCurrentTranslation = nullptr;
-		Translation* mFallbackTranslation = nullptr;
+		std::unordered_set<std::string> Languages;
 	};
 } // namespace ArcdpsExtension
-
-
-// std::string_view to_string(ArcdpsExtension::LanguageSetting pLang);
