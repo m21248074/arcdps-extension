@@ -8,6 +8,7 @@ ArcdpsExtension::Localization::Localization() {
 	Load(Lang::Spanish, EXTENSION_TRANSLATION_SPANISH);
 	Load(Lang::French, EXTENSION_TRANSLATION_FRENCH);
 	Load(Lang::Chinese, EXTENSION_TRANSLATION_CHINESE);
+	Load(Lang::TChinese, EXTENSION_TRANSLATION_TCHINESE);
 
 	mCurrentTranslation = &mTranslations.at(Lang::English);
 	mFallbackTranslation = &mTranslations.at(Lang::English);
@@ -51,6 +52,8 @@ const std::string& ArcdpsExtension::Localization::ToLangCode(gwlanguage lang) {
 			return Lang::Spanish;
 		case GWL_CN:
 			return Lang::Chinese;
+		case GWL_TW:
+			return Lang::TChinese;
 		default:
 			return Lang::English;
 	}
