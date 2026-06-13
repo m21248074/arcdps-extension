@@ -3,46 +3,73 @@
 #include "ExtensionTranslations.h"
 
 ArcdpsExtension::Localization::Localization() {
-	mCurrentTranslation = &mTranslations.at(mCurrentLanguage);
+	Load(Lang::English, EXTENSION_TRANSLATION_ENGLISH);
+	Load(Lang::German, EXTENSION_TRANSLATION_GERMAN);
+	Load(Lang::Spanish, EXTENSION_TRANSLATION_SPANISH);
+	Load(Lang::French, EXTENSION_TRANSLATION_FRENCH);
+	Load(Lang::Chinese, EXTENSION_TRANSLATION_CHINESE);
 
-	Load(GWL_ENG, EXTENSION_TRANSLATION_ENGLISH);
-	Load(GWL_GEM, EXTENSION_TRANSLATION_GERMAN);
-	Load(GWL_SPA, EXTENSION_TRANSLATION_SPANISH);
-	Load(GWL_FRE, EXTENSION_TRANSLATION_FRENCH);
-	Load(GWL_CN, EXTENSION_TRANSLATION_CHINESE);
-	Load(GWL_TW, EXTENSION_TRANSLATION_TCHINESE);
+	mCurrentTranslation = &mTranslations.at(Lang::English);
+	mFallbackTranslation = &mTranslations.at(Lang::English);
 }
 
 std::string_view ArcdpsExtension::Localization::Translate(size_t pId) const {
-	return mCurrentTranslation->at(pId);
+	const auto it = mCurrentTranslation->find(pId);
+	if (it == mCurrentTranslation->end()) {
+		return mFallbackTranslation->at(pId);
+	}
+	return it->second;
 }
 
-void ArcdpsExtension::Localization::ChangeLanguage(gwlanguage pLang) {
-	mCurrentLanguage = pLang;
+std::string_view ArcdpsExtension::Localization::Translate(const std::string& pLang) const {
+	return mTranslations.at(pLang).at(ET_LanguageName);
+}
+
+void ArcdpsExtension::Localization::ChangeLanguage(const std::string& pLang) {
 	mCurrentTranslation = &mTranslations.at(pLang);
 }
 
-void ArcdpsExtension::Localization::SChangeLanguage(gwlanguage pLang) {
+void ArcdpsExtension::Localization::SChangeLanguage(const std::string& pLang) {
 	Localization::instance().ChangeLanguage(pLang);
 }
+void ArcdpsExtension::Localization::ChangeFallbackLanguage(const std::string& pLang) {
+	mFallbackTranslation = &mTranslations.at(pLang);
+}
+void ArcdpsExtension::Localization::SChangeFallbackLanguage(const std::string& pLang) {
+	Localization::instance().ChangeFallbackLanguage(pLang);
+}
 
-std::string_view to_string(ArcdpsExtension::LanguageSetting pLang) {
-	switch (pLang) {
-		case ArcdpsExtension::LanguageSetting::English:
-			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::English, ArcdpsExtension::ET_LanguageName);
-		case ArcdpsExtension::LanguageSetting::LikeGame:
-			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::ET_LikeInGame);
-		case ArcdpsExtension::LanguageSetting::French:
-			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::French, ArcdpsExtension::ET_LanguageName);
-		case ArcdpsExtension::LanguageSetting::German:
-			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::German, ArcdpsExtension::ET_LanguageName);
-		case ArcdpsExtension::LanguageSetting::Spanish:
-			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::Spanish, ArcdpsExtension::ET_LanguageName);
-		case ArcdpsExtension::LanguageSetting::Chinese:
-			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::Chinese, ArcdpsExtension::ET_LanguageName);
-		case ArcdpsExtension::LanguageSetting::TChinese:
-			return ArcdpsExtension::Localization::STranslate(ArcdpsExtension::LanguageSetting::TChinese, ArcdpsExtension::ET_LanguageName);
+const std::string& ArcdpsExtension::Localization::ToLangCode(gwlanguage lang) {
+	switch (lang) {
+		case GWL_ENG:
+			return Lang::English;
+		case GWL_FRE:
+			return Lang::French;
+		case GWL_GEM:
+			return Lang::German;
+		case GWL_SPA:
+			return Lang::Spanish;
+		case GWL_CN:
+			return Lang::Chinese;
 		default:
-			return "Error, if you see this, please report it to the developer";
+			return Lang::English;
 	}
 }
+#ifdef ARCDPS_EXTENSION_UNOFFICIAL_EXTRAS
+const std::string& ArcdpsExtension::Localization::ToLangCode(Language lang) {
+	switch (lang) {
+		case Language::English:
+			return Lang::English;
+		case Language::French:
+			return Lang::French;
+		case Language::German:
+			return Lang::German;
+		case Language::Spanish:
+			return Lang::Spanish;
+		case Language::Chinese:
+			return Lang::Chinese;
+		default:
+			return Lang::English;
+	}
+}
+#endif
