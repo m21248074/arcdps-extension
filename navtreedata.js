@@ -94,18 +94,18 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "ArcdpsExtension_8cpp.html",
-"MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63a022ec5f0047a9dbea37688d0670cc5d4",
-"MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63ae2eb4c925fedaca343b39a338a69e7cc",
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dead579d3dc9049dec2b1546b6ed81319c9",
-"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6aebfa7ed798d3d683a022baa33207cb3f",
-"classArcdpsExtension_1_1DemoWindow.html#ae64ed990203d8dbef098e08a5b31cb96",
-"classArcdpsExtension_1_1MainWindow.html#a1895eb621bdfcf03de2ffd3cd2bb0733",
-"classArcdpsExtension_1_1Singleton.html#ae758636b9fa627d617c44429ba39af55",
-"map_8h.html#a1e6f283167edc7066bfbb3ef55279b48",
-"map_8h.html#ab3732070aa1f47ca86b76d79ef04d632",
-"namespaceImGuiEx.html#a6ed2e34092196101f0ab75ffda303d68a701b02b80b359f77c185eaec7011fbbd",
-"structArcdpsExtension_1_1MainTable_1_1Table.html#aafdf11f631cc167aaad1734f0f8b64c9",
-"structIdentity.html#a4ae11837484e32b868c5a3d8b61fe5e4"
+"MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63",
+"MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63ae2603bb78660e4125294fea9d8f241fd",
+"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dead3a33a6acdc27594a360fb749cbe53e6",
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ae81afe530d935a42ee322de5ea4cb931",
+"classArcdpsExtension_1_1DemoWindow.html#ae53effba264543781532d912dc204bfb",
+"classArcdpsExtension_1_1MainWindow.html#a13670402d94f8d60ad6c773aeef388c7",
+"classArcdpsExtension_1_1Singleton.html",
+"map_8h.html#a1e318d98ad0e41cf66fc28545a8759b8",
+"map_8h.html#ab29490783143bdbc3f47402af78d5dd1",
+"namespaceImGuiEx.html#a68e9442630b8c64f4fd93ccb0900ab84",
+"structArcdpsExtension_1_1MainTable_1_1Table.html#aaedd1d49bf1a5a02620b40e4fd2ba028",
+"structIdentity.html#a2bdaa4757a2e6c1d7cd6eab5b6d059aa"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -6,7 +6,8 @@ var namespaceArcdpsExtension =
       [ "English", "namespaceArcdpsExtension_1_1Lang.html#a008a454e2898d35c290df6510123ec4f", null ],
       [ "French", "namespaceArcdpsExtension_1_1Lang.html#acbec0e85a62c97d63e24f3bab2542a52", null ],
       [ "German", "namespaceArcdpsExtension_1_1Lang.html#a28a26a31cc8208908037a4913455535e", null ],
-      [ "Spanish", "namespaceArcdpsExtension_1_1Lang.html#ac1dc745d668a9ae4e6784287a5e2c7bd", null ]
+      [ "Spanish", "namespaceArcdpsExtension_1_1Lang.html#ac1dc745d668a9ae4e6784287a5e2c7bd", null ],
+      [ "TChinese", "namespaceArcdpsExtension_1_1Lang.html#a7ce25ad0d830b982ddc578ebcfd1ea5f", null ]
     ] ],
     [ "BaseSingleton", "classArcdpsExtension_1_1BaseSingleton.html", "classArcdpsExtension_1_1BaseSingleton" ],
     [ "CombatEventHandler", "classArcdpsExtension_1_1CombatEventHandler.html", "classArcdpsExtension_1_1CombatEventHandler" ],

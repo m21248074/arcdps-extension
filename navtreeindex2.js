@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63ae2603bb78660e4125294fea9d8f241fd":[5,0,27,1,183],
 "MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63ae2eb4c925fedaca343b39a338a69e7cc":[5,0,27,1,241],
 "MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63ae33f1fb5463c103e0d78ee7a52d1f376":[5,0,27,1,197],
 "MobIDs_8h.html#aea3234b9e6ff7f848ac3d3f5fb432f63ae3dd2d8ba11d927ccdbbbcde7fa53f60":[5,0,27,1,201],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dea899462eba75fef2e25bcce0cd67b5fdd":[5,0,4,7,4],
 "arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dea92a42d55c0f7f5cebdffb5c5853b99a3":[5,0,4,7,14],
 "arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8deaa07c15e8a518246370a81610b52c07a3":[5,0,4,7,5],
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8deaa3331712c308f71933ea859a401ddc7a":[5,0,4,7,1],
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dead3a33a6acdc27594a360fb749cbe53e6":[5,0,4,7,10]
+"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8deaa3331712c308f71933ea859a401ddc7a":[5,0,4,7,1]
 };

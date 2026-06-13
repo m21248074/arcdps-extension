@@ -1,5 +1,6 @@
 var NAVTREEINDEX4 =
 {
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ae81afe530d935a42ee322de5ea4cb931":[5,0,4,8,16],
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6aebfa7ed798d3d683a022baa33207cb3f":[5,0,4,8,53],
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6af8f89de52be6cfd257dea1fc6f40cacc":[5,0,4,8,52],
 "arcdps__structs__slim_8h.html#abfbc2af9adf51c9b732bec7826ecf5ba":[5,0,4,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX4 =
 "classArcdpsExtension_1_1DemoWindow.html#abe1aa344f8407ba4796f301870fbdd04":[2,0,0,9,15],
 "classArcdpsExtension_1_1DemoWindow.html#ade092ffaaa11db18746598083641a713":[4,0,0,7,6],
 "classArcdpsExtension_1_1DemoWindow.html#ade092ffaaa11db18746598083641a713":[2,0,0,9,6],
-"classArcdpsExtension_1_1DemoWindow.html#ae53effba264543781532d912dc204bfb":[2,0,0,9,10],
-"classArcdpsExtension_1_1DemoWindow.html#ae53effba264543781532d912dc204bfb":[4,0,0,7,10]
+"classArcdpsExtension_1_1DemoWindow.html#ae53effba264543781532d912dc204bfb":[2,0,0,9,10]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"classArcdpsExtension_1_1MainWindow.html#a13670402d94f8d60ad6c773aeef388c7":[4,0,0,15,17],
 "classArcdpsExtension_1_1MainWindow.html#a1895eb621bdfcf03de2ffd3cd2bb0733":[4,0,0,15,34],
 "classArcdpsExtension_1_1MainWindow.html#a1895eb621bdfcf03de2ffd3cd2bb0733":[2,0,0,17,34],
 "classArcdpsExtension_1_1MainWindow.html#a343c41f626e133baf1e8a5dde1de61fe":[4,0,0,15,32],
@@ -248,6 +249,5 @@ var NAVTREEINDEX6 =
 "classArcdpsExtension_1_1SimpleNetworkStack.html#ac4c45f03cca5e4c7bc1faa4939f73b32":[2,0,0,22,12],
 "classArcdpsExtension_1_1SimpleNetworkStack.html#ac6dac82c4c5a6d8e618188b3e6e20d61":[2,0,0,22,2],
 "classArcdpsExtension_1_1SimpleNetworkStack.html#ac6dac82c4c5a6d8e618188b3e6e20d61":[4,0,0,20,2],
-"classArcdpsExtension_1_1Singleton.html":[4,0,0,21],
-"classArcdpsExtension_1_1Singleton.html":[2,0,0,23]
+"classArcdpsExtension_1_1Singleton.html":[4,0,0,21]
 };
