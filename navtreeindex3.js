@@ -1,10 +1,5 @@
 var NAVTREEINDEX3 =
 {
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dea899462eba75fef2e25bcce0cd67b5fdd":[5,0,4,7,4],
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dea92a42d55c0f7f5cebdffb5c5853b99a3":[5,0,4,7,14],
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8deaa07c15e8a518246370a81610b52c07a3":[5,0,4,7,5],
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8deaa3331712c308f71933ea859a401ddc7a":[5,0,4,7,1],
-"arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dead3a33a6acdc27594a360fb749cbe53e6":[5,0,4,7,10],
 "arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dead579d3dc9049dec2b1546b6ed81319c9":[5,0,4,7,2],
 "arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dead60ebb7c05615f52d4bef2bbdfe3c002":[5,0,4,7,19],
 "arcdps__structs__slim_8h.html#a02aa39376fa6aaf598a43887b429a8dead964f54e607aae6893dd6e12d73b30b7":[5,0,4,7,3],
@@ -249,5 +244,10 @@ var NAVTREEINDEX3 =
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6abd2901a1cfbab1e7874945acb12cd56b":[5,0,4,8,32],
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ac8162d0b903dc9841d31ef0115efeadf":[5,0,4,8,12],
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6aca832671331c7db0b10b0863069eba99":[5,0,4,8,37],
-"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ad70f3278883961d75aa9a72855dd0c5f":[5,0,4,8,20]
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ad70f3278883961d75aa9a72855dd0c5f":[5,0,4,8,20],
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ad9b92ea1a5a3f83f47872b8f710d6455":[5,0,4,8,27],
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6adf647ab4aaced515de147294e3ab6a92":[5,0,4,8,43],
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ae1ea33188a1eac8c3e1903fd47a55339":[5,0,4,8,8],
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ae2c4de471af1c72f724db266b1545530":[5,0,4,8,34],
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6ae81afe530d935a42ee322de5ea4cb931":[5,0,4,8,16]
 };
