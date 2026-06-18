@@ -200,7 +200,7 @@ namespace ArcdpsExtension {
 		 *
 		 * Use this set to access the list of all available languages to e.g., implement language selection menus.
 		 */
-		const std::unordered_set<std::string>& GetLanguages() {
+		const std::unordered_set<std::string>& GetLanguages() const {
 			return Languages;
 		}
 
