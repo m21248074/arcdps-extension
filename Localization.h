@@ -1,20 +1,18 @@
 #pragma once
 
 #include "arcdps_structs_slim.h"
+#include "ExtensionTranslations.h"
 #include "Singleton.h"
 
-#include <algorithm>
-#include <array>
 #include <concepts>
 #include <cstddef>
-#include <magic_enum/magic_enum.hpp>
 #include <ranges>
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 
 #ifdef ARCDPS_EXTENSION_UNOFFICIAL_EXTRAS

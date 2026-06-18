@@ -2,6 +2,9 @@
 
 #include "ExtensionTranslations.h"
 
+#include <ArcdpsUnofficialExtras/Definitions.h>
+#include <array>
+
 ArcdpsExtension::Localization::Localization() {
 	Load(Lang::English, EXTENSION_TRANSLATION_ENGLISH);
 
