@@ -1,13 +1,36 @@
 #include "ExtensionTranslations.h"
 #include "Localization.h"
-#include "arcdps_structs_slim.h"
+#include "Singleton.h"
 
 #include <gtest/gtest.h>
 
 using namespace ArcdpsExtension;
 
-TEST(LocalizationTests, BaseTranslations) {
-	Localization localization;
+class LocalizationTests : public ::testing::Test {
+public:
+	static void TearDownTestSuite() {
+		g_singletonManagerInstance.Shutdown();
+	}
+
+protected:
+	void SetUp() override {
+		auto& localization = Localization::instance();
+		localization.Load(Lang::German);
+		localization.Load(Lang::French);
+		localization.Load(Lang::Spanish);
+		localization.Load(Lang::Chinese);
+
+		::testing::Test::SetUp();
+	}
+	void TearDown() override {
+		g_singletonManagerInstance.Shutdown();
+
+		::testing::Test::TearDown();
+	}
+};
+
+TEST_F(LocalizationTests, BaseTranslations) {
+	auto& localization = Localization::instance();
 
 	localization.ChangeLanguage(Lang::English);
 	ASSERT_EQ(localization.Translate(ET_Left), "Left");
@@ -23,8 +46,8 @@ TEST(LocalizationTests, BaseTranslations) {
 	ASSERT_EQ(localization.Translate(ET_Left), "靠左");
 }
 
-TEST(LocalizationTests, BaseTranslationsLang) {
-	Localization localization;
+TEST_F(LocalizationTests, BaseTranslationsLang) {
+	auto& localization = Localization::instance();
 
 	ASSERT_EQ(localization.Translate(Lang::English, ET_Left), "Left");
 	ASSERT_EQ(localization.Translate(Lang::German, ET_Left), "Links");
@@ -34,8 +57,8 @@ TEST(LocalizationTests, BaseTranslationsLang) {
 	ASSERT_EQ(localization.Translate(Lang::TChinese, ET_Left), "靠左");
 }
 
-TEST(LocalizationTests, BaseTranslationsSpecialChars) {
-	Localization localization;
+TEST_F(LocalizationTests, BaseTranslationsSpecialChars) {
+	auto& localization = Localization::instance();
 
 	localization.ChangeLanguage(Lang::German);
 	ASSERT_EQ(localization.Translate(ET_SizingPolicyManualWindowSize), "Manuelle Fenstergröße");
@@ -49,8 +72,8 @@ TEST(LocalizationTests, BaseTranslationsSpecialChars) {
 	ASSERT_EQ(localization.Translate(ET_SizingPolicySizeContentToWindow), "調整內容到視窗的大小");
 }
 
-TEST(LocalizationTests, OverrideTranslation) {
-	Localization localization;
+TEST_F(LocalizationTests, OverrideTranslation) {
+	auto& localization = Localization::instance();
 
 	localization.ChangeLanguage(Lang::English);
 	ASSERT_EQ(localization.Translate(ET_Left), "Left");

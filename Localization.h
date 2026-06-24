@@ -1,20 +1,18 @@
 #pragma once
 
 #include "arcdps_structs_slim.h"
+#include "ExtensionTranslations.h"
 #include "Singleton.h"
 
-#include <algorithm>
-#include <array>
 #include <concepts>
 #include <cstddef>
-#include <magic_enum/magic_enum.hpp>
 #include <ranges>
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 
 #ifdef ARCDPS_EXTENSION_UNOFFICIAL_EXTRAS
@@ -133,19 +131,40 @@ namespace ArcdpsExtension {
 			return Localization::instance().Translate(std::forward<Args>(args)...);
 		}
 
+		/**
+		 * Add/Overwrite a key-value-range of translations.
+		 * The value of the range must be convertible to `std::string_view`.
+		 * Example ranges: `std::map<Key, const char*>` or `std::vector<std::pair<Key, const char*>>`.
+		 */
 		template<typename R>
-		requires details::KeyValueRangeOf<R, size_t, std::string>
+		requires details::KeyValueRangeOf<R, size_t, std::string_view>
 		void Load(const std::string& pLang, const R& pRange) {
 			for (auto&& [key, value] : pRange) {
 				AddTranslation(pLang, key, value);
 			}
 		}
 
+		/**
+		 * Add/Overwrite a key-value-range of translations.
+		 * The value of the range must be convertible to `std::u8string_view`.
+		 * Example ranges: `std::map<Key, const char8_t*>` or `std::vector<std::pair<Key, const char8_t*>>`.
+		 */
 		template<typename R>
-		requires details::KeyValueRangeOf<R, size_t, const char8_t*>
+		requires details::KeyValueRangeOf<R, size_t, std::u8string_view>
 		void Load(const std::string& pLang, const R& pRange) {
-			Load(pLang, pRange | std::views::transform([](const auto& p) { return std::pair(p.first, reinterpret_cast<const char*>(p.second)); }));
+			Load(pLang, pRange | std::views::transform([](const auto& p) {
+							std::u8string_view value(p.second);
+							return std::pair(p.first, std::string_view(reinterpret_cast<const char*>(value.data()), value.size()));
+						}));
 		}
+
+		/**
+		 * Load the default translations for the specified language.
+		 * Call it for each default language you want to support.
+		 * This is not needed for English, because that one is loaded on construction.
+		 * Default languages are available in @ref ::ArcdpsExtension::Lang.
+		 */
+		void Load(const std::string& pLang);
 
 		void ChangeLanguage(const std::string& pLang);
 		static void SChangeLanguage(const std::string& pLang);
@@ -180,7 +199,7 @@ namespace ArcdpsExtension {
 		 *
 		 * Use this set to access the list of all available languages to e.g., implement language selection menus.
 		 */
-		const std::unordered_set<std::string>& GetLanguages() {
+		const std::unordered_set<std::string>& GetLanguages() const {
 			return Languages;
 		}
 

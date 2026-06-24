@@ -2,7 +2,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(rapidfuzz CONFIG REQUIRED)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_DEFINE_MATH_OPERATORS)
-target_compile_definitions(${PROJECT_NAME} PRIVATE ARCDPS_EXTENSION_IMGUI)
+target_compile_definitions(${PROJECT_NAME} PUBLIC ARCDPS_EXTENSION_IMGUI)
 
 target_sources(${PROJECT_NAME} PUBLIC
 		FILE_SET HEADERS

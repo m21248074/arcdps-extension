@@ -2,13 +2,11 @@
 
 #include "ExtensionTranslations.h"
 
+#include <ArcdpsUnofficialExtras/Definitions.h>
+#include <array>
+
 ArcdpsExtension::Localization::Localization() {
 	Load(Lang::English, EXTENSION_TRANSLATION_ENGLISH);
-	Load(Lang::German, EXTENSION_TRANSLATION_GERMAN);
-	Load(Lang::Spanish, EXTENSION_TRANSLATION_SPANISH);
-	Load(Lang::French, EXTENSION_TRANSLATION_FRENCH);
-	Load(Lang::Chinese, EXTENSION_TRANSLATION_CHINESE);
-	Load(Lang::TChinese, EXTENSION_TRANSLATION_TCHINESE);
 
 	mCurrentTranslation = &mTranslations.at(Lang::English);
 	mFallbackTranslation = &mTranslations.at(Lang::English);
@@ -24,6 +22,18 @@ std::string_view ArcdpsExtension::Localization::Translate(size_t pId) const {
 
 std::string_view ArcdpsExtension::Localization::Translate(const std::string& pLang) const {
 	return mTranslations.at(pLang).at(ET_LanguageName);
+}
+
+void ArcdpsExtension::Localization::Load(const std::string& pLang) {
+	if (pLang == Lang::German) {
+		Load(pLang, EXTENSION_TRANSLATION_GERMAN);
+	} else if (pLang == Lang::French) {
+		Load(pLang, EXTENSION_TRANSLATION_FRENCH);
+	} else if (pLang == Lang::Spanish) {
+		Load(pLang, EXTENSION_TRANSLATION_SPANISH);
+	} else if (pLang == Lang::Chinese) {
+		Load(pLang, EXTENSION_TRANSLATION_CHINESE);
+	}
 }
 
 void ArcdpsExtension::Localization::ChangeLanguage(const std::string& pLang) {
