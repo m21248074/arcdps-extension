@@ -19,6 +19,7 @@ protected:
 		localization.Load(Lang::French);
 		localization.Load(Lang::Spanish);
 		localization.Load(Lang::Chinese);
+		localization.Load(Lang::TChinese);
 
 		::testing::Test::SetUp();
 	}
