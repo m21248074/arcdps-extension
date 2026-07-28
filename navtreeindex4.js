@@ -169,7 +169,6 @@ var NAVTREEINDEX4 =
 "arcdps__structs__slim_8h.html#a5ad6b2dd22d6039e313331ac62764199acb6144da4056884fbcdc1d01aade8699":[5,0,4,9,8],
 "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7":[5,0,4,10],
 "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a020c60370cafe5e3c91bbab4f3db33b5":[5,0,4,10,4],
-"arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a0edeba315c9dc8188f45ff78d77a012a":[5,0,4,10,6],
 "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a2f9b20cfca510b38762cc379eb1df431":[5,0,4,10,3],
 "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a5b601e0e6750a7c7171d763fa1ac2064":[5,0,4,10,0],
 "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a755195dff4ad08263d51851a4ff1ee80":[5,0,4,10,5],
@@ -249,5 +248,6 @@ var NAVTREEINDEX4 =
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6a2e7903b5122a9a7d18d50b7d2ff38f77":[5,0,4,8,23],
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6a336d9ce78aa0fd3f07ca9a7621bf8511":[5,0,4,8,3],
 "arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6a34ff155bd5ed0e7ee486303412b4cb40":[5,0,4,8,71],
-"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6a3546f55be4c29c6145f4e5926befe5b5":[5,0,4,8,57]
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6a3546f55be4c29c6145f4e5926befe5b5":[5,0,4,8,57],
+"arcdps__structs__slim_8h.html#aa9eaab87ee5fe0145dff56595c6e56f6a377baabb4d72e38757ed9609800e7bd7":[5,0,4,8,49]
 };

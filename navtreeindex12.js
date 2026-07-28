@@ -1,6 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"namespaceArcdpsExtension.html#a8e5ec089c06071c84c79c8fbf3830376aca52fdfc691f443f9c0727d8d7cde13f":[2,0,0,39,247],
 "namespaceArcdpsExtension.html#a8e5ec089c06071c84c79c8fbf3830376acbf3df1c214005571c4e307e4db26bba":[2,0,0,39,231],
 "namespaceArcdpsExtension.html#a8e5ec089c06071c84c79c8fbf3830376acc4a916f6545b235878b4ffb3d2572ef":[2,0,0,39,175],
 "namespaceArcdpsExtension.html#a8e5ec089c06071c84c79c8fbf3830376ace16fee7f057ff3ca35f24b8207756d7":[2,0,0,39,213],
@@ -249,5 +248,6 @@ var NAVTREEINDEX12 =
 "structArcdpsExtension_1_1MainTable_1_1Table.html#a20b20e4c022adceeb2fe299cf806f6e2":[4,0,0,14,0,10],
 "structArcdpsExtension_1_1MainTable_1_1Table.html#a21c2b49d9bea6602ba7fcd3148583d89":[4,0,0,14,0,86],
 "structArcdpsExtension_1_1MainTable_1_1Table.html#a21c2b49d9bea6602ba7fcd3148583d89":[2,0,0,16,0,86],
-"structArcdpsExtension_1_1MainTable_1_1Table.html#a226e8d16e6c4bbb555708e9ec95231c4":[2,0,0,16,0,9]
+"structArcdpsExtension_1_1MainTable_1_1Table.html#a226e8d16e6c4bbb555708e9ec95231c4":[2,0,0,16,0,9],
+"structArcdpsExtension_1_1MainTable_1_1Table.html#a226e8d16e6c4bbb555708e9ec95231c4":[4,0,0,14,0,9]
 };

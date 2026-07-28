@@ -173,8 +173,7 @@ var arcdps__structs__slim_8h =
       [ "GWL_FRE", "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7ad60b1f420ebd8fd78f2706b7da6ffd6d", null ],
       [ "GWL_GEM", "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a2f9b20cfca510b38762cc379eb1df431", null ],
       [ "GWL_SPA", "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a020c60370cafe5e3c91bbab4f3db33b5", null ],
-      [ "GWL_CN", "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a755195dff4ad08263d51851a4ff1ee80", null ],
-      [ "GWL_TW", "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a0edeba315c9dc8188f45ff78d77a012a", null ]
+      [ "GWL_CN", "arcdps__structs__slim_8h.html#a6332a2e6cc2d46a31c91124933609ad7a755195dff4ad08263d51851a4ff1ee80", null ]
     ] ],
     [ "iff", "arcdps__structs__slim_8h.html#aa03a33a0aa23f08794dfff4bc7b2810c", [
       [ "IFF_FRIEND", "arcdps__structs__slim_8h.html#aa03a33a0aa23f08794dfff4bc7b2810ca6002c1e7f36d4cb5b034b25c53a76ef6", null ],
