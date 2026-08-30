@@ -395,6 +395,5 @@ var namespaceArcdpsExtension =
     [ "UE_TRANSLATIONS_ENGLISH", "namespaceArcdpsExtension.html#a0556e6baca08721dede6d25324c41229", null ],
     [ "UE_TRANSLATIONS_FRENCH", "namespaceArcdpsExtension.html#a9f8c0560c70abd3ebdad77ea34c72451", null ],
     [ "UE_TRANSLATIONS_GERMAN", "namespaceArcdpsExtension.html#ae14cf516c5e4ea50eb9ace4fb681b35f", null ],
-    [ "UE_TRANSLATIONS_SPANISH", "namespaceArcdpsExtension.html#a497ba56148dd975f51448c27a974e871", null ],
-    [ "UE_TRANSLATIONS_TCHINESE", "namespaceArcdpsExtension.html#a22bc87f3c423082c13b9f2f0e33a8609", null ]
+    [ "UE_TRANSLATIONS_SPANISH", "namespaceArcdpsExtension.html#a497ba56148dd975f51448c27a974e871", null ]
 ];
