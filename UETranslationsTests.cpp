@@ -1,4 +1,4 @@
-#include "UETranslations.h"
+﻿#include "UETranslations.h"
 
 #include "Localization.h"
 #include "Singleton.h"
@@ -29,11 +29,13 @@ protected:
 		localization.Load(Lang::French);
 		localization.Load(Lang::Spanish);
 		localization.Load(Lang::Chinese);
+		localization.Load(Lang::TChinese);
 
 		localization.Load(Lang::English, UE_TRANSLATIONS_ENGLISH);
 		localization.Load(Lang::French, UE_TRANSLATIONS_FRENCH);
 		localization.Load(Lang::German, UE_TRANSLATIONS_GERMAN);
 		localization.Load(Lang::Spanish, UE_TRANSLATIONS_SPANISH);
+		localization.Load(Lang::TChinese, UE_TRANSLATIONS_TCHINESE);
 
 		::testing::Test::SetUp();
 	}
@@ -87,7 +89,7 @@ TEST_F(UETranslationsTests, KeyCodeGerman) {
 	ASSERT_EQ(to_string(KeyBinds::KeyCode::Hash, germanHkl), "#");
 	ASSERT_EQ(to_string(KeyBinds::KeyCode::Tilde, germanHkl), "^");
 	ASSERT_EQ(to_string(KeyBinds::KeyCode::PlusNum, germanHkl), "Plus (ZB)");
-	ASSERT_EQ(to_string(KeyBinds::KeyCode::Semicolon, germanHkl), "ö");
+	ASSERT_EQ(to_string(KeyBinds::KeyCode::Semicolon, germanHkl), (const char*)u8"ö");
 	Localization::SChangeLanguage(Lang::English);
 }
 
@@ -113,5 +115,16 @@ TEST_F(UETranslationsTests, KeyGerman) {
 	ASSERT_EQ(to_string(KeyBinds::Key(KeyBinds::KeyCode::_5_NUM), germanHkl), "5 (ZB)");
 	ASSERT_EQ(to_string(KeyBinds::Key(KeyBinds::KeyCode::_5_NUM, KeyBinds::Modifier_Shift), germanHkl), "Umschalttaste + 5 (ZB)");
 	ASSERT_EQ(to_string(KeyBinds::Key(KeyBinds::KeyCode::_5_NUM, KeyBinds::Modifier_Shift | KeyBinds::Modifier_Alt), germanHkl), "Alt + Umschalttaste + 5 (ZB)");
+	Localization::SChangeLanguage(Lang::English);
+}
+
+TEST_F(UETranslationsTests, KeyCodeTChinese) {
+	Localization::SChangeLanguage(Lang::TChinese);
+	ASSERT_EQ(to_string(KeyBinds::KeyCode::ArrowDown, englishHkl), (const char*)u8"下方向鍵");
+	ASSERT_EQ(to_string(KeyBinds::KeyCode::PlusNum, englishHkl), (const char*)u8"數字鍵 +");
+	ASSERT_EQ(to_string(KeyBinds::MouseCode::Mouse_1), (const char*)u8"滑鼠 1");
+	ASSERT_EQ(to_string(KeyBinds::Key(), englishHkl, true), (const char*)u8"(未設定)");
+	ASSERT_EQ(to_string(KeyBinds::Key(KeyBinds::MouseCode::Mouse_1, KeyBinds::Modifier_Shift), englishHkl), (const char*)u8"Shift + 滑鼠 1");
+	ASSERT_EQ(to_string(KeyBinds::KeyControl::Templates_FashionTemplate9), Localization::STranslate(UE_Templates_FashionTemplate9));
 	Localization::SChangeLanguage(Lang::English);
 }
